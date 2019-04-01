@@ -5,10 +5,10 @@ from typing import Tuple
 
 import numpy as np
 
-from .Learner import Learner
+from environment import Agent
 
 
-class QLearner(Learner):
+class QLearner(Agent):
     """ Uses Q-learning to update/maximize rewards """
 
     def __init__(self, env):

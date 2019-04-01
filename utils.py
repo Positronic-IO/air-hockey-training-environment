@@ -2,7 +2,12 @@
 
 import argparse
 import os
-from typing import Dict
+from typing import Dict, Tuple, Union, Any
+
+# Define custom types
+Action = Union[str, Tuple[int, int]]
+State = Tuple[Tuple[int, int], Tuple[int, int]]
+
 
 
 def parse_args() -> Dict[str, str]:

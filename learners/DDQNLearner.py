@@ -13,12 +13,12 @@ from keras.layers.core import Activation, Dense
 from keras.models import Sequential
 from keras.optimizers import Adam, RMSprop
 
-from utils import get_model_path
+from utils import get_model_path, State
 
-from .Learner import Learner
+from environment import Agent
 
 
-class DDQNLearner(Learner):
+class DDQNLearner(Agent):
 
     """ Reference: https://keon.io/deep-q-learning/ """
 
@@ -36,24 +36,13 @@ class DDQNLearner(Learner):
         self.batch_size = 5000
         self._model = self._build_model()
 
-    def _huber_loss(
-        self, y_true: float, y_pred: float, clip_delta: float = 1.0
-    ) -> float:
+    def _huber_loss(self, y_true: float, y_pred: float) -> float:
         """ Compute Huber Loss 
         
         References: https://en.wikipedia.org/wiki/Huber_loss
                 https://www.tensorflow.org/api_docs/python/tf/losses/huber_loss
         """
-
-        error = y_true - y_pred
-        cond = K.abs(error) <= clip_delta
-
-        squared_loss = 0.5 * K.square(error)
-        quadratic_loss = 0.5 * K.square(clip_delta) + clip_delta * (
-            K.abs(error) - clip_delta
-        )
-
-        return K.mean(tf.where(cond, squared_loss, quadratic_loss))
+        return K.mean(K.sqrt(1 + K.square(y_pred - y_true)) - 1, axis=-1)
 
     def _build_model(self):
         """ Create our DNN model for Q-value approximation """
@@ -89,16 +78,16 @@ class DDQNLearner(Learner):
 
     def remember(
         self,
-        state: Tuple[Tuple[int, int], Tuple[int, int]],
+        state: State,
         action: str,
         reward: int,
-        next_state: Tuple[Tuple[int, int], Tuple[int, int]],
+        next_state: State,
     ):
         """ Push data into memory for replay later """
         self.memory.append((state, action, reward, next_state))
 
-    def get_action(self, state: Tuple[Tuple[int, int], Tuple[int, int]]) -> str:
-        """ Give current state, predict next action which maximizes reward """
+    def get_action(self, state: State) -> str:
+        """ Apply an espilon-greedy policy to pick next action """
 
         # Helps over fitting, encourages to exploration
         if np.random.uniform(0, 1) < self.epsilon:

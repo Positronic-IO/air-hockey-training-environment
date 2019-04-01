@@ -5,7 +5,7 @@ import numpy as np
 from typing import Dict, Tuple, Union, Any
 
 from environment.components import Goal, Mallet, Puck
-
+from utils import Action
 
 class AirHockey(object):
     
@@ -133,7 +133,7 @@ class AirHockey(object):
 
         return None
 
-    def update_state(self, action: Union[str, Tuple[int, int]]) -> None:
+    def update_state(self, action: Action) -> None:
         """ Update state of game """
 
         # Update action

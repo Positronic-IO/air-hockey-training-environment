@@ -11,11 +11,10 @@ from keras.layers import Dense, Dropout, BatchNormalization
 from keras.layers.core import Activation, Dense
 from keras.models import Sequential
 from keras.optimizers import Adam, RMSprop
-from utils import get_model_path
-from .Learner import Learner
+from utils import get_model_path, State
+from environment import Agent
 
-
-class DQNLearner(Learner):
+class DQNLearner(Agent):
 
     """ Reference: https://keon.io/deep-q-learning/ """
 
@@ -28,22 +27,13 @@ class DQNLearner(Learner):
 
         self._model = self._build_model()
 
-    def _huber_loss(self, y_true, y_pred, clip_delta: float = 1.0) -> float:
+    def _huber_loss(self, y_true: float, y_pred: float) -> float:
         """ Compute Huber Loss 
         
         References: https://en.wikipedia.org/wiki/Huber_loss
                 https://www.tensorflow.org/api_docs/python/tf/losses/huber_loss
         """
-
-        error = y_true - y_pred
-        cond = K.abs(error) <= clip_delta
-
-        squared_loss = 0.5 * K.square(error)
-        quadratic_loss = 0.5 * K.square(clip_delta) + clip_delta * (
-            K.abs(error) - clip_delta
-        )
-
-        return K.mean(tf.where(cond, squared_loss, quadratic_loss))
+        return K.mean(K.sqrt(1 + K.square(y_pred - y_true)) - 1, axis=-1)
 
     def _build_model(self):
         """ Create our DNN model for Q-value approximation """
@@ -77,8 +67,8 @@ class DQNLearner(Learner):
 
         return model
 
-    def get_action(self, state: Tuple[Tuple[int, int], Tuple[int, int]]) -> str:
-        """ Give current state, predict next action which maximizes reward """
+    def get_action(self, state: State) -> str:
+        """ Apply an espilon-greedy policy to pick next action """
 
         # Compute rewards for any posible action
         rewards = self._model.predict([np.array([state])], batch_size=1)
@@ -100,7 +90,7 @@ class DQNLearner(Learner):
         return action
 
     def update(
-        self, new_state: Tuple[Tuple[int, int], Tuple[int, int]], reward: int
+        self, new_state: State, reward: int
     ) -> None:
         """ Updates learner with new state/Q values """
 

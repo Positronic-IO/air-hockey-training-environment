@@ -1,6 +1,6 @@
 """ Initialize an agent for a game """
-from typing import Union, Tuple
-
+from typing import Tuple
+from utils import Action
 class Agent(object):
     def __init__(self, env=None):
 
@@ -9,7 +9,7 @@ class Agent(object):
         else:
             raise ValueError("Please pass an instance of the gaming environment")
 
-    def move(self, action: Union[str, Tuple[int, int]]) -> None:
+    def move(self, action: Action) -> None:
         " Move agent "
 
         self.env.update_state(action)

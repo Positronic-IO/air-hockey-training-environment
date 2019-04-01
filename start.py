@@ -8,6 +8,7 @@ from environment import AirHockey
 from environment.test import TestAirHockey
 from learners import LearnerFactory
 from utils import get_model_path, parse_args, welcome
+from typing import Union
 
 # Initialize the game engine
 pygame.init()
@@ -28,7 +29,7 @@ middle_line_offset = 4.5
 fps = 60
 
 
-def draw_table(env: AirHockey) -> None:
+def draw_table(env: Union[AirHockey, TestAirHockey]) -> None:
     """ Renrers table """
 
     # base of rink
