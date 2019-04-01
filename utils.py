@@ -2,27 +2,49 @@
 
 import argparse
 import os
-from typing import Dict, Tuple, Union, Any
+import sys
+from typing import Any, Dict, Tuple, Union
 
 # Define custom types
 Action = Union[str, Tuple[int, int]]
 State = Tuple[Tuple[int, int], Tuple[int, int]]
 
 
-
 def parse_args() -> Dict[str, str]:
     """ Construct the argument parse and parse the arguments """
 
     ap = argparse.ArgumentParser()
-    ap.add_argument(
-        "-a", "--agent", default="human", required=True, help="Agent for gameplay"
-    )
+    ap.add_argument("-m", "--mode", default="gui", help="Game play")
+    ap.add_argument("-a", "--agent", default="human", help="Agent for gameplay")
     ap.add_argument("--learner", default="q-learner", help="Learner method")
     ap.add_argument("--load", help="Path to load a model")
     ap.add_argument("--save", help="Path to save a model")
     ap.add_argument("--env", default="normal", help="Define environment")
 
     args = vars(ap.parse_args())
+
+    # Validations
+    if args.get("mode") not in ["gui", "cli"]:
+        print("Incorrect game mode.")
+        sys.exit()
+
+    if args.get("agent") == "human" and args.get("mode") == "cli":
+        print("Human agent only allowed in gui mode.")
+        sys.exit()
+
+    if args.get("agent") not in ["human", "robot"]:
+        print("Select an allowed agent: human or robot")
+        sys.exit()
+
+    if args.get("learner") not in ["q-learner", "dqn-learner", "ddqn-learner"]:
+        print("Unsupported learning strategy.")
+        sys.exit()
+
+    if args.get("load") and not args.get("save"):
+        print(
+            "Since path is not defined, model will be saved to the same path as it was loaded from."
+        )
+
     return args
 
 
@@ -57,13 +79,18 @@ def welcome(args: Dict[str, str]) -> None:
 
     """
     )
+
+    print("-" * 35)
+    if args.get("mode"):
+        print(f"Game Mode: {args['mode']}")
+
     if args.get("env"):
         print(f"Environment: {args['env']}")
 
-    if args["agent"] == "human":
+    if args.get("agent") == "human":
         print("Agent: Human")
 
-    if args["agent"] == "robot":
+    if args.get("agent") == "robot":
         print("Agent: Robot")
         print(f"Learning Algorithm: {args['learner']}")
 
@@ -72,6 +99,7 @@ def welcome(args: Dict[str, str]) -> None:
 
     if args.get("save"):
         print(f"Saving model at: {args['save']}")
+    print("-" * 35)
 
 
 def get_model_path(file_path: str) -> str:
