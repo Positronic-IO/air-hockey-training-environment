@@ -1,6 +1,8 @@
 """ Initialize an agent for a game """
 from typing import Tuple
 from utils import Action
+
+
 class Agent(object):
     def __init__(self, env=None):
 
