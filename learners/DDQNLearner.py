@@ -26,14 +26,14 @@ class DDQNLearner(Learner):
         super().__init__(env)
         # create replay memory using deque
         self.memory = list()
-        self.max_memory = 50000  # number of previous transitions to remember
+        self.max_memory = 5000000  # number of previous transitions to remember
 
         self.gamma = 0.95  # discount rate
         self.epsilon = 1.0  # exploration rate
         self.epsilon_min = 0.01
         self.epsilon_decay = 0.99
         self.learning_rate = 0.001
-        self.batch_size = 500
+        self.batch_size = 5000
         self._model = self._build_model()
 
     def _huber_loss(

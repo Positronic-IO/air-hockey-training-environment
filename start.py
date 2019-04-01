@@ -98,7 +98,7 @@ if __name__ == "__main__":
     epoch = 1
 
     # Number of iterations between saves
-    iterations_on_save = 10 ** 3
+    iterations_on_save = 10 ** 4
     iterations = 1
 
     # We begin..
@@ -193,7 +193,7 @@ if __name__ == "__main__":
                 epoch += 1
             iterations += 1
 
-        # # Compute scores
+        # Compute scores
         if env.cpu_score == 10:
             print(f"Computer {env.cpu_score}, agent {env.agent_score}")
             print("Computer wins!")
