@@ -2,7 +2,6 @@
 
 import os
 import random
-from collections import deque
 from typing import Tuple
 
 import numpy as np
@@ -13,9 +12,8 @@ from keras.layers.core import Activation, Dense
 from keras.models import Sequential
 from keras.optimizers import Adam, RMSprop
 
-from utils import get_model_path, State
-
 from environment import Agent
+from utils import State, get_model_path
 
 
 class DDQNLearner(Agent):
@@ -24,7 +22,7 @@ class DDQNLearner(Agent):
 
     def __init__(self, env):
         super().__init__(env)
-        # create replay memory using deque
+        # Replay memory
         self.memory = list()
         self.max_memory = 5000000  # number of previous transitions to remember
 
@@ -76,13 +74,7 @@ class DDQNLearner(Agent):
 
         return model
 
-    def remember(
-        self,
-        state: State,
-        action: str,
-        reward: int,
-        next_state: State,
-    ):
+    def remember(self, state: State, action: str, reward: int, next_state: State):
         """ Push data into memory for replay later """
         self.memory.append((state, action, reward, next_state))
 

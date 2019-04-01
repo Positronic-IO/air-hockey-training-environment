@@ -14,6 +14,7 @@ from keras.optimizers import Adam, RMSprop
 from utils import get_model_path, State
 from environment import Agent
 
+
 class DQNLearner(Agent):
 
     """ Reference: https://keon.io/deep-q-learning/ """
@@ -40,7 +41,7 @@ class DQNLearner(Agent):
 
         model = Sequential()
 
-        model.add(Dense(4, kernel_initializer="normal", input_shape=(2,2)))
+        model.add(Dense(4, kernel_initializer="normal", input_shape=(2, 2)))
         model.add(Activation("relu"))
 
         model.add(Dense(20, kernel_initializer="normal"))
@@ -89,9 +90,7 @@ class DQNLearner(Agent):
 
         return action
 
-    def update(
-        self, new_state: State, reward: int
-    ) -> None:
+    def update(self, new_state: State, reward: int) -> None:
         """ Updates learner with new state/Q values """
 
         if self._learning:
