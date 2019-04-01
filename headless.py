@@ -68,17 +68,17 @@ if __name__ == "__main__":
             learner.move(action)
 
             # DDQN
-                if args["learner"]  == "ddqn-learner":
-                    next_state = (learner.location(), (env.puck.x, env.puck.y))
-                    learner.remember(state, action, data["reward"], next_state)
-                    learner.update()
+            if args["learner"]  == "ddqn-learner":
+                next_state = (learner.location(), (env.puck.x, env.puck.y))
+                learner.remember(state, action, data["reward"], next_state)
+                learner.update()
 
-                # DQN
-                if args["learner"]  == "dqn-learner":
-                    # New state
-                    next_state = (data["agent"], data["puck"])
-                    # Update state
-                    learner.update(next_state, data["reward"])
+            # DQN
+            if args["learner"]  == "dqn-learner":
+                # New state
+                next_state = (data["agent"], data["puck"])
+                # Update state
+                learner.update(next_state, data["reward"])
 
         # After so many iterations, save model
         if hasattr(learner, "save_model") and iterations % iterations_on_save == 0:
