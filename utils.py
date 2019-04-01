@@ -21,7 +21,7 @@ def parse_args() -> Dict[str, str]:
     return args
 
 
-def welcome(args: dict) -> None:
+def welcome(args: Dict[str, str]) -> None:
     """ Displays welcome to user """
 
     # Display Welcome
