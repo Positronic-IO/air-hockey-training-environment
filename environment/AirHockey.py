@@ -7,13 +7,14 @@ from typing import Dict, Tuple, Union, Any
 from environment.components import Goal, Mallet, Puck
 from utils import Action
 
+
 class AirHockey(object):
-    
+
     # Possible actions
     actions = ["U", "D", "L", "R"]
 
     # Default rewwards
-    rewards = {"point": 100, "loss": -200, "hit": 200, "miss": -500}
+    rewards = {"point": 1000, "loss": -2000, "hit": 200, "miss": -500}
 
     def __init__(self, **kwargs) -> None:
         """ Initiate an air hockey game """
@@ -72,15 +73,17 @@ class AirHockey(object):
             table_size=self.table_size,
         )
 
+        # Define step size of mallet
+        self.step_size = 1
+
     def get_reward(self) -> int:
         """ Get reward of the current action """
 
         # We won, the opponent is a failure
-        if self.agent_score == 10:
+        if self._update_score() == "point":
             return self.rewards["point"]
 
-        # We are a failure, the opponent won
-        if self.cpu_score == 10:
+        if self._update_score() == "loss":
             return self.rewards["loss"]
 
         # We hit the puck
@@ -140,17 +143,17 @@ class AirHockey(object):
         if isinstance(action, tuple):
             self.left_mallet.x, self.left_mallet.y = action[0], action[1]
 
-        if action == self.actions[0]:
-            self.left_mallet.y += 1
+        if isinstance(action, str) and action == self.actions[0]:
+            self.left_mallet.y += self.step_size
 
-        if action == self.actions[1]:
-            self.left_mallet.y += -1
+        if isinstance(action, str) and action == self.actions[1]:
+            self.left_mallet.y += -self.step_size
 
-        if action == self.actions[2]:
-            self.left_mallet.x += 1
+        if isinstance(action, str) and action == self.actions[2]:
+            self.left_mallet.x += self.step_size
 
-        if action == self.actions[3]:
-            self.left_mallet.x += -1
+        if isinstance(action, str) and action == self.actions[3]:
+            self.left_mallet.x += -self.step_size
 
         # Set agent position
         self.left_mallet.update_mallet()
@@ -201,7 +204,7 @@ class AirHockey(object):
 
         return None
 
-    def _update_score(self) -> None:
+    def _update_score(self) -> str:
         """ Get current score """
 
         # When then agent scores on the computer
@@ -210,8 +213,9 @@ class AirHockey(object):
             and abs(self.right_goal.centre_x - self.puck.x) <= 45
         ):
             self.agent_score += 1
-            print(f"Computer {self.cpu_score}, agent {self.agent_score}")
+            print(f"Computer {self.cpu_score}, Agent {self.agent_score}")
             self.reset()
+            return "point"
 
         # When the computer scores on the agent
         if (
@@ -219,10 +223,9 @@ class AirHockey(object):
             and abs(self.left_goal.centre_x - self.puck.x) <= 45
         ):
             self.cpu_score += 1
-            print(f"Computer {self.cpu_score}, agent {self.agent_score}")
+            print(f"Computer {self.cpu_score}, Agent {self.agent_score}")
             self.reset()
-
-        return None
+            return "loss"
 
     def get_score(self) -> Dict[str, int]:
         """ Get current score """
