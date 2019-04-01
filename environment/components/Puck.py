@@ -3,7 +3,7 @@ import random
 class Puck(object):
     """ Puck object """
 
-    def __init__(self, x: int, y: int, dx: int= 0, dy: int= 0):
+    def __init__(self, x: int, y: int, dx: int=-5, dy: int=0):
         """ Create a goal """
 
         self.name = "puck"
@@ -86,7 +86,7 @@ class Puck(object):
         """ Rest puck to initial position """
         self.x = self.puck_start_x
         self.y = self.puck_start_y
-        self.dx = 0
+        self.dx = -5
         self.dy = 0
 
         return None
