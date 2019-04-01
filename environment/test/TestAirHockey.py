@@ -17,7 +17,6 @@ class TestAirHockey(AirHockey):
         self.puck = TestPuck()
         rewards = {"point": 100, "loss": -200, "hit": 200, "miss": -500}
 
-
     def get_reward(self) -> int:
         """ Get reward of the current action """
 
@@ -30,16 +29,6 @@ class TestAirHockey(AirHockey):
         ):
 
             return self.rewards["miss"]
-
-        # We won, the opponent is a failure
-        if self.agent_score == 10:
-
-            return self.rewards["point"]
-
-        # We are a failure, the opponent won
-        if self.cpu_score == 10:
-
-            return self.rewards["loss"]
 
         # We hit the puck
         if (
@@ -103,29 +92,9 @@ class TestAirHockey(AirHockey):
         self.left_mallet.last_x = self.left_mallet.x
         self.left_mallet.last_y = self.left_mallet.y
 
-        # Update score
-        self._update_score()
 
         self.ticks_to_friction -= 1
         self.ticks_to_ai -= 1
 
         return None
 
-    def _update_score(self) -> None:
-        """ Get current score """
-
-        # When then agent scores on the computer
-        if (
-            abs(self.right_goal.centre_y - self.puck.y) <= 50
-            and abs(self.right_goal.centre_x - self.puck.x) <= 45
-        ):
-            self.agent_score += 1
-
-        # When the computer scores on the agent
-        if (
-            abs(self.left_goal.centre_y - self.puck.y) <= 50
-            and abs(self.left_goal.centre_x - self.puck.x) <= 45
-        ):
-            self.cpu_score += 1
-
-        return None
