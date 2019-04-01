@@ -42,12 +42,9 @@ for either the DQN or DDQN learning strategies.
 
 To save/load a model, run `python3 start.py --agent robot --learner <your learner> --load <load path> --save <save path>`.
 
-You can also run this simulation in "test mode." The test environment only allows the puck to be played in the agent's half of the board. Also, all scoring is off. This is a good way to prepare your model for game training. Training in this simulated environment allows the model to learn basic puck interactions due to these interactions happening more frequently.
+You can also run this simulation in "test mode" with the flag `--env test.` The test environment only allows the puck to be played in the agent's half of the board. Also, all scoring is off. This is a good way to prepare your model for game training. Training in this simulated environment allows the model to learn basic puck interactions due to these interactions happening more frequently.
 
-If you want to run the simulation without a gui (or headless), use the `headless.py` file instead of `start.py`. All the command line configuration is the same. Obviously, your agent has to be the robot because there is no gui.
-
-## Optimal settings
-+ For robot agents, I recommend having the robot move in 10+ unit increments. You can edit this in the `update_state` method the `AirHockey` environment class.
+If you want to run the simulation without a gui (or headless), add `--mode cli`. All the command line configuration is the same. Obviously, your agent has to be the robot because there is no gui.
 
 ## Warnings
 + Beware of how you set your rewards because these settings drastically effect the exploitation/exploration tradeoff. 
