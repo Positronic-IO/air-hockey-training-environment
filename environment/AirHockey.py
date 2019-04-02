@@ -208,7 +208,7 @@ class AirHockey(object):
 
         return None
 
-    def _update_score(self) -> str:
+    def _update_score(self) -> Union[str, None]:
         """ Get current score """
 
         # When then agent scores on the computer
@@ -232,6 +232,8 @@ class AirHockey(object):
             print(f"Computer {self.cpu_score}, Agent {self.agent_score}")
             self.reset()
             return "loss"
+
+        return None
 
     def get_score(self) -> Dict[str, int]:
         """ Get current score """
