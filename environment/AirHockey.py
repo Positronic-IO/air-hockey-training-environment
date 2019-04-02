@@ -33,6 +33,10 @@ class AirHockey(object):
         self.cpu_score = 0
         self.agent_score = 0
 
+        # Cumulative scores
+        self.agent_cumulative_score = 0
+        self.cpu_cumulative_score = 0
+
         self.ticks_to_friction = 60
         self.ticks_to_ai = 10
 
@@ -213,6 +217,7 @@ class AirHockey(object):
             and abs(self.right_goal.centre_x - self.puck.x) <= 45
         ):
             self.agent_score += 1
+            self.agent_cumulative_score += 1
             print(f"Computer {self.cpu_score}, Agent {self.agent_score}")
             self.reset()
             return "point"
@@ -223,6 +228,7 @@ class AirHockey(object):
             and abs(self.left_goal.centre_x - self.puck.x) <= 45
         ):
             self.cpu_score += 1
+            self.cpu_cumulative_score += 1
             print(f"Computer {self.cpu_score}, Agent {self.agent_score}")
             self.reset()
             return "loss"
