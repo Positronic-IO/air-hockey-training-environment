@@ -2,6 +2,7 @@
 
 import os
 import random
+import time
 from typing import Tuple
 
 import numpy as np
@@ -24,15 +25,29 @@ class DDQNLearner(Agent):
         super().__init__(env)
         # Replay memory
         self.memory = list()
-        self.max_memory = 5000000  # number of previous transitions to remember
+        self.max_memory = 10**7  # number of previous transitions to remember
 
         self.gamma = 0.95  # discount rate
         self.epsilon = 1.0  # exploration rate
         self.epsilon_min = 0.01
         self.epsilon_decay = 0.99
         self.learning_rate = 0.001
-        self.batch_size = 5000
+        self.batch_size = 10**3
         self._model = self._build_model()
+
+        self.timer = time.time()
+
+    def _check_stall(self) -> None:
+        """ Avoids stalling during training """
+
+        delta = time.time()
+
+        if delta - self.timer > 60:
+            self.env.reset()
+            self.timer = time.time()
+            print("Resetting due to stall")
+
+        return None
 
     def _huber_loss(self, y_true: float, y_pred: float) -> float:
         """ Compute Huber Loss 
@@ -82,7 +97,7 @@ class DDQNLearner(Agent):
         """ Apply an espilon-greedy policy to pick next action """
 
         # Helps over fitting, encourages to exploration
-        if np.random.uniform(0, 1) < self.epsilon:
+        if np.random.uniform(0, 0.8) < self.epsilon:
             return np.random.choice(self.env.actions)
 
         # Compute rewards for any posible action
@@ -96,6 +111,10 @@ class DDQNLearner(Agent):
         # Update model in intervals
         if len(self.memory) % self.batch_size == 0:
 
+            # Avoids stalling
+            self._check_stall()
+
+            # Governs how much history is stored in memory
             if len(self.memory) > self.max_memory:
                 self.memory.pop()
 
