@@ -1,4 +1,5 @@
 import random
+from typing import Tuple
 
 class Puck(object):
     """ Puck object """

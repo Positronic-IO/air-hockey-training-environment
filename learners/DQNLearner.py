@@ -25,6 +25,7 @@ class DQNLearner(Agent):
         self._learning_rate = 0.1
         self._discount = 0.1
         self._epsilon = 0.9
+        self.buffer = list()
 
         self._model = self._build_model()
 
@@ -41,7 +42,7 @@ class DQNLearner(Agent):
 
         model = Sequential()
 
-        model.add(Dense(4, kernel_initializer="normal", input_shape=(2, 2)))
+        model.add(Dense(4, kernel_initializer="normal", input_shape=(3, 2)))
         model.add(Activation("relu"))
 
         model.add(Dense(20, kernel_initializer="normal"))
@@ -95,7 +96,7 @@ class DQNLearner(Agent):
 
         if self._learning:
             rewards = self._model.predict(np.array([new_state]), batch_size=1)
-            maxQ = rewards[0].max()
+            maxQ = rewards[0][0].max()
             new = self._discount * maxQ
 
             if self._last_action == self.env.actions[0]:

@@ -8,7 +8,7 @@ import pygame
 from environment import AirHockey
 from environment.test import TestAirHockey
 from learners import LearnerFactory
-from utils import get_model_path, parse_args, welcome, write_results
+from utils import get_model_path, parse_args, welcome, write_results, State
 from typing import Union
 
 # Initialize the game engine
@@ -177,7 +177,11 @@ if __name__ == "__main__":
                 data = env.observe()
 
                 # Current state
-                state = (data["agent"], data["puck"])
+                state = State(
+                    agent_state=data["agent"],
+                    puck_state=data["puck"],
+                    opponent_state=data["opponent"],
+                )
 
                 # Determine next action
                 action = learner.get_action(state)
@@ -187,14 +191,23 @@ if __name__ == "__main__":
 
                 # DDQN
                 if args["learner"] == "ddqn-learner":
-                    next_state = (learner.location(), (env.puck.x, env.puck.y))
+                    next_state = State(
+                        agent_state=learner.location(),
+                        puck_state=env.puck.location(),
+                        opponent_state=env.right_mallet.location(),
+                    )
                     learner.remember(state, action, data["reward"], next_state)
                     learner.update()
 
                 # DQN
                 if args["learner"] == "dqn-learner":
                     # New state
-                    next_state = (data["agent"], data["puck"])
+                    next_state = State(
+                        agent_state=learner.location(),
+                        puck_state=env.puck.location(),
+                        opponent_state=env.right_mallet.location(),
+                    )
+
                     # Update state
                     learner.update(next_state, data["reward"])
 

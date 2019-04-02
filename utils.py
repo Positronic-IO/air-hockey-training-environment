@@ -4,13 +4,15 @@ import argparse
 import os
 import sys
 from typing import Any, Dict, Tuple, Union
+from collections import namedtuple
 
 import pandas as pd
 
 # Define custom types
 Action = Union[str, Tuple[int, int]]
-State = Tuple[Tuple[int, int], Tuple[int, int]]
+# State = Tuple[Tuple[int, int], Tuple[int, int]]
 
+State = namedtuple("state", ["agent_state", "puck_state", "opponent_state"])
 
 def parse_args() -> Dict[str, str]:
     """ Construct the argument parse and parse the arguments """

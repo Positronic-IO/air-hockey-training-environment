@@ -32,7 +32,7 @@ class DDQNLearner(Agent):
         self.epsilon_min = 0.01
         self.epsilon_decay = 0.99
         self.learning_rate = 0.001
-        self.batch_size = 10**3
+        self.batch_size = 32
         self._model = self._build_model()
 
         self.timer = time.time()
@@ -62,7 +62,7 @@ class DDQNLearner(Agent):
 
         model = Sequential()
 
-        model.add(Dense(4, kernel_initializer="normal", input_shape=(2, 2)))
+        model.add(Dense(4, kernel_initializer="normal", input_shape=(3, 2)))
         model.add(Activation("relu"))
 
         model.add(Dense(20, kernel_initializer="normal"))
@@ -102,7 +102,7 @@ class DDQNLearner(Agent):
 
         # Compute rewards for any posible action
         rewards = self._model.predict([np.array([state])], batch_size=1)
-        idx = np.argmax(rewards[0][0])
+        idx = np.argmax(rewards[0][0][0])
         return self.env.actions[idx]
 
     def update(self) -> None:
@@ -125,16 +125,16 @@ class DDQNLearner(Agent):
                 target = self._model.predict(np.array([next_state]))
 
                 if action == self.env.actions[0]:
-                    target[0][0][0] = reward + self.gamma * target[0].max()
+                    target[0][0][0] = reward + self.gamma * target[0][0].max()
 
                 if action == self.env.actions[1]:
-                    target[0][0][1] = reward + self.gamma * target[0].max()
+                    target[0][0][1] = reward + self.gamma * target[0][0].max()
 
                 if action == self.env.actions[2]:
-                    target[0][0][2] = reward + self.gamma * target[0].max()
+                    target[0][0][2] = reward + self.gamma * target[0][0].max()
 
                 if action == self.env.actions[3]:
-                    target[0][0][3] = reward + self.gamma * target[0].max()
+                    target[0][0][3] = reward + self.gamma * target[0][0].max()
 
                 self._model.fit(np.array([state]), target, epochs=1, verbose=0)
 
