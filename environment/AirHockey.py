@@ -257,9 +257,9 @@ class AirHockey(object):
         """ Observe state of game """
 
         state = {
-            "puck": (self.puck.x, self.puck.x),
-            "agent": (self.left_mallet.x, self.left_mallet.y),
-            "opponent": (self.right_mallet.x, self.right_mallet.y),
+            "puck": self.puck.location(),
+            "agent": self.left_mallet.location(),
+            "opponent": self.right_mallet.location(),
             "reward": self.get_reward(),
         }
         return state
