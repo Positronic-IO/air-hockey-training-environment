@@ -5,14 +5,14 @@ import random
 from typing import Tuple
 
 import numpy as np
-import tensorflow as tf
 from keras import backend as K
-from keras.layers import Dense, Dropout, BatchNormalization
+from keras.layers import BatchNormalization, Dense, Dropout
 from keras.layers.core import Activation, Dense
 from keras.models import Sequential
 from keras.optimizers import Adam, RMSprop
-from utils import get_model_path, State
+
 from environment import Agent
+from utils import State, get_model_path
 
 
 class DQNLearner(Agent):
