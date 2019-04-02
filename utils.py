@@ -5,6 +5,8 @@ import os
 import sys
 from typing import Any, Dict, Tuple, Union
 
+import pandas as pd
+
 # Define custom types
 Action = Union[str, Tuple[int, int]]
 State = Tuple[Tuple[int, int], Tuple[int, int]]
@@ -20,6 +22,8 @@ def parse_args() -> Dict[str, str]:
     ap.add_argument("--load", help="Path to load a model")
     ap.add_argument("--save", help="Path to save a model")
     ap.add_argument("--env", default="normal", help="Define environment")
+    ap.add_argument("--results", help="Path to save results as csv")
+
 
     args = vars(ap.parse_args())
 
@@ -99,6 +103,9 @@ def welcome(args: Dict[str, str]) -> None:
 
     if args.get("save"):
         print(f"Saving model at: {args['save']}")
+
+    if args.get("results"):
+        print(f"Saving results at: {args['results']}")
     print("-" * 35)
 
 
@@ -119,3 +126,15 @@ def get_model_path(file_path: str) -> str:
         return os.path.join(head, tail)
 
     return file_path
+
+def write_results(filename: str, data: Dict[str, Any]) -> None:
+    """ Write data to csv """
+
+    df = pd.DataFrame.from_dict(data)
+    if not ".csv" in filename:
+        print("Filename to save results does not have the '.csv' extension.")
+        sys.exit()
+
+    with open(filename, 'a') as f:
+        df.to_csv(f, header=False)
+    return None

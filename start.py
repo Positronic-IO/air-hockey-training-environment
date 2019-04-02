@@ -8,7 +8,7 @@ import pygame
 from environment import AirHockey
 from environment.test import TestAirHockey
 from learners import LearnerFactory
-from utils import get_model_path, parse_args, welcome
+from utils import get_model_path, parse_args, welcome, write_results
 from typing import Union
 
 # Initialize the game engine
@@ -82,7 +82,11 @@ if __name__ == "__main__":
             file_name = get_model_path(args["load"])
             learner.load_model(file_name)
 
-        if hasattr(learner, "save_model") and not args.get("save") and not args.get("load"):
+        if (
+            hasattr(learner, "save_model")
+            and not args.get("save")
+            and not args.get("load")
+        ):
             print("Please specify a path to save model.")
             sys.exit()
 
@@ -111,6 +115,9 @@ if __name__ == "__main__":
 
     # We begin..
     init = True
+
+    # Cumulative scores
+    agent_cumulative_score, opponent_cumulative_score = 0, 0
 
     # Game loop
     while True:
@@ -154,7 +161,7 @@ if __name__ == "__main__":
         if agent == "robot":
             # Set robot step size
             env.step_size = 10
-            
+
             # For first move, move in a random direction
             if init:
                 action = str(np.random.choice(env.actions))
@@ -190,6 +197,28 @@ if __name__ == "__main__":
                     next_state = (data["agent"], data["puck"])
                     # Update state
                     learner.update(next_state, data["reward"])
+
+                # Save results to csv
+                if args.get("results"):
+                    results = dict()
+                    new = False
+
+                    if env.agent_cumulative_score > agent_cumulative_score:
+                        results["agent"] = [env.agent_cumulative_score]
+                        agent_cumulative_score = env.agent_cumulative_score
+                        new = True
+                    else:
+                        results["agent"] = [agent_cumulative_score]
+
+                    if env.cpu_cumulative_score > opponent_cumulative_score:
+                        results["opponent"] = [env.cpu_cumulative_score]
+                        opponent_cumulative_score = env.cpu_cumulative_score
+                        new = True
+                    else:
+                        results["opponent"] = [opponent_cumulative_score]
+
+                    if new:
+                        write_results(args["results"], results)
 
             # After so many iterations, save model
             if hasattr(learner, "save_model") and iterations % iterations_on_save == 0:
