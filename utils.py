@@ -26,7 +26,6 @@ def parse_args() -> Dict[str, str]:
     ap.add_argument("--env", default="normal", help="Define environment")
     ap.add_argument("--results", help="Path to save results as csv")
 
-
     args = vars(ap.parse_args())
 
     # Validations
@@ -129,6 +128,7 @@ def get_model_path(file_path: str) -> str:
 
     return file_path
 
+
 def write_results(filename: str, data: Dict[str, Any]) -> None:
     """ Write data to csv """
 
@@ -137,6 +137,6 @@ def write_results(filename: str, data: Dict[str, Any]) -> None:
         print("Filename to save results does not have the '.csv' extension.")
         sys.exit()
 
-    with open(filename, 'a') as f:
+    with open(filename, "a") as f:
         df.to_csv(f, header=False)
     return None
