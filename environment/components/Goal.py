@@ -1,4 +1,5 @@
 """ Goal Comaponent """
+from typing import Tuple
 
 
 class Goal(object):
@@ -16,3 +17,8 @@ class Goal(object):
         # Define center of goal
         self.centre_x = self.x + self.w / 2
         self.centre_y = self.y + self.h / 2
+
+    def location(self) -> Tuple[int, int]:
+        """ Cartesian coordinates """
+
+        return self.x, self.y

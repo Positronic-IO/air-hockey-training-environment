@@ -90,3 +90,8 @@ class Puck(object):
         self.dy = 0
 
         return None
+
+    def location(self) -> Tuple[int, int]:
+        """ Cartesian coordinates """
+
+        return self.x, self.y

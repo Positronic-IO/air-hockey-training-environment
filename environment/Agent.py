@@ -18,5 +18,5 @@ class Agent(object):
         return None
 
     def location(self) -> Tuple[int, int]:
-        return self.env.left_mallet.x, self.env.left_mallet.y
+        return self.env.left_mallet.location()
 

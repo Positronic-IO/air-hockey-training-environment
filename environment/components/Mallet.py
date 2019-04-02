@@ -1,5 +1,7 @@
 """ Mallet Component """
 import random
+from typing import Tuple
+
 
 class Mallet(object):
     def __init__(self, name: str, x: int, y: int, **kwargs):
@@ -62,3 +64,8 @@ class Mallet(object):
         self.y = self.mallet_start_y
 
         return None
+
+    def location(self) -> Tuple[int, int]:
+        """ Cartesian coordinates """
+
+        return self.x, self.y
