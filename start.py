@@ -30,10 +30,47 @@ middle_line_offset = 4.5
 fps = 60
 
 
-def draw_table(env: Union[AirHockey, TestAirHockey]) -> None:
-    """ Renrers table """
+def event_processing(env: Union[AirHockey, TestAirHockey]) -> None:
+    """ Pygame event processing """
 
-    # base of rink
+    for event in pygame.event.get():  # User did something
+        if event.type == pygame.QUIT:  # If user clicked close
+            done = True  # Flag that we are done so we exit this loop
+        # User pressed down on a key
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_a:
+                env.left_mallet.dx = -7
+            if event.key == pygame.K_d:
+                env.left_mallet.dx = 7
+            if event.key == pygame.K_w:
+                env.left_mallet.dy = -7
+            if event.key == pygame.K_s:
+                env.left_mallet.dy = 7
+
+            if event.key == pygame.K_r:
+                print("Game reset by user..")
+                env.reset(total=True)
+
+        # User let up on a key
+        if event.type == pygame.KEYUP:
+            if event.key == pygame.K_a:
+                env.left_mallet.dx = 0
+            if event.key == pygame.K_d:
+                env.left_mallet.dx = 0
+            if event.key == pygame.K_w:
+                env.left_mallet.dy = 0
+            if event.key == pygame.K_s:
+                env.left_mallet.dy = 0
+
+
+def draw_table(env: Union[AirHockey, TestAirHockey]) -> None:
+    """ Re-renders table """
+
+    # Make screen
+    screen = pygame.display.set_mode(env.table_size)
+    screen.fill(blue)
+
+    # Base of rink
     pygame.draw.rect(screen, white, (25, 25, env.rink_size[0], env.rink_size[1]), 0)
 
     # middle section
@@ -57,8 +94,62 @@ def draw_table(env: Union[AirHockey, TestAirHockey]) -> None:
     pygame.draw.rect(screen, black, (25, 25, env.rink_size[0], env.rink_size[1]), 5)
 
 
-if __name__ == "__main__":
-    # -------- Main Program Loop -----------
+def draw_screen(env: Union[AirHockey, TestAirHockey]) -> None:
+    """ Create GUI """
+
+    # Set title of game window
+    pygame.display.set_caption("Air Hockey")
+
+    # Draw table
+    draw_table(env)
+
+
+def rerender_environment(env: Union[AirHockey, TestAirHockey]) -> None:
+    """" Re-render environment """
+
+    # Make screen
+    screen = pygame.display.set_mode(env.table_size)
+
+    # Draw table
+    draw_table(env)
+
+    # Draw left mallet
+    pygame.draw.circle(screen, white, [env.left_mallet.x, env.left_mallet.y], 20, 0)
+    pygame.draw.circle(screen, black, [env.left_mallet.x, env.left_mallet.y], 20, 1)
+    pygame.draw.circle(screen, black, [env.left_mallet.x, env.left_mallet.y], 5, 0)
+
+    # Draw right mallet
+    pygame.draw.circle(screen, white, [env.right_mallet.x, env.right_mallet.y], 20, 0)
+    pygame.draw.circle(screen, black, [env.right_mallet.x, env.right_mallet.y], 20, 1)
+    pygame.draw.circle(screen, black, [env.right_mallet.x, env.right_mallet.y], 5, 0)
+
+    # Draw left goal
+    pygame.draw.rect(
+        screen,
+        green,
+        (env.left_goal.x, env.left_goal.y, env.left_goal.w, env.left_goal.h),
+        0,
+    )
+
+    # Draw right goal
+    pygame.draw.rect(
+        screen,
+        green,
+        (env.right_goal.x, env.right_goal.y, env.right_goal.w, env.right_goal.h),
+        0,
+    )
+
+    # Draw puck
+    pygame.draw.circle(screen, black, [env.puck.x, env.puck.y], env.puck_radius, 0)
+
+    pygame.display.flip()
+
+
+def main() -> None:
+    """ Main guts of game """
+
+    # Set game clock
+    clock = pygame.time.Clock()
 
     # Parse args
     args = parse_args()
@@ -75,7 +166,7 @@ if __name__ == "__main__":
 
     # If user is a robot, set learning style
     if agent == "robot":
-        learner = LearnerFactory().make(args["learner"], env)
+        learner = LearnerFactory().make(args["strategy"], env)
 
         # If we pass a weights file, load it.
         if hasattr(learner, "load_model") and args.get("load"):
@@ -92,19 +183,11 @@ if __name__ == "__main__":
 
     # If we are in gui mode, set up air hockey table
     if args.get("mode") == "gui":
-        pygame.display.set_caption("Air Hockey")  # Set title of game window
+        # Make gui
+        draw_screen(env)
 
-        # Set screen size
-        screen = pygame.display.set_mode(env.table_size)
-
-        # Set game clock
-        clock = pygame.time.Clock()
-
-        # Draw table
-        draw_table(env)
-
-        # Welcome user
-        welcome(args)
+    # Welcome user
+    welcome(args)
 
     # Epochs
     epoch = 1
@@ -121,35 +204,8 @@ if __name__ == "__main__":
 
     # Game loop
     while True:
-        # Event processing
-        for event in pygame.event.get():  # User did something
-            if event.type == pygame.QUIT:  # If user clicked close
-                done = True  # Flag that we are done so we exit this loop
-            # User pressed down on a key
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_a:
-                    env.left_mallet.dx = -7
-                if event.key == pygame.K_d:
-                    env.left_mallet.dx = 7
-                if event.key == pygame.K_w:
-                    env.left_mallet.dy = -7
-                if event.key == pygame.K_s:
-                    env.left_mallet.dy = 7
-
-                if event.key == pygame.K_r:
-                    print("Game reset by user..")
-                    env.reset(total=True)
-
-            # User let up on a key
-            if event.type == pygame.KEYUP:
-                if event.key == pygame.K_a:
-                    env.left_mallet.dx = 0
-                if event.key == pygame.K_d:
-                    env.left_mallet.dx = 0
-                if event.key == pygame.K_w:
-                    env.left_mallet.dy = 0
-                if event.key == pygame.K_s:
-                    env.left_mallet.dy = 0
+        if args.get("mode") == "gui":
+            event_processing(env)
 
         # Human agent
         if agent == "human" and args.get("mode") == "gui":
@@ -191,7 +247,7 @@ if __name__ == "__main__":
                 learner.move(action)
 
                 # DDQN
-                if args["learner"] == "ddqn-learner":
+                if args["strategy"] == "ddqn-learner":
                     next_state = State(
                         agent_state=learner.location(),
                         puck_state=env.puck.location(),
@@ -203,7 +259,7 @@ if __name__ == "__main__":
                     learner.update()
 
                 # DQN
-                if args["learner"] == "dqn-learner":
+                if args["strategy"] == "dqn-learner":
                     # New state
                     next_state = State(
                         agent_state=learner.location(),
@@ -260,61 +316,13 @@ if __name__ == "__main__":
             env.reset(total=True)
 
         if args.get("mode") == "gui":
-            # Re-render environment
-            screen.fill(blue)
-            draw_table(env)
+            rerender_environment(env)
 
-            # Draw left mallet
-            pygame.draw.circle(
-                screen, white, [env.left_mallet.x, env.left_mallet.y], 20, 0
-            )
-            pygame.draw.circle(
-                screen, black, [env.left_mallet.x, env.left_mallet.y], 20, 1
-            )
-            pygame.draw.circle(
-                screen, black, [env.left_mallet.x, env.left_mallet.y], 5, 0
-            )
-
-            # Draw right mallet
-            pygame.draw.circle(
-                screen, white, [env.right_mallet.x, env.right_mallet.y], 20, 0
-            )
-            pygame.draw.circle(
-                screen, black, [env.right_mallet.x, env.right_mallet.y], 20, 1
-            )
-            pygame.draw.circle(
-                screen, black, [env.right_mallet.x, env.right_mallet.y], 5, 0
-            )
-
-            # Draw left goal
-            pygame.draw.rect(
-                screen,
-                green,
-                (env.left_goal.x, env.left_goal.y, env.left_goal.w, env.left_goal.h),
-                0,
-            )
-
-            # Draw right goal
-            pygame.draw.rect(
-                screen,
-                green,
-                (
-                    env.right_goal.x,
-                    env.right_goal.y,
-                    env.right_goal.w,
-                    env.right_goal.h,
-                ),
-                0,
-            )
-
-            # Draw puck
-            pygame.draw.circle(
-                screen, black, [env.puck.x, env.puck.y], env.puck_radius, 0
-            )
-
-            pygame.display.flip()
-
-            # frames per second
-            clock.tick(fps)
-
+        # frames per second
+        clock.tick(fps)
     pygame.quit()
+
+
+if __name__ == "__main__":
+    # Run program
+    main()
