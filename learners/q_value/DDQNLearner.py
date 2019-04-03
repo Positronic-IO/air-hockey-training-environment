@@ -32,7 +32,7 @@ class DDQNLearner(Agent):
         self.epsilon_min = 0.01
         self.epsilon_decay = 0.99
         self.learning_rate = 0.001
-        self.batch_size = 32
+        self.batch_size = 10**3
         self._model = self._build_model()
 
         self.timer = time.time()
@@ -62,19 +62,13 @@ class DDQNLearner(Agent):
 
         model = Sequential()
 
-        model.add(Dense(4, kernel_initializer="normal", input_shape=(3, 2)))
+        model.add(Dense(12, kernel_initializer="normal", input_shape=(3, 2)))
+        model.add(Activation("relu"))
+
+        model.add(Dense(30, kernel_initializer="normal"))
         model.add(Activation("relu"))
 
         model.add(Dense(20, kernel_initializer="normal"))
-        model.add(Activation("relu"))
-
-        model.add(Dense(30, kernel_initializer="normal"))
-        model.add(Activation("relu"))
-
-        model.add(Dense(30, kernel_initializer="normal"))
-        model.add(Activation("relu"))
-
-        model.add(Dense(10, kernel_initializer="normal"))
         model.add(Activation("relu"))
 
         model.add(Dense(4, kernel_initializer="random_uniform"))
@@ -105,11 +99,11 @@ class DDQNLearner(Agent):
         idx = np.argmax(rewards[0][0])
         return self.env.actions[idx]
 
-    def update(self) -> None:
+    def update(self, iterations: int) -> None:
         """ Experience replay """
 
         # Update model in intervals
-        if len(self.memory) % self.batch_size == 0:
+        if iterations > self.batch_size and iterations % self.batch_size == 0:
 
             # Avoids stalling
             self._check_stall()

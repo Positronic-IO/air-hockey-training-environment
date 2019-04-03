@@ -41,19 +41,13 @@ class DQNLearner(Agent):
 
         model = Sequential()
 
-        model.add(Dense(4, kernel_initializer="normal", input_shape=(3, 2)))
+        model.add(Dense(12, kernel_initializer="normal", input_shape=(3, 2)))
+        model.add(Activation("relu"))
+
+        model.add(Dense(30, kernel_initializer="normal"))
         model.add(Activation("relu"))
 
         model.add(Dense(20, kernel_initializer="normal"))
-        model.add(Activation("relu"))
-
-        model.add(Dense(30, kernel_initializer="normal"))
-        model.add(Activation("relu"))
-
-        model.add(Dense(30, kernel_initializer="normal"))
-        model.add(Activation("relu"))
-
-        model.add(Dense(10, kernel_initializer="normal"))
         model.add(Activation("relu"))
 
         model.add(Dense(4, kernel_initializer="random_uniform"))
