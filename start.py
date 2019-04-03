@@ -178,14 +178,15 @@ if __name__ == "__main__":
 
                 # Current state
                 state = State(
-                    agent_state=data["agent"],
-                    puck_state=data["puck"],
-                    opponent_state=data["opponent"],
+                    agent_state=learner.location(),
+                    puck_state=env.puck.location(),
+                    puck_prev_state=env.puck.prev_location(),
+                    # opponent_state=env.right_mallet.location(),
+                    # opponent_prev_state=env.right_mallet.prev_location(),
                 )
 
                 # Determine next action
                 action = learner.get_action(state)
-
                 # Update game state
                 learner.move(action)
 
@@ -194,7 +195,9 @@ if __name__ == "__main__":
                     next_state = State(
                         agent_state=learner.location(),
                         puck_state=env.puck.location(),
-                        opponent_state=env.right_mallet.location(),
+                        puck_prev_state=env.puck.prev_location(),
+                        # opponent_state=env.right_mallet.location(),
+                        # opponent_prev_state=env.right_mallet.prev_location(),
                     )
                     learner.remember(state, action, data["reward"], next_state)
                     learner.update()
@@ -205,7 +208,9 @@ if __name__ == "__main__":
                     next_state = State(
                         agent_state=learner.location(),
                         puck_state=env.puck.location(),
-                        opponent_state=env.right_mallet.location(),
+                        puck_prev_state=env.puck.prev_location(),
+                        # opponent_state=env.right_mallet.location(),
+                        # opponent_prev_state=env.right_mallet.prev_location()
                     )
 
                     # Update state

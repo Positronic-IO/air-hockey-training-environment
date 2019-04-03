@@ -1,17 +1,22 @@
 import random
 from typing import Tuple
 
+
 class Puck(object):
     """ Puck object """
 
-    def __init__(self, x: int, y: int, dx: int=-5, dy: int=0):
+    def __init__(self, x: int, y: int, dx: int = -5, dy: int = 3):
         """ Create a goal """
 
         self.name = "puck"
 
-        # Puck Position
+        # Puck position
         self.x = x
         self.y = y
+
+        # Last puck position
+        self.last_x = x
+        self.last_y = y
 
         # Puck velocity
         self.dx = dx
@@ -27,8 +32,7 @@ class Puck(object):
     def update_puck(self) -> None:
         """ Update puck position """
 
-        # Update velocity
-
+        # Enforces puck stays inside the table
         if self.x <= 47:
             self.x = 47
             self.dx *= -1
@@ -42,6 +46,10 @@ class Puck(object):
         elif self.y >= 460:
             self.y = 458
             self.dy *= -1
+        
+        # Record last known position (within the constraints of the table)
+        self.last_x = self.x
+        self.last_y = self.y
 
         # Update position
         self.x += self.dx
@@ -81,6 +89,10 @@ class Puck(object):
         if self.dy < -10:
             self.dy = self.puck_speed
 
+        # Record last known position (within the constraints of the table)
+        self.last_x = self.x
+        self.last_y = self.y
+
         return None
 
     def reset(self) -> None:
@@ -88,7 +100,7 @@ class Puck(object):
         self.x = self.puck_start_x
         self.y = self.puck_start_y
         self.dx = -5
-        self.dy = 0
+        self.dy = 3
 
         return None
 
@@ -96,3 +108,8 @@ class Puck(object):
         """ Cartesian coordinates """
 
         return self.x, self.y
+
+    def prev_location(self) -> Tuple[int, int]:
+        """ Previous location """
+
+        return self.last_x, self.last_y

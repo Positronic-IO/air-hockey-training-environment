@@ -36,6 +36,11 @@ class Mallet(object):
 
     def update_mallet(self) -> None:
         """ Update mallet position """
+        
+        # Save current state for later
+        self.last_x = self.x
+        self.last_y = self.y
+
         if self.name != "agent":
             self.x += self.dx
             self.y += self.dy
@@ -66,6 +71,11 @@ class Mallet(object):
         return None
 
     def location(self) -> Tuple[int, int]:
-        """ Cartesian coordinates """
+        """ Current Cartesian coordinates """
 
         return self.x, self.y
+
+    def prev_location(self) -> Tuple[int, int]:
+        """ Previous location """
+
+        return self.last_x, self.last_y
