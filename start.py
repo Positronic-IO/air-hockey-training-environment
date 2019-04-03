@@ -27,7 +27,7 @@ blue = (0, 0, 255)
 middle_line_offset = 4.5
 
 # Define frames per sec
-fps = 60
+fps = 60**6
 
 
 def event_processing(env: Union[AirHockey, TestAirHockey]) -> None:
@@ -38,29 +38,9 @@ def event_processing(env: Union[AirHockey, TestAirHockey]) -> None:
             done = True  # Flag that we are done so we exit this loop
         # User pressed down on a key
         if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_a:
-                env.left_mallet.dx = -7
-            if event.key == pygame.K_d:
-                env.left_mallet.dx = 7
-            if event.key == pygame.K_w:
-                env.left_mallet.dy = -7
-            if event.key == pygame.K_s:
-                env.left_mallet.dy = 7
-
             if event.key == pygame.K_r:
                 print("Game reset by user..")
                 env.reset(total=True)
-
-        # User let up on a key
-        if event.type == pygame.KEYUP:
-            if event.key == pygame.K_a:
-                env.left_mallet.dx = 0
-            if event.key == pygame.K_d:
-                env.left_mallet.dx = 0
-            if event.key == pygame.K_w:
-                env.left_mallet.dy = 0
-            if event.key == pygame.K_s:
-                env.left_mallet.dy = 0
 
 
 def draw_table(env: Union[AirHockey, TestAirHockey]) -> None:
@@ -148,11 +128,11 @@ def rerender_environment(env: Union[AirHockey, TestAirHockey]) -> None:
 def main() -> None:
     """ Main guts of game """
 
-    # Set game clock
-    clock = pygame.time.Clock()
-
     # Parse args
     args = parse_args()
+
+    # Set game clock
+    # clock = pygame.time.Clock()
 
     # Initiate game environment
     if args.get("env") == "test":
@@ -256,7 +236,7 @@ def main() -> None:
                         # opponent_prev_state=env.right_mallet.prev_location(),
                     )
                     learner.remember(state, action, data["reward"], next_state)
-                    learner.update()
+                    learner.update(iterations)
 
                 # DQN
                 if args["strategy"] == "dqn-learner":
@@ -319,7 +299,7 @@ def main() -> None:
             rerender_environment(env)
 
         # frames per second
-        clock.tick(fps)
+        # clock.tick(fps)
     pygame.quit()
 
 
