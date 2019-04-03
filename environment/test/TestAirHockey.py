@@ -15,7 +15,6 @@ class TestAirHockey(AirHockey):
 
         super().__init__(**kwargs)
         self.puck = TestPuck()
-        rewards = {"point": 100, "loss": -200, "hit": 200, "miss": -500}
 
     def get_reward(self) -> int:
         """ Get reward of the current action """
