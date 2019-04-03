@@ -14,7 +14,7 @@ class AirHockey(object):
     actions = ["U", "D", "L", "R"]
 
     # Default rewwards
-    rewards = {"point": 1000, "loss": -2000, "hit": 200, "miss": -500}
+    rewards = {"point": 1, "loss": -1, "hit": 1, "miss": 0}
 
     def __init__(self, **kwargs) -> None:
         """ Initiate an air hockey game """
@@ -78,7 +78,7 @@ class AirHockey(object):
         )
 
         # Define step size of mallet
-        self.step_size = 1
+        self.step_size = 10
 
     def get_reward(self) -> int:
         """ Get reward of the current action """
