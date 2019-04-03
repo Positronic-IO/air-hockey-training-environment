@@ -1,8 +1,8 @@
 """ Dynamically choosing learning algorithm """
 
-from .QLearner import QLearner
-from .DQNLearner import DQNLearner
-from .DDQNLearner import DDQNLearner
+from .q_value import QLearner
+from .q_value import DQNLearner
+from .q_value import DDQNLearner
 
 
 class LearnerFactory(object):
