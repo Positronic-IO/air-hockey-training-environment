@@ -10,9 +10,19 @@ import pandas as pd
 
 # Define custom types
 Action = Union[str, Tuple[int, int]]
-# State = Tuple[Tuple[int, int], Tuple[int, int]]
 
-State = namedtuple("state", ["agent_state", "puck_state", "opponent_state"])
+
+State = namedtuple(
+    "state",
+    [
+        "agent_state",
+        "puck_state",
+        "puck_prev_state",
+        # "opponent_state",
+        # "opponent_prev_state",
+    ],
+)
+
 
 def parse_args() -> Dict[str, str]:
     """ Construct the argument parse and parse the arguments """
