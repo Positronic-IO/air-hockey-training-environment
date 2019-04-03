@@ -34,13 +34,13 @@ In our virtual environment, we can start the simulator with a human agent via `p
 If you want a robot agent, run `python3 start.py --agent robot`. This defaults to Q-learning. To set the learning strategy, run 
 
 ```
-python3 start.py --agent robot --learner dqn-learner
-python3 start.py --agent robot --learner ddqn-learner
+python3 start.py --agent robot --strategy dqn-learner
+python3 start.py --agent robot --strategy ddqn-learner
 ```
 
 for either the DQN or DDQN learning strategies.
 
-To save/load a model, run `python3 start.py --agent robot --learner <your learner> --load <load path> --save <save path>`.
+To save/load a model, run `python3 start.py --agent robot --strategy <your strategy> --load <load path> --save <save path>`.
 
 You can also run this simulation in "test mode" with the flag `--env test.` The test environment only allows the puck to be played in the agent's half of the board. Also, all scoring is off. This is a good way to prepare your model for game training. Training in this simulated environment allows the model to learn basic puck interactions due to these interactions happening more frequently.
 

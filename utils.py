@@ -30,7 +30,7 @@ def parse_args() -> Dict[str, str]:
     ap = argparse.ArgumentParser()
     ap.add_argument("-m", "--mode", default="gui", help="Game play")
     ap.add_argument("-a", "--agent", default="human", help="Agent for gameplay")
-    ap.add_argument("--learner", default="q-learner", help="Learner method")
+    ap.add_argument("--strategy", default="q-learner", help="Learning strategy")
     ap.add_argument("--load", help="Path to load a model")
     ap.add_argument("--save", help="Path to save a model")
     ap.add_argument("--env", default="normal", help="Define environment")
@@ -51,7 +51,7 @@ def parse_args() -> Dict[str, str]:
         print("Select an allowed agent: human or robot")
         sys.exit()
 
-    if args.get("learner") not in ["q-learner", "dqn-learner", "ddqn-learner"]:
+    if args.get("strategy") not in ["q-learner", "dqn-learner", "ddqn-learner"]:
         print("Unsupported learning strategy.")
         sys.exit()
 
@@ -107,7 +107,7 @@ def welcome(args: Dict[str, str]) -> None:
 
     if args.get("agent") == "robot":
         print("Agent: Robot")
-        print(f"Learning Algorithm: {args['learner']}")
+        print(f"Learning Algorithm: {args['strategy']}")
 
     if args.get("load"):
         print(f"Loading model at: {args['load']}")
