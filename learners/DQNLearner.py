@@ -23,9 +23,8 @@ class DQNLearner(Agent):
         super().__init__(env)
         self._learning = True
         self._learning_rate = 0.1
-        self._discount = 0.1
+        self._gamma = 0.1
         self._epsilon = 0.9
-        self.buffer = list()
 
         self._model = self._build_model()
 
@@ -96,20 +95,13 @@ class DQNLearner(Agent):
 
         if self._learning:
             rewards = self._model.predict(np.array([new_state]), batch_size=1)
-            maxQ = rewards[0][0].max()
-            new = self._discount * maxQ
+            reward += self._gamma * rewards[0][0].max()
 
-            if self._last_action == self.env.actions[0]:
-                self._last_target[0][0][0] = reward + new
-
-            if self._last_action == self.env.actions[1]:
-                self._last_target[0][0][1] = reward + new
-
-            if self._last_action == self.env.actions[2]:
-                self._last_target[0][0][2] = reward + new
-
-            if self._last_action == self.env.actions[3]:
-                self._last_target[0][0][3] = reward + new
+            # Update action we should take, then break out of loop
+            for i in range(len(self.env.actions)):
+                if self._last_action == self.env.actions[i]:
+                    self._last_target[0][0][i] = reward
+                    break
 
             # Update model
             self._model.fit(

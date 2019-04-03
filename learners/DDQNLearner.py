@@ -25,7 +25,7 @@ class DDQNLearner(Agent):
         super().__init__(env)
         # Replay memory
         self.memory = list()
-        self.max_memory = 10**7  # number of previous transitions to remember
+        self.max_memory = 10 ** 7  # number of previous transitions to remember
 
         self.gamma = 0.95  # discount rate
         self.epsilon = 1.0  # exploration rate
@@ -102,7 +102,7 @@ class DDQNLearner(Agent):
 
         # Compute rewards for any posible action
         rewards = self._model.predict([np.array([state])], batch_size=1)
-        idx = np.argmax(rewards[0][0][0])
+        idx = np.argmax(rewards[0][0])
         return self.env.actions[idx]
 
     def update(self) -> None:
@@ -123,18 +123,13 @@ class DDQNLearner(Agent):
             minibatch = random.sample(self.memory, self.batch_size)
             for state, action, reward, next_state in minibatch:
                 target = self._model.predict(np.array([next_state]))
+                reward += self.gamma * target[0][0].max()
 
-                if action == self.env.actions[0]:
-                    target[0][0][0] = reward + self.gamma * target[0][0].max()
-
-                if action == self.env.actions[1]:
-                    target[0][0][1] = reward + self.gamma * target[0][0].max()
-
-                if action == self.env.actions[2]:
-                    target[0][0][2] = reward + self.gamma * target[0][0].max()
-
-                if action == self.env.actions[3]:
-                    target[0][0][3] = reward + self.gamma * target[0][0].max()
+                # Update action we should take, then break out of loop
+                for i in range(len(self.env.actions)):
+                    if action == self.env.actions[i]:
+                        target[0][0][i] = reward
+                        break
 
                 self._model.fit(np.array([state]), target, epochs=1, verbose=0)
 
