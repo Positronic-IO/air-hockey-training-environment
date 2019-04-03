@@ -14,7 +14,9 @@ class AirHockey(object):
     actions = ["U", "D", "L", "R"]
 
     # Default rewwards
-    rewards = {"point": 1, "loss": -1, "hit": 1, "miss": 0}
+    # rewards = {"point": 200, "loss": -500, "hit": 10, "miss": -1}
+    rewards = {"point": 200, "loss": -500, "hit": 10, "miss": 0} # Test mode
+
 
     def __init__(self, **kwargs) -> None:
         """ Initiate an air hockey game """
@@ -83,10 +85,15 @@ class AirHockey(object):
     def get_reward(self) -> int:
         """ Get reward of the current action """
 
+        # We missed the puck
+        if self.puck.x < self.left_mallet.x:
+            return self.rewards["miss"]
+
         # We won, the opponent is a failure
         if self._update_score() == "point":
             return self.rewards["point"]
 
+        # If we lost
         if self._update_score() == "loss":
             return self.rewards["loss"]
 
@@ -98,8 +105,7 @@ class AirHockey(object):
 
             return self.rewards["hit"]
 
-        # We missed the puck
-        return self.rewards["miss"]
+        
 
     def malletAI(self, mallet: Mallet) -> None:
         """ The 'AI' of the computer """
