@@ -42,7 +42,7 @@ class DDQNLearner(Agent):
 
         delta = time.time()
 
-        if delta - self.timer > 60:
+        if delta - self.timer > 20:
             self.env.reset()
             self.timer = time.time()
             print("Resetting due to stall")
