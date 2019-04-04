@@ -14,7 +14,7 @@ class AirHockey(object):
     actions = ["U", "D", "L", "R"]
 
     # Default rewwards
-    rewards = {"point": 200, "loss": -150, "hit": 50, "miss": -5, "euclid_reward": 25, "euclid_penalty": -100}
+    rewards = {"point": 20, "loss": -15, "hit": 50, "miss": -5, "euclid_reward": 200, "euclid_penalty": -50, "boundary": -50}
 
     def __init__(self, **kwargs) -> None:
         """ Initiate an air hockey game """
@@ -113,6 +113,13 @@ class AirHockey(object):
         ):
 
             return self.rewards["hit"]
+
+        # Penalize if puck hangs around the outside
+        if abs(self.left_mallet.x - 47) or abs(self.left_mallet.x - self.table_midpoints[0]) < 50:
+            return self.rewards["boundary"]
+        
+        if abs(self.left_mallet.y - 47) or abs(self.left_mallet.y - self.table_size[1]) < 50:
+            return self.rewards["boundary"]
 
         # We missed the puck
         # if self.puck.x < self.left_mallet.x:
