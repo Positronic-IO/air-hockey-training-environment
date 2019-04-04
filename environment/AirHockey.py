@@ -14,8 +14,7 @@ class AirHockey(object):
     actions = ["U", "D", "L", "R"]
 
     # Default rewwards
-    rewards = {"point": 200, "loss": -225, "hit": 50, "miss": -5}
-
+    rewards = {"point": 200, "loss": -150, "hit": 50, "miss": -5, "euclid_reward": 25, "euclid_penalty": -100}
 
     def __init__(self, **kwargs) -> None:
         """ Initiate an air hockey game """
@@ -81,12 +80,23 @@ class AirHockey(object):
         # Define step size of mallet
         self.step_size = 10
 
+    def _minimize_euclidean_distance(self) -> bool:
+        """ Penalize robot if euclidean distance between puck is minimized """
+
+        puck = self.puck.location()
+        puck_previous = self.puck.prev_location()
+
+        agent = self.left_mallet.location()
+        agent_previous = self.left_mallet.prev_location()
+
+        if np.linalg.norm(np.array(puck) - np.array(agent)) < np.linalg.norm(
+            np.array(puck_previous) - np.array(agent_previous)
+        ):
+            return True
+        return False
+
     def get_reward(self) -> int:
         """ Get reward of the current action """
-
-        # We missed the puck
-        if self.puck.x < self.left_mallet.x:
-            return self.rewards["miss"]
 
         # We won, the opponent is a failure
         if self._update_score() == "point":
@@ -103,6 +113,16 @@ class AirHockey(object):
         ):
 
             return self.rewards["hit"]
+
+        # We missed the puck
+        # if self.puck.x < self.left_mallet.x:
+        #     return self.rewards["miss"]
+
+        # If we do not chase down the puck
+        if self._minimize_euclidean_distance():
+            return self.rewards["euclid_reward"]
+        else:
+            return self.rewards["euclid_penalty"]
 
         return 0
 
