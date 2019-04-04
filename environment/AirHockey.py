@@ -14,8 +14,7 @@ class AirHockey(object):
     actions = ["U", "D", "L", "R"]
 
     # Default rewwards
-    # rewards = {"point": 200, "loss": -500, "hit": 10, "miss": -1}
-    rewards = {"point": 200, "loss": -500, "hit": 10, "miss": 0} # Test mode
+    rewards = {"point": 200, "loss": -225, "hit": 50, "miss": -5}
 
 
     def __init__(self, **kwargs) -> None:
@@ -105,7 +104,7 @@ class AirHockey(object):
 
             return self.rewards["hit"]
 
-        
+        return 0
 
     def malletAI(self, mallet: Mallet) -> None:
         """ The 'AI' of the computer """
