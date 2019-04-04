@@ -271,10 +271,20 @@ def main() -> None:
                     else:
                         results["opponent"] = [opponent_cumulative_score]
 
+                    if env.agent_score == 10:
+                        results["agent_win"] = 1
+                    else:
+                        results["agent_win"] = 0
+
+                    if env.cpu_score == 10:
+                        results["cpu_win"] = 1
+                    else:
+                        results["cpu_win"] = 0
+
                     if new:
                         write_results(args["results"], results)
 
-            # After so many iterations, save model
+            # After so many iterations, save motedel
             if hasattr(learner, "save_model") and iterations % iterations_on_save == 0:
                 if args.get("save"):
                     path = get_model_path(args["save"])
