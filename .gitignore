@@ -126,7 +126,7 @@ dmypy.json
 .vscode/
 
 # testing
-*.h5
-*.csv
-*.ipynb
+# *.h5
+# *.csv
+# *.ipynb
 todo
