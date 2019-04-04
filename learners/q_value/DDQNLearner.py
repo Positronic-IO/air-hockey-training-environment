@@ -135,6 +135,7 @@ class DDQNLearner(Agent):
 
         self.model_path = path
         self._model.load_weights(path)
+        print("Model loaded")
 
     def save_model(self, path: str = "", epoch: int = 0) -> None:
         """ Save a model """
