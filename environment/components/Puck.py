@@ -46,7 +46,7 @@ class Puck(object):
         elif self.y >= 460:
             self.y = 458
             self.dy *= -1
-        
+
         # Record last known position (within the constraints of the table)
         self.last_x = self.x
         self.last_y = self.y
