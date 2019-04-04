@@ -27,7 +27,7 @@ blue = (0, 0, 255)
 middle_line_offset = 4.5
 
 # Define frames per sec
-fps = 60**6
+fps = 60
 
 
 def event_processing(env: Union[AirHockey, TestAirHockey]) -> None:
