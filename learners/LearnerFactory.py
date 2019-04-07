@@ -3,14 +3,15 @@
 from .q_value import QLearner
 from .q_value import DQNLearner
 from .q_value import DDQNLearner
+from .q_value import C51
 
 
 class LearnerFactory(object):
 
     learners = {
         "q-learner": QLearner,
-        "dqn-learner": DQNLearner,
-        "ddqn-learner": DDQNLearner,
+        "dqn": DQNLearner,
+        "ddqn": DDQNLearner
     }
 
     def __init__(self):
