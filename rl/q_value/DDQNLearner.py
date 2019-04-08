@@ -15,6 +15,7 @@ from keras.optimizers import Adam, RMSprop
 
 from environment import Agent
 from utils import State, get_model_path
+from rl.helpers import huber_loss
 
 
 class DDQNLearner(Agent):
@@ -25,37 +26,15 @@ class DDQNLearner(Agent):
         super().__init__(env)
         # Replay memory
         self.memory = list()
-        self.max_memory = 10 ** 7  # number of previous transitions to remember
+        self.max_memory = 10 ** 5  # number of previous transitions to remember
 
         self.gamma = 0.95  # discount rate
         self.epsilon = 1.0  # exploration rate
         self.epsilon_min = 0.01
         self.epsilon_decay = 0.99
         self.learning_rate = 0.001
-        self.batch_size = 10**3
+        self.batch_size = 10 ** 2
         self._model = self._build_model()
-
-        self.timer = time.time()
-
-    def _check_stall(self) -> None:
-        """ Avoids stalling during training """
-
-        delta = time.time()
-
-        if delta - self.timer > 20:
-            self.env.reset()
-            self.timer = time.time()
-            print("Resetting due to stall")
-
-        return None
-
-    def _huber_loss(self, y_true: float, y_pred: float) -> float:
-        """ Compute Huber Loss 
-        
-        References: https://en.wikipedia.org/wiki/Huber_loss
-                https://www.tensorflow.org/api_docs/python/tf/losses/huber_loss
-        """
-        return K.mean(K.sqrt(1 + K.square(y_pred - y_true)) - 1, axis=-1)
 
     def _build_model(self):
         """ Create our DNN model for Q-value approximation """
@@ -74,10 +53,7 @@ class DDQNLearner(Agent):
         model.add(Dense(4, kernel_initializer="random_uniform"))
         model.add(Activation("linear"))
 
-        rms = (
-            RMSprop()
-        )  # RMS is used since it is adaptive and our "dataset is not fixed"
-        model.compile(loss=self._huber_loss, optimizer=rms)
+        model.compile(loss=huber_loss, optimizer=Adam(lr=self.learning_rate))
 
         print(model.summary())
 
@@ -91,7 +67,7 @@ class DDQNLearner(Agent):
         """ Apply an espilon-greedy policy to pick next action """
 
         # Helps over fitting, encourages to exploration
-        if np.random.uniform(0, 0.8) < self.epsilon:
+        if np.random.uniform(0, 1) < self.epsilon:
             return np.random.choice(self.env.actions)
 
         # Compute rewards for any posible action
@@ -104,9 +80,6 @@ class DDQNLearner(Agent):
 
         # Update model in intervals
         if iterations > self.batch_size and iterations % self.batch_size == 0:
-
-            # Avoids stalling
-            self._check_stall()
 
             # Governs how much history is stored in memory
             if len(self.memory) > self.max_memory:

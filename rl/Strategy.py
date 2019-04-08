@@ -5,13 +5,9 @@ from .q_value import DQNLearner
 from .q_value import DDQNLearner
 
 
-class LearnerFactory:
+class Strategy:
 
-    learners = {
-        "q-learner": QLearner,
-        "dqn": DQNLearner,
-        "ddqn": DDQNLearner
-    }
+    strategies = {"q-learner": QLearner, "dqn": DQNLearner, "ddqn": DDQNLearner}
 
     def __init__(self):
         pass
@@ -22,4 +18,4 @@ class LearnerFactory:
         if env is None:
             raise ValueError("Need to pass a gaming environment")
 
-        return self.learners[name](env)
+        return self.strategies[name](env)

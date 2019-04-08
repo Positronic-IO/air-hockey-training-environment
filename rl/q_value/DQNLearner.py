@@ -13,7 +13,7 @@ from keras.optimizers import Adam, RMSprop
 
 from environment import Agent
 from utils import State, get_model_path
-
+from rl.helpers import huber_loss
 
 class DQNLearner(Agent):
 
@@ -27,14 +27,6 @@ class DQNLearner(Agent):
         self._epsilon = 0.9
 
         self._model = self._build_model()
-
-    def _huber_loss(self, y_true: float, y_pred: float) -> float:
-        """ Compute Huber Loss 
-        
-        References: https://en.wikipedia.org/wiki/Huber_loss
-                https://www.tensorflow.org/api_docs/python/tf/losses/huber_loss
-        """
-        return K.mean(K.sqrt(1 + K.square(y_pred - y_true)) - 1, axis=-1)
 
     def _build_model(self):
         """ Create our DNN model for Q-value approximation """
@@ -56,7 +48,7 @@ class DQNLearner(Agent):
         rms = (
             RMSprop()
         )  # RMS is used since it is adaptive and our "dataset is not fixed"
-        model.compile(loss=self._huber_loss, optimizer=rms)
+        model.compile(loss=huber_loss, optimizer=rms)
 
         print(model.summary())
 

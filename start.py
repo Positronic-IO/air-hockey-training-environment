@@ -7,7 +7,7 @@ import pygame
 
 from environment import AirHockey
 from environment.test import TestAirHockey
-from learners import LearnerFactory
+from rl import Strategy
 from utils import get_model_path, parse_args, welcome, write_results, State
 from typing import Union
 
@@ -141,20 +141,17 @@ def main() -> None:
     else:
         env = AirHockey()
 
-    # Who will be playing the game
-    agent = args["agent"]
-
     # If user is a robot, set learning style
-    if agent == "robot":
-        learner = LearnerFactory().make(args["strategy"], env)
+    if args["agent"] == "robot":
+        agent = Strategy().make(args["strategy"], env)
 
         # If we pass a weights file, load it.
-        if hasattr(learner, "load_model") and args.get("load"):
+        if hasattr(agent, "load_model") and args.get("load"):
             file_name = get_model_path(args["load"])
-            learner.load_model(file_name)
+            agent.load_model(file_name)
 
         if (
-            hasattr(learner, "save_model")
+            hasattr(agent, "save_model")
             and not args.get("save")
             and not args.get("load")
         ):
@@ -188,13 +185,13 @@ def main() -> None:
             event_processing(env)
 
         # Human agent
-        if agent == "human" and args.get("mode") == "gui":
+        if args["agent"] == "human" and args.get("mode") == "gui":
             # Grab and set user position
             pos = pygame.mouse.get_pos()
             env.update_state(action=pos)
 
         # Robot
-        if agent == "robot":
+        if args["agent"] == "robot":
             # Set robot step size
             env.step_size = 10
 
@@ -203,7 +200,7 @@ def main() -> None:
                 action = str(np.random.choice(env.actions))
 
                 # Update game state
-                learner.move(action)
+                agent.move(action)
 
                 init = False
             else:
@@ -214,7 +211,7 @@ def main() -> None:
 
                 # Current state
                 state = State(
-                    agent_state=learner.location(),
+                    agent_state=agent.location(),
                     puck_state=env.puck.location(),
                     puck_prev_state=env.puck.prev_location(),
                     # opponent_state=env.opponent.location(),
@@ -222,27 +219,27 @@ def main() -> None:
                 )
 
                 # Determine next action
-                action = learner.get_action(state)
+                action = agent.get_action(state)
                 # Update game state
-                learner.move(action)
+                agent.move(action)
 
                 # DDQN
-                if args["strategy"] == "ddqn-learner":
+                if args["strategy"] == "ddqn-agent":
                     next_state = State(
-                        agent_state=learner.location(),
+                        agent_state=agent.location(),
                         puck_state=env.puck.location(),
                         puck_prev_state=env.puck.prev_location(),
                         # opponent_state=env.opponent.location(),
                         # opponent_prev_state=env.opponent.prev_location(),
                     )
-                    learner.remember(state, action, data["reward"], next_state)
-                    learner.update(iterations)
+                    agent.remember(state, action, data["reward"], next_state)
+                    agent.update(iterations)
 
                 # DQN
-                if args["strategy"] == "dqn-learner":
+                if args["strategy"] == "dqn-agent":
                     # New state
                     next_state = State(
-                        agent_state=learner.location(),
+                        agent_state=agent.location(),
                         puck_state=env.puck.location(),
                         puck_prev_state=env.puck.prev_location(),
                         # opponent_state=env.opponent.location(),
@@ -250,7 +247,7 @@ def main() -> None:
                     )
 
                     # Update state
-                    learner.update(next_state, data["reward"])
+                    agent.update(next_state, data["reward"])
 
                 # Save results to csv
                 if args.get("results"):
@@ -285,12 +282,12 @@ def main() -> None:
                         write_results(args["results"], results)
 
             # After so many iterations, save motedel
-            if hasattr(learner, "save_model") and iterations % iterations_on_save == 0:
+            if hasattr(agent, "save_model") and iterations % iterations_on_save == 0:
                 if args.get("save"):
                     path = get_model_path(args["save"])
-                    learner.save_model(path, epoch)
+                    agent.save_model(path, epoch)
                 else:
-                    learner.save_model(epoch=epoch)
+                    agent.save_model(epoch=epoch)
                 epoch += 1
             iterations += 1
 
