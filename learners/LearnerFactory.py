@@ -3,10 +3,9 @@
 from .q_value import QLearner
 from .q_value import DQNLearner
 from .q_value import DDQNLearner
-from .q_value import C51
 
 
-class LearnerFactory(object):
+class LearnerFactory:
 
     learners = {
         "q-learner": QLearner,

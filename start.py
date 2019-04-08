@@ -94,14 +94,14 @@ def rerender_environment(env: Union[AirHockey, TestAirHockey]) -> None:
     draw_table(env)
 
     # Draw left mallet
-    pygame.draw.circle(screen, white, [env.left_mallet.x, env.left_mallet.y], 20, 0)
-    pygame.draw.circle(screen, black, [env.left_mallet.x, env.left_mallet.y], 20, 1)
-    pygame.draw.circle(screen, black, [env.left_mallet.x, env.left_mallet.y], 5, 0)
+    pygame.draw.circle(screen, white, [env.agent.x, env.agent.y], 20, 0)
+    pygame.draw.circle(screen, black, [env.agent.x, env.agent.y], 20, 1)
+    pygame.draw.circle(screen, black, [env.agent.x, env.agent.y], 5, 0)
 
     # Draw right mallet
-    pygame.draw.circle(screen, white, [env.right_mallet.x, env.right_mallet.y], 20, 0)
-    pygame.draw.circle(screen, black, [env.right_mallet.x, env.right_mallet.y], 20, 1)
-    pygame.draw.circle(screen, black, [env.right_mallet.x, env.right_mallet.y], 5, 0)
+    pygame.draw.circle(screen, white, [env.opponent.x, env.opponent.y], 20, 0)
+    pygame.draw.circle(screen, black, [env.opponent.x, env.opponent.y], 20, 1)
+    pygame.draw.circle(screen, black, [env.opponent.x, env.opponent.y], 5, 0)
 
     # Draw left goal
     pygame.draw.rect(
@@ -217,8 +217,8 @@ def main() -> None:
                     agent_state=learner.location(),
                     puck_state=env.puck.location(),
                     puck_prev_state=env.puck.prev_location(),
-                    # opponent_state=env.right_mallet.location(),
-                    # opponent_prev_state=env.right_mallet.prev_location(),
+                    # opponent_state=env.opponent.location(),
+                    # opponent_prev_state=env.opponent.prev_location(),
                 )
 
                 # Determine next action
@@ -232,8 +232,8 @@ def main() -> None:
                         agent_state=learner.location(),
                         puck_state=env.puck.location(),
                         puck_prev_state=env.puck.prev_location(),
-                        # opponent_state=env.right_mallet.location(),
-                        # opponent_prev_state=env.right_mallet.prev_location(),
+                        # opponent_state=env.opponent.location(),
+                        # opponent_prev_state=env.opponent.prev_location(),
                     )
                     learner.remember(state, action, data["reward"], next_state)
                     learner.update(iterations)
@@ -245,8 +245,8 @@ def main() -> None:
                         agent_state=learner.location(),
                         puck_state=env.puck.location(),
                         puck_prev_state=env.puck.prev_location(),
-                        # opponent_state=env.right_mallet.location(),
-                        # opponent_prev_state=env.right_mallet.prev_location()
+                        # opponent_state=env.opponent.location(),
+                        # opponent_prev_state=env.opponent.prev_location()
                     )
 
                     # Update state

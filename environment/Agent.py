@@ -3,7 +3,7 @@ from typing import Tuple
 from utils import Action
 
 
-class Agent(object):
+class Agent:
     def __init__(self, env=None):
 
         if env is not None:
@@ -12,11 +12,12 @@ class Agent(object):
             raise ValueError("Please pass an instance of the gaming environment")
 
     def move(self, action: Action) -> None:
-        " Move agent "
+        """ Move agent """
 
         self.env.update_state(action)
         return None
 
     def location(self) -> Tuple[int, int]:
-        return self.env.left_mallet.location()
+        """ Return agent's location """
+        return self.env.agent.location()
 
