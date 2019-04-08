@@ -3,14 +3,13 @@
 import argparse
 import os
 import sys
-from typing import Any, Dict, Tuple, Union
 from collections import namedtuple
+from typing import Any, Dict, Tuple, Union
 
 import pandas as pd
 
 # Define custom types
 Action = Union[str, Tuple[int, int]]
-
 
 State = namedtuple(
     "state",
