@@ -6,7 +6,8 @@ import numpy as np
 
 from environment import AirHockey
 from environment.components import Goal, Mallet
-from environment.test import TestPuck
+
+from .TestPuck import TestPuck
 
 
 class TestAirHockey(AirHockey):
@@ -91,9 +92,7 @@ class TestAirHockey(AirHockey):
         self.agent.last_x = self.agent.x
         self.agent.last_y = self.agent.y
 
-
         self.ticks_to_friction -= 1
         self.ticks_to_ai -= 1
 
         return None
-
