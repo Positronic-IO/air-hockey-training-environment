@@ -12,7 +12,7 @@ from keras.models import Sequential
 from keras.optimizers import Adam, RMSprop
 
 from environment import Agent
-from utils import State, get_model_path
+from utils import State, Observation, get_model_path
 from rl.helpers import huber_loss
 
 class DQNLearner(Agent):
@@ -76,11 +76,12 @@ class DQNLearner(Agent):
 
         return action
 
-    def update(self, new_state: State, reward: int) -> None:
+    def update(self, data: Observation) -> None:
         """ Updates learner with new state/Q values """
 
         if self._learning:
-            rewards = self._model.predict(np.array([new_state]), batch_size=1)
+            reward = data.reward
+            rewards = self._model.predict(np.array([data.new_state]), batch_size=1)
             reward += self._gamma * rewards[0][0].max()
 
             # Update action we should take, then break out of loop

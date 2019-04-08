@@ -6,6 +6,7 @@ from typing import Tuple
 import numpy as np
 
 from environment import Agent
+from utils import Observation, State
 
 
 class QLearner(Agent):
@@ -21,37 +22,40 @@ class QLearner(Agent):
         self._epsilon = 0.9
         self._learning = True
 
-    def get_action(self, state: Tuple[int, int]) -> str:
+    def get_action(self, state: State) -> str:
         """ Give current state, predict next action which maximizes reward """
 
         # Helps over fitting, encourages to exploration
         if state in self._Q and np.random.uniform(0, 1) < self._epsilon:
             # We use the action which corresponds to the highest Q-value
-            action = max(self._Q[state], key=self._Q[state].get)
+            action = max(self._Q[state.agent_state], key=self._Q[state.agent_state].get)
         else:
             action = np.random.choice(self.env.actions)
             if state not in self._Q:
-                self._Q[state] = {}
-            self._Q[state][action] = 0
+                self._Q[state.agent_state] = {}
+            self._Q[state.agent_state][action] = 0
 
-        self._last_state = state
+        self._last_state = state.agent_state
         self._last_action = action
 
         return action
 
-    def update(self, new_state: Tuple[int, int], reward: int) -> None:
+    def update(self, data: Observation) -> None:
         """ Updates learner with new state/Q values """
 
         if self._learning:
             old = self._Q[self._last_state][self._last_action]
 
-            if new_state in self._Q:
+            if data.new_state.agent_state in self._Q:
                 # Discount reward so we are not too fixated on short-term success.
                 # Helps the algorithm focus on the future.
                 new = (
                     self._discount
-                    * self._Q[new_state][
-                        max(self._Q[new_state], key=self._Q[new_state].get)
+                    * self._Q[data.new_state.agent_state][
+                        max(
+                            self._Q[data.new_state.agent_state],
+                            key=self._Q[data.new_state.agent_state].get,
+                        )
                     ]
                 )
             else:
@@ -60,6 +64,6 @@ class QLearner(Agent):
             # Update Q-values
             self._Q[self._last_state][self._last_action] = (
                 1 - self._learning_rate
-            ) * old + self._learning_rate * (reward + new)
+            ) * old + self._learning_rate * (data.reward + new)
 
         return None

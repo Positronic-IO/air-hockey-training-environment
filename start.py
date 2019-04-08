@@ -8,7 +8,7 @@ import pygame
 from environment import AirHockey
 from environment.test import TestAirHockey
 from rl import Strategy
-from utils import get_model_path, parse_args, welcome, write_results, State
+from utils import get_model_path, parse_args, welcome, write_results, State, Observation
 from typing import Union
 
 # Initialize the game engine
@@ -141,7 +141,7 @@ def main() -> None:
     else:
         env = AirHockey()
 
-    # If user is a robot, set learning style
+    # If user is a robot, set learning style for agent
     if args["agent"] == "robot":
         agent = Strategy().make(args["strategy"], env)
 
@@ -206,48 +206,36 @@ def main() -> None:
             else:
                 # Now, let the model do all the work
 
-                # Observe state
-                data = env.observe()
-
                 # Current state
                 state = State(
                     agent_state=agent.location(),
                     puck_state=env.puck.location(),
                     puck_prev_state=env.puck.prev_location(),
-                    # opponent_state=env.opponent.location(),
-                    # opponent_prev_state=env.opponent.prev_location(),
                 )
 
                 # Determine next action
                 action = agent.get_action(state)
+
                 # Update game state
                 agent.move(action)
 
-                # DDQN
-                if args["strategy"] == "ddqn-agent":
-                    next_state = State(
-                        agent_state=agent.location(),
-                        puck_state=env.puck.location(),
-                        puck_prev_state=env.puck.prev_location(),
-                        # opponent_state=env.opponent.location(),
-                        # opponent_prev_state=env.opponent.prev_location(),
-                    )
-                    agent.remember(state, action, data["reward"], next_state)
-                    agent.update(iterations)
+                # New state
+                new_state = State(
+                    agent_state=agent.location(),
+                    puck_state=env.puck.location(),
+                    puck_prev_state=env.puck.prev_location(),
+                )
 
-                # DQN
-                if args["strategy"] == "dqn-agent":
-                    # New state
-                    next_state = State(
-                        agent_state=agent.location(),
-                        puck_state=env.puck.location(),
-                        puck_prev_state=env.puck.prev_location(),
-                        # opponent_state=env.opponent.location(),
-                        # opponent_prev_state=env.opponent.prev_location()
-                    )
+                # Observation of the game at the moment
+                observation = Observation(
+                    state=state, action=action, reward=env.reward(), new_state=new_state
+                )
 
-                    # Update state
-                    agent.update(next_state, data["reward"])
+                # Update model
+                if args.get("strategy") in ["ddqn"]:
+                    agent.update(observation, iterations)
+                else:
+                    agent.update(observation)
 
                 # Save results to csv
                 if args.get("results"):

@@ -14,7 +14,7 @@ from keras.models import Sequential
 from keras.optimizers import Adam, RMSprop
 
 from environment import Agent
-from utils import State, get_model_path
+from utils import State, Observation, get_model_path
 from rl.helpers import huber_loss
 
 
@@ -75,8 +75,11 @@ class DDQNLearner(Agent):
         idx = np.argmax(rewards[0][0])
         return self.env.actions[idx]
 
-    def update(self, iterations: int) -> None:
+    def update(self, data: Observation, iterations: int) -> None:
         """ Experience replay """
+
+        # Push data into observat
+        self.memory.append(data)
 
         # Update model in intervals
         if iterations > self.batch_size and iterations % self.batch_size == 0:
@@ -86,22 +89,27 @@ class DDQNLearner(Agent):
                 self.memory.pop()
 
             print("Updating replay")
-
+            # Sample observations from memory for experience replay
             minibatch = random.sample(self.memory, self.batch_size)
-            for state, action, reward, next_state in minibatch:
-                target = self._model.predict(np.array([next_state]))
+            for observation in minibatch:
+                reward = observation.reward
+                target = self._model.predict(np.array([observation.new_state]))
                 reward += self.gamma * target[0][0].max()
 
                 # Update action we should take, then break out of loop
                 for i in range(len(self.env.actions)):
-                    if action == self.env.actions[i]:
+                    if observation.action == self.env.actions[i]:
                         target[0][0][i] = reward
                         break
 
-                self._model.fit(np.array([state]), target, epochs=1, verbose=0)
+                self._model.fit(
+                    np.array([observation.state]), target, epochs=1, verbose=0
+                )
 
             if self.epsilon > self.epsilon_min:
                 self.epsilon *= self.epsilon_decay
+
+        return None
 
     def load_model(self, path: str) -> None:
         """ Load a model"""
