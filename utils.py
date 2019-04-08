@@ -4,7 +4,7 @@ import argparse
 import os
 import sys
 from collections import namedtuple
-from typing import Any, Dict, Tuple, Union
+from typing import Any, Dict, List, Tuple, Union
 
 import pandas as pd
 
@@ -138,7 +138,7 @@ def get_model_path(file_path: str) -> str:
     return file_path
 
 
-def write_results(filename: str, data: Dict[str, Any]) -> None:
+def write_results(filename: str, data: Dict[str, List[int]]) -> None:
     """ Write data to csv """
 
     df = pd.DataFrame.from_dict(data)

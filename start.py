@@ -269,14 +269,14 @@ def main() -> None:
                         results["opponent"] = [opponent_cumulative_score]
 
                     if env.agent_score == 10:
-                        results["agent_win"] = 1
+                        results["agent_win"] = [1]
                     else:
-                        results["agent_win"] = 0
+                        results["agent_win"] = [0]
 
                     if env.cpu_score == 10:
-                        results["cpu_win"] = 1
+                        results["cpu_win"] = [1]
                     else:
-                        results["cpu_win"] = 0
+                        results["cpu_win"] = [0]
 
                     if new:
                         write_results(args["results"], results)
