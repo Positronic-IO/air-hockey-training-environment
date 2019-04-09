@@ -230,7 +230,7 @@ def main() -> None:
                 )
 
                 # Update model
-                if args.get("strategy") in ["ddqn"]:
+                if args.get("strategy") in ["ddqn", "dueling-ddqn"]:
                     agent.update(observation, iterations)
                 else:
                     agent.update(observation)

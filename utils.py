@@ -48,7 +48,7 @@ def parse_args() -> Dict[str, str]:
         print("Select an allowed agent: human or robot")
         sys.exit()
 
-    if args.get("strategy") not in ["q-learner", "dqn", "ddqn", "c51"]:
+    if args.get("strategy") not in ["q-learner", "dqn", "ddqn", "dueling-ddqn"]:
         print("Unsupported learning strategy.")
         sys.exit()
 

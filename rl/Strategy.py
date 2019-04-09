@@ -1,11 +1,11 @@
 """ Dynamically choosing learning algorithm """
 
-from .q_value import DDQN, DQN, QLearner
+from .q_value import DDQN, DQN, DuelingDDQN, QLearner
 
 
 class Strategy:
 
-    strategies = {"q-learner": QLearner, "dqn": DQN, "ddqn": DDQN}
+    strategies = {"q-learner": QLearner, "dqn": DQN, "ddqn": DDQN, "dueling-ddqn": DuelingDDQN}
 
     def __init__(self):
         pass
