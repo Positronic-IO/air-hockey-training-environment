@@ -46,6 +46,8 @@ You can also run this simulation in "test mode" with the flag `--env test.` The 
 
 If you want to run the simulation without a gui (or headless), add `--mode cli`. All the command line configuration is the same. Obviously, your agent has to be the robot because there is no gui.
 
+To define the fps of the gui, enter the desired fps after the `--fps` flag. The default fps is 60. A value of -1 turns off the fps throttling. FPS does not affect `cli` mode.
+
 ## Warnings
 + Beware of how you set your rewards because these settings drastically effect the exploitation/exploration tradeoff. 
 + In the DQN and DDQN model achitecture, there is no dropout or any type of normalization. There is no need for this in reinforcement learning. Overfitting can be a good thing. If you feel your model is not robust enough, try introducing more noise into the system via modifying the gameplay.

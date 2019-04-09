@@ -26,9 +26,6 @@ blue = (0, 0, 255)
 # Offest for drawing the center line of table
 middle_line_offset = 4.5
 
-# Define frames per sec
-fps = 60
-
 
 def event_processing(env: Union[AirHockey, TestAirHockey]) -> None:
     """ Pygame event processing """
@@ -132,7 +129,8 @@ def main() -> None:
     args = parse_args()
 
     # Set game clock
-    # clock = pygame.time.Clock()
+    if args.get("fps") != -1 and args["mode"] == "gui":
+        clock = pygame.time.Clock()
 
     # Initiate game environment
     if args.get("env") == "test":
@@ -294,7 +292,9 @@ def main() -> None:
             rerender_environment(env)
 
         # frames per second
-        # clock.tick(fps)
+        if args.get("fps") != -1 and args["mode"] == "gui":
+            clock.tick(int(args.get("fps")))
+
     pygame.quit()
 
 

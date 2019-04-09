@@ -22,6 +22,7 @@ def parse_args() -> Dict[str, str]:
     ap = argparse.ArgumentParser()
     ap.add_argument("-m", "--mode", default="gui", help="Game play")
     ap.add_argument("-a", "--agent", default="human", help="Agent for gameplay")
+    ap.add_argument("--fps", default=60, help="Define FPS of game. Defaults to 60 fps. A value of -1 allows for the highest possible frame rate.")
     ap.add_argument("--strategy", default="q-learner", help="Learning strategy")
     ap.add_argument("--load", help="Path to load a model")
     ap.add_argument("--save", help="Path to save a model")
@@ -33,6 +34,10 @@ def parse_args() -> Dict[str, str]:
     # Validations
     if args.get("mode") not in ["gui", "cli"]:
         print("Incorrect game mode.")
+        sys.exit()
+
+    if args.get("fps") and args.get("mode") != "gui":
+        print(f"Cannot define fps for mode {args.get('mode')}")
         sys.exit()
 
     if args.get("agent") == "human" and args.get("mode") == "cli":
@@ -90,6 +95,9 @@ def welcome(args: Dict[str, str]) -> None:
     print("-" * 35)
     if args.get("mode"):
         print(f"Game Mode: {args['mode']}")
+
+    if args.get("fps") and args.get("mode") == "gui":
+        print(f"FPS: {args.get('fps')}")
 
     if args.get("env"):
         print(f"Environment: {args['env']}")
