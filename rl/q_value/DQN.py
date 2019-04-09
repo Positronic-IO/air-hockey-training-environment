@@ -12,10 +12,11 @@ from keras.models import Sequential
 from keras.optimizers import Adam, RMSprop
 
 from environment import Agent
-from utils import State, Observation, get_model_path
 from rl.helpers import huber_loss
+from utils import Observation, State, get_model_path
 
-class DQNLearner(Agent):
+
+class DQN(Agent):
 
     """ Reference: https://keon.io/deep-q-learning/ """
 

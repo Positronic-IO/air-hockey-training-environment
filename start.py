@@ -1,6 +1,7 @@
 """ Air Hockey Simulator """
 import random
 import sys
+from typing import Union
 
 import numpy as np
 import pygame
@@ -8,8 +9,7 @@ import pygame
 from environment import AirHockey
 from environment.test import TestAirHockey
 from rl import Strategy
-from utils import get_model_path, parse_args, welcome, write_results, State, Observation
-from typing import Union
+from utils import Observation, State, get_model_path, parse_args, welcome, write_results
 
 # Initialize the game engine
 pygame.init()

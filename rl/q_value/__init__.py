@@ -1,3 +1,3 @@
 from .QLearner import QLearner
-from .DQNLearner import DQNLearner
-from .DDQNLearner import DDQNLearner
+from .DQN import DQN
+from .DDQN import DDQN
