@@ -129,8 +129,9 @@ def main() -> None:
     args = parse_args()
 
     # Set game clock
-    if args.get("fps") != -1 and args["mode"] == "gui":
+    if args["mode"] == "gui":
         clock = pygame.time.Clock()
+        fps = int(args.get("fps", 60))
 
     # Initiate game environment
     if args.get("env") == "test":
@@ -288,12 +289,12 @@ def main() -> None:
             print("Agent wins!")
             env.reset(total=True)
 
-        if args.get("mode") == "gui":
+        if args["mode"] == "gui":
             rerender_environment(env)
 
         # frames per second
-        if args.get("fps") != -1 and args["mode"] == "gui":
-            clock.tick(int(args.get("fps")))
+        if args["mode"] == "gui" and fps != -1:
+            clock.tick(int(args.get("fps", 60)))
 
     pygame.quit()
 

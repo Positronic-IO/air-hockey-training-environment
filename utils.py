@@ -22,7 +22,7 @@ def parse_args() -> Dict[str, str]:
     ap = argparse.ArgumentParser()
     ap.add_argument("-m", "--mode", default="gui", help="Game play")
     ap.add_argument("-a", "--agent", default="human", help="Agent for gameplay")
-    ap.add_argument("--fps", default=60, help="Define FPS of game. Defaults to 60 fps. A value of -1 allows for the highest possible frame rate.")
+    ap.add_argument("--fps", help="Define FPS of game. Defaults to 60 fps. A value of -1 allows for the highest possible frame rate.")
     ap.add_argument("--strategy", default="q-learner", help="Learning strategy")
     ap.add_argument("--load", help="Path to load a model")
     ap.add_argument("--save", help="Path to save a model")
