@@ -8,7 +8,7 @@ from typing import Tuple
 import numpy as np
 import tensorflow as tf
 from keras import backend as K
-from keras.layers import Dense, Dropout, Input, Lambda, add, Flatten
+from keras.layers import Dense, Dropout, Input, Lambda, add, Flatten, Activation
 from keras.models import Sequential, Model
 from keras.optimizers import Adam, RMSprop
 
@@ -33,7 +33,7 @@ class DuelingDDQN(Agent):
         self.epsilon = 1.0
         self.initial_epsilon = 1.0
         self.final_epsilon = 0.0001
-        self.batch_size = 100
+        self.batch_size = 10**3
         self.observe = 5000
         self.explore = 50000
         self.frame_per_action = 4
@@ -74,7 +74,6 @@ class DuelingDDQN(Agent):
         # merge to state-action value function Q
         state_action_value = add([state_value, action_advantage])
 
-        model = Model(input=state_input, output=state_action_value)
         model.compile(loss=huber_loss, optimizer=Adam(lr=self.learning_rate))
 
         print(model.summary())

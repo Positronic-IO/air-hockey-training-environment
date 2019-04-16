@@ -14,14 +14,23 @@ class AirHockey:
     actions = ["U", "D", "L", "R"]
 
     # Default rewwards
+    # rewards = {
+    #     "point": 20,
+    #     "loss": -15,
+    #     "hit": 50,
+    #     "miss": -5,
+    #     "euclid_reward": 200,
+    #     "euclid_penalty": -50,
+    #     "boundary": -50,
+    # }
     rewards = {
-        "point": 20,
-        "loss": -15,
-        "hit": 50,
-        "miss": -5,
-        "euclid_reward": 200,
-        "euclid_penalty": -50,
-        "boundary": -50,
+        "point": 1,
+        "loss": -1,
+        "hit": 1,
+        "miss": -1,
+        "euclid_reward": 1,
+        "euclid_penalty": -1,
+        "boundary": -1,
     }
 
     def __init__(self, **kwargs) -> None:
