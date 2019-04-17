@@ -16,13 +16,10 @@ State = namedtuple("state", ["agent_state", "puck_state", "puck_prev_state"])
 Observation = namedtuple("observation", ["state", "action", "reward", "new_state"])
 
 
-def parse_args() -> Dict[str, str]:
-    """ Construct the argument parse and parse the arguments """
+def parse_args_agent() -> Dict[str, str]:
+    """ Parse arguments for agent settings """
 
     ap = argparse.ArgumentParser()
-    ap.add_argument("-m", "--mode", default="gui", help="Game play")
-    ap.add_argument("-a", "--agent", default="human", help="Agent for gameplay")
-    ap.add_argument("--fps", help="Define FPS of game. Defaults to 60 fps. A value of -1 allows for the highest possible frame rate.")
     ap.add_argument("--strategy", default="q-learner", help="Learning strategy")
     ap.add_argument("--load", help="Path to load a model")
     ap.add_argument("--save", help="Path to save a model")
@@ -31,31 +28,25 @@ def parse_args() -> Dict[str, str]:
 
     args = vars(ap.parse_args())
 
-    # Validations
-    if args.get("mode") not in ["gui", "cli"]:
-        print("Incorrect game mode.")
-        sys.exit()
+    return args
 
-    if args.get("fps") and args.get("mode") != "gui":
-        print(f"Cannot define fps for mode {args.get('mode')}")
-        sys.exit()
 
-    if args.get("agent") == "human" and args.get("mode") == "cli":
-        print("Human agent only allowed in gui mode.")
-        sys.exit()
+def parse_args_gui() -> Dict[str, str]:
+    """ Parse arguments for rendering """
 
-    if args.get("agent") not in ["human", "robot"]:
-        print("Select an allowed agent: human or robot")
-        sys.exit()
+    ap = argparse.ArgumentParser()
+    ap.add_argument("-m", "--mode", default="gui", help="Game play")
+        ap.add_argument("-a", "--agent", default="human", help="Agent for gameplay")
 
-    if args.get("strategy") not in ["q-learner", "dqn", "ddqn", "dueling-ddqn"]:
-        print("Unsupported learning strategy.")
-        sys.exit()
+    ap.add_argument(
+        "--fps",
+        help="Define FPS of game. Defaults to 60 fps. A value of -1 allows for the highest possible frame rate.",
+    )
+    ap.add_argument("--strategy", default="q-learner", help="Learning strategy")
+    ap.add_argument("--env", default="normal", help="Define environment")
+    ap.add_argument("--results", help="Path to save results as csv")
 
-    if args.get("load") and not args.get("save"):
-        print(
-            "Since path is not defined, model will be saved to the same path as it was loaded from."
-        )
+    args = vars(ap.parse_args())
 
     return args
 
