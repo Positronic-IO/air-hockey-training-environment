@@ -6,7 +6,7 @@ from typing import Tuple
 
 import numpy as np
 from keras import backend as K
-from keras.layers import BatchNormalization, Dense, Dropout
+from keras.layers import BatchNormalization, Dense, Dropout, Flatten
 from keras.layers.core import Activation, Dense
 from keras.models import Sequential
 from keras.optimizers import Adam, RMSprop
@@ -22,14 +22,12 @@ class DQN(Agent):
 
     def __init__(self, env):
         super().__init__(env)
-        self._learning = True
-        self._learning_rate = 0.1
-        self._gamma = 0.1
-        self._epsilon = 0.9
+        self.gamma = 0.1
+        self.epsilon = 0.9
 
-        self._model = self._build_model()
+        self.model = self.build_model()
 
-    def _build_model(self):
+    def build_model(self):
         """ Create our DNN model for Q-value approximation """
 
         model = Sequential()
@@ -42,6 +40,8 @@ class DQN(Agent):
 
         model.add(Dense(20, kernel_initializer="normal"))
         model.add(Activation("relu"))
+
+        model.add(Flatten())
 
         model.add(Dense(4, kernel_initializer="random_uniform"))
         model.add(Activation("linear"))
@@ -59,54 +59,50 @@ class DQN(Agent):
         """ Apply an espilon-greedy policy to pick next action """
 
         # Compute rewards for any posible action
-        rewards = self._model.predict([np.array([state])], batch_size=1)
-
+        rewards = self.model.predict([np.array([state])], batch_size=1)
         # Helps over fitting, encourages to exploration
-        if np.random.uniform(0, 1) < self._epsilon:
+        if np.random.uniform(0, 1) < self.epsilon:
             # We use the action which corresponds to the highest reward
-            idx = np.argmax(rewards[0][0])
+            idx = np.argmax(rewards[0])
             action = self.env.actions[idx]
 
         else:
             action = np.random.choice(self.env.actions)
 
         # Update
-        self._last_state = state
-        self._last_action = action
-        self._last_target = rewards
+        self.last_state = state
+        self.last_action = action
+        self.last_target = rewards
 
         return action
 
     def update(self, data: Observation) -> None:
         """ Updates learner with new state/Q values """
 
-        if self._learning:
-            reward = data.reward
-            rewards = self._model.predict(np.array([data.new_state]), batch_size=1)
-            reward += self._gamma * rewards[0][0].max()
+        reward = data.reward
+        rewards = self.model.predict(np.array([data.new_state]), batch_size=1)
+        reward += self.gamma * rewards[0].max()
 
-            # Update action we should take, then break out of loop
-            for i in range(len(self.env.actions)):
-                if self._last_action == self.env.actions[i]:
-                    self._last_target[0][0][i] = reward
-                    break
+        # Update action we should take, then break out of loop
+        for i in range(len(self.env.actions)):
+            if self.last_action == self.env.actions[i]:
+                self.last_target[0][i] = reward
+                break
 
-            # Update model
-            self._model.fit(
-                np.array([self._last_state]),
-                self._last_target,
-                batch_size=1,
-                nb_epoch=1,
-                verbose=0,
-            )
-
-        return None
+        # Update model
+        self.model.fit(
+            np.array([self.last_state]),
+            self.last_target,
+            batch_size=1,
+            nb_epoch=1,
+            verbose=0,
+        )
 
     def load_model(self, path: str) -> None:
         """ Load a model"""
 
         self.model_path = path
-        self._model.load_weights(path)
+        self.model.load_weights(path)
 
     def save_model(self, path: str = "", epoch: int = 0) -> None:
         """ Save a model """
@@ -116,5 +112,5 @@ class DQN(Agent):
 
         # Create path with epoch number
         head, ext = os.path.splitext(path)
-        path = get_model_path(f"{head}_{epoch}" + ext)
-        self._model.save_weights(path)
+        path = getmodel_path(f"{head}_{epoch}" + ext)
+        self.model.save_weights(path)
