@@ -1,8 +1,10 @@
 """ Air Hockey Game Environment """
 
-import numpy as np
+import json
+from typing import Any, Dict, Tuple, Union
 
-from typing import Dict, Tuple, Union, Any
+import numpy as np
+from redis import Redis
 
 from environment.components import Goal, Mallet, Puck
 from utils import Action
@@ -10,19 +12,12 @@ from utils import Action
 
 class AirHockey:
 
+    redis = Redis()
+
     # Possible actions
     actions = ["U", "D", "L", "R"]
 
     # Default rewwards
-    # rewards = {
-    #     "point": 20,
-    #     "loss": -15,
-    #     "hit": 50,
-    #     "miss": -5,
-    #     "euclid_reward": 200,
-    #     "euclid_penalty": -50,
-    #     "boundary": -50,
-    # }
     rewards = {
         "point": 1,
         "loss": -1,
@@ -49,6 +44,10 @@ class AirHockey:
         # Default scores
         self.cpu_score = 0
         self.agent_score = 0
+        self.redis.set(
+            "scores",
+            json.dumps({"agent_score": self.agent_score, "cpu_score": self.cpu_score}),
+        )
 
         # Cumulative scores
         self.agent_cumulative_score = 0
@@ -87,7 +86,7 @@ class AirHockey:
 
         # Makes Computer Mallet
         self.opponent = Mallet(
-            "computer",
+            "opponent",
             default_right_position[0],
             default_right_position[1],
             left_lim=self.table_midpoints[0] + self.puck_radius,
@@ -112,6 +111,7 @@ class AirHockey:
             return True
         return False
 
+    # TODO - Get this figured out
     def reward(self) -> int:
         """ Get reward of the current action """
 
@@ -150,6 +150,7 @@ class AirHockey:
 
         return 0
 
+    # TODO - Have the opponent be its own process (for more complex opponents in the future)
     def malletAI(self, mallet: Mallet) -> None:
         """ The 'AI' of the computer """
 
@@ -193,7 +194,7 @@ class AirHockey:
         """ Update state of game """
 
         # Update action
-        if isinstance(action, tuple): # Cartesian Coordinates
+        if isinstance(action, tuple):  # Cartesian Coordinates
             self.agent.x, self.agent.y = action[0], action[1]
 
         if isinstance(action, str) and action == self.actions[0]:
@@ -214,11 +215,13 @@ class AirHockey:
         # Update agent velocity
         self.agent.dx = self.agent.x - self.agent.last_x
         self.agent.dy = self.agent.y - self.agent.last_y
+        self.agent.update_mallet()
 
         # Computer makes its move
         while self.ticks_to_ai == 0:
             self.malletAI(self.opponent)
             self.ticks_to_ai = 10
+        self.opponent.update_mallet()
 
         # Determine puck physics
         if (
@@ -239,15 +242,15 @@ class AirHockey:
         self.puck.limit_puck_speed()
         self.puck.update_puck()
 
-        # Update computer position
+        # Update puck position
         while self.ticks_to_friction == 0:
             self.puck.friction_on_puck()
             self.ticks_to_friction = 60
-        self.opponent.update_mallet()
 
         # Update agent position
         self.agent.last_x = self.agent.x
         self.agent.last_y = self.agent.y
+        self.agent.update_mallet()
 
         # Update score
         self._update_score()
@@ -267,6 +270,15 @@ class AirHockey:
         ):
             self.agent_score += 1
             self.agent_cumulative_score += 1
+
+            # Push to redis
+            self.redis.set(
+                "scores",
+                json.dumps(
+                    {"agent_score": self.agent_score, "cpu_score": self.cpu_score}
+                ),
+            )
+
             print(f"Computer {self.cpu_score}, Agent {self.agent_score}")
             self.reset()
             return 1
@@ -278,16 +290,19 @@ class AirHockey:
         ):
             self.cpu_score += 1
             self.cpu_cumulative_score += 1
+
+            # Push to redis
+            self.redis.set(
+                "scores",
+                json.dumps(
+                    {"agent_score": self.agent_score, "cpu_score": self.cpu_score}
+                ),
+            )
             print(f"Computer {self.cpu_score}, Agent {self.agent_score}")
             self.reset()
             return -1
 
         return None
-
-    def get_score(self) -> Dict[str, int]:
-        """ Get current score """
-
-        return {"cpu": self.cpu_score, "agent": self.agent_score}
 
     def reset(self, total: bool = False) -> None:
         """ Reset Game """
@@ -295,6 +310,13 @@ class AirHockey:
         if total:
             self.cpu_score = 0
             self.agent_score = 0
+            
+            self.redis.set(
+                "scores",
+                json.dumps(
+                    {"agent_score": self.agent_score, "cpu_score": self.cpu_score}
+                ),
+            )
 
         self.puck.reset()
         self.agent.reset_mallet()
