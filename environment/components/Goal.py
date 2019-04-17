@@ -15,10 +15,10 @@ class Goal(object):
         self.h = h
 
         # Define center of goal
-        self.centre_x = self.x + self.w / 2
-        self.centre_y = self.y + self.h / 2
+        self.centre_x = int(self.x + self.w / 2)
+        self.centre_y = int(self.y + self.h / 2)
 
     def location(self) -> Tuple[int, int]:
         """ Cartesian coordinates """
 
-        return self.x, self.y
+        return self.centre_x, self.centre_y
