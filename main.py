@@ -1,6 +1,7 @@
 """ Air Hockey Simulator """
 import random
 import sys
+import time
 from typing import Union
 
 import numpy as np
@@ -11,36 +12,26 @@ from rl import Strategy
 from utils import Observation, State, get_model_path, parse_args_agent, write_results
 
 
-
 def main() -> None:
     """ Main guts of game """
 
     # Parse args
-    args = parse_args()
+    args = parse_args_agent()
 
     # Initiate game environment
-    if args.get("env") == "test":
-        # Testing environment
-        env = TestAirHockey()
-    else:
-        env = AirHockey()
+    env = AirHockey()
 
     # If user is a robot, set learning style for agent
-    if args["agent"] == "robot":
-        agent = Strategy().make(args["strategy"], env)
+    agent = Strategy().make(args["strategy"], env)
 
-        # If we pass a weights file, load it.
-        if hasattr(agent, "load_model") and args.get("load"):
-            file_name = get_model_path(args["load"])
-            agent.load_model(file_name)
+    # If we pass a weights file, load it.
+    if hasattr(agent, "load_model") and args.get("load"):
+        file_name = get_model_path(args["load"])
+        agent.load_model(file_name)
 
-        if (
-            hasattr(agent, "save_model")
-            and not args.get("save")
-            and not args.get("load")
-        ):
-            print("Please specify a path to save model.")
-            sys.exit()
+    if hasattr(agent, "save_model") and not args.get("save") and not args.get("load"):
+        print("Please specify a path to save model.")
+        sys.exit()
 
     # Epochs
     epoch = 1
@@ -103,38 +94,6 @@ def main() -> None:
             else:
                 agent.update(observation)
 
-            # Save results to csv
-            if args.get("results"):
-                results = dict()
-                new = False
-
-                if env.agent_cumulative_score > agent_cumulative_score:
-                    results["agent"] = [env.agent_cumulative_score]
-                    agent_cumulative_score = env.agent_cumulative_score
-                    new = True
-                else:
-                    results["agent"] = [agent_cumulative_score]
-
-                if env.cpu_cumulative_score > opponent_cumulative_score:
-                    results["opponent"] = [env.cpu_cumulative_score]
-                    opponent_cumulative_score = env.cpu_cumulative_score
-                    new = True
-                else:
-                    results["opponent"] = [opponent_cumulative_score]
-
-                if env.agent_score == 10:
-                    results["agent_win"] = [1]
-                else:
-                    results["agent_win"] = [0]
-
-                if env.cpu_score == 10:
-                    results["cpu_win"] = [1]
-                else:
-                    results["cpu_win"] = [0]
-
-                if new:
-                    write_results(args["results"], results)
-
         # After so many iterations, save motedel
         if hasattr(agent, "save_model") and iterations % iterations_on_save == 0:
             if args.get("save"):
@@ -145,16 +104,19 @@ def main() -> None:
             epoch += 1
         iterations += 1
 
-    # Compute scores
-    if env.cpu_score == 10 and args.get("env") != "test":
-        print(f"Computer {env.cpu_score}, agent {env.agent_score}")
-        print("Computer wins!")
-        env.reset(total=True)
+        # Compute scores
+        if env.cpu_score == 10 and args.get("env") != "test":
+            print(f"Computer {env.cpu_score}, agent {env.agent_score}")
+            print("Computer wins!")
+            env.reset(total=True)
 
-    if env.agent_score == 10 and args.get("env") != "test":
-        print(f"Computer {env.cpu_score}, agent {env.agent_score}")
-        print("Agent wins!")
-        env.reset(total=True)
+        if env.agent_score == 10 and args.get("env") != "test":
+            print(f"Computer {env.cpu_score}, agent {env.agent_score}")
+            print("Agent wins!")
+            env.reset(total=True)
+
+        # Patience between calculations
+        time.sleep(float(args["wait"]))
 
 
 if __name__ == "__main__":
