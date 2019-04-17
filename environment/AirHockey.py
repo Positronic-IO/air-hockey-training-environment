@@ -94,7 +94,7 @@ class AirHockey:
         )
 
         # Define step size of mallet
-        self.step_size = 10
+        self.step_size = 1
 
     def _minimize_euclidean_distance(self) -> bool:
         """ Penalize robot if euclidean distance between puck is minimized """
