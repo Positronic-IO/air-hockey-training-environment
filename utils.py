@@ -23,82 +23,15 @@ def parse_args_agent() -> Dict[str, str]:
     ap.add_argument("--strategy", default="q-learner", help="Learning strategy")
     ap.add_argument("--load", help="Path to load a model")
     ap.add_argument("--save", help="Path to save a model")
-    ap.add_argument("--env", default="normal", help="Define environment")
     ap.add_argument("--results", help="Path to save results as csv")
-
+    ap.add_argument("--wait", default=0, help="Throttle on calulations")
     args = vars(ap.parse_args())
-
-    return args
-
-
-def parse_args_gui() -> Dict[str, str]:
-    """ Parse arguments for rendering """
-
-    ap = argparse.ArgumentParser()
-    ap.add_argument("-m", "--mode", default="gui", help="Game play")
-        ap.add_argument("-a", "--agent", default="human", help="Agent for gameplay")
-
-    ap.add_argument(
-        "--fps",
-        help="Define FPS of game. Defaults to 60 fps. A value of -1 allows for the highest possible frame rate.",
-    )
-    ap.add_argument("--strategy", default="q-learner", help="Learning strategy")
-    ap.add_argument("--env", default="normal", help="Define environment")
-    ap.add_argument("--results", help="Path to save results as csv")
-
-    args = vars(ap.parse_args())
-
-    return args
-
-
-def welcome(args: Dict[str, str]) -> None:
-    """ Displays welcome to user """
-
-    # Display Welcome
-    print(
-        """
-
-    #################################################################
-    #                   A       IIIII    RRRRRRR                    #
-    #                  A A        I      R     R                    #
-    #                 A   A       I      RRRRRR                     #
-    #                AAAAAAA      I      R    R                     #
-    #               A       A   IIIII    R     R                    #
-    #                                                               #
-    #     H    H     OOO        CCC   K    KK   EEEEEE  YY     YY   #
-    #     H    H   OO   OO    CC      K KK      E         YY  YY    #
-    #     HHHHHH  O       O  C        K         EEEEEE      YY      #
-    #     H    H   OO   OO    CC      K KKK     E           YY      #
-    #     H    H     OOO        CCC   K    KK   EEEEEE      YY      #
-    #                                                               #
-    #                                  By: (Edward) Sum Lok Yu      #
-    #                                  Modified By: Tony Hammack    #
-    #                                                               #
-    #################################################################
-
-    Games go up to 10.
-    Move your mouse to control your mallet (the lower one).
-    Click "R" to reset the game.
-
-    """
-    )
 
     print("-" * 35)
-    if args.get("mode"):
-        print(f"Game Mode: {args['mode']}")
 
-    if args.get("fps") and args.get("mode") == "gui":
-        print(f"FPS: {args.get('fps')}")
-
-    if args.get("env"):
-        print(f"Environment: {args['env']}")
-
-    if args.get("agent") == "human":
-        print("Agent: Human")
-
-    if args.get("agent") == "robot":
-        print("Agent: Robot")
-        print(f"Learning Algorithm: {args['strategy']}")
+    print("Agent: Robot")
+    print(f"Learning Algorithm: {args['strategy']}")
+    print(f"Patience: {args.get('wait')} seconds")
 
     if args.get("load"):
         print(f"Loading model at: {args['load']}")
@@ -108,7 +41,35 @@ def welcome(args: Dict[str, str]) -> None:
 
     if args.get("results"):
         print(f"Saving results at: {args['results']}")
+
     print("-" * 35)
+
+    return args
+
+
+def parse_args_gui() -> Dict[str, str]:
+    #     """ Parse arguments for rendering """
+
+    ap = argparse.ArgumentParser()
+    ap.add_argument("-a", "--agent", default="human", help="Agent for gameplay")
+
+    ap.add_argument(
+        "--fps",
+        default=-1,
+        help="Define FPS of game. A value of -1 allows for the highest possible frame rate. Default to -1",
+    )
+
+    args = vars(ap.parse_args())
+
+    print("-" * 35)
+    print(f"Agent: {args['agent']}")
+    print(f"FPS: {args['fps']}")
+
+    if args["agent"] == "robot":
+        print("Note: Make sure to run main.py for updating the robot agent.")
+    print("-" * 35)
+
+    return args
 
 
 def get_model_path(file_path: str) -> str:
