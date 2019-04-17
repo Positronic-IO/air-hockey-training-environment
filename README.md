@@ -6,9 +6,9 @@ Either one can use this to play for fun, capture state, or train reinforcement l
 
 Currently, this project supports 3 types of reinforcement learning techniques: Q-learning, Deep Q-learning (DQN), and Double DQN (DDQN).
 
-Many examples use of reinforcement learning capture the state from video frames; thus, their architecture involves CNNs. This project captures the state of the board via the coordinates of agent, puck, and opponent. The main neural net archcitecture is a multilayer percecptron.
+Many examples use of reinforcement learning capture the state from video frames; thus, their architecture involves CNNs. This project captures the state of the board via the coordinates of agent, puck, and opponent.
 
-Our model uses the [Huber Loss](https://en.wikipedia.org/wiki/Huber_loss) as the loss function for training. For reinforcement learning, this loss function is recommended.
+Ours model uses the [Huber Loss](https://en.wikipedia.org/wiki/Huber_loss) as the loss function for training. For reinforcement learning, this loss function is recommended.
 
 
 ## Installation
@@ -21,6 +21,8 @@ To install depencencies for this project, run `pipenv install`.
 
 To enter into the virtual environment created by `pipenv`, run ``pipenv shell`.
 
+This project uses Redis. Either pull down a Docker image or download Redis locally.
+
 ## Setup
 
 There are two ways to use this simulator: either with a human agent or AI agent. These can set via command line flags. If you wish to use an AI agent, you can specify where to either load a previously trained model or where to save a model. Since reinforcement learning updates weights iteratively for predictions, we must specify a path to save a model. These paths can be set via command line flags as well. As a default, the model is saved periodically and denoted with a number for versioning. (If you loaded a model, you do not necessarily have to set a save path. It will use the path for loading as its path for saving if a path is not specified.)
@@ -29,24 +31,13 @@ Q-learning is an exception because it uses the traditional Q-learning algorithm 
 
 ## Run Simulator
 
-In our virtual environment, we can start the simulator with a human agent via `python3 start.py --agent human`. Now, you can use your mouse to as a controller for the puck.
+There are two important scripts in the repo, `gui.py` and `main.py`. `gui.py` brings up a gui of the air hockey environment and either allows the user to play with their mouse or display results from a robot agent vis Redis updates. `main.py` controls what type of learning strategy your robot wants to use.
 
-If you want a robot agent, run `python3 start.py --agent robot`. This defaults to Q-learning. To set the learning strategy, run 
+In our virtual environment, we can start the gui with either a human or robot agent eith a specific fps via `python3 gui.py --agent <agent> --fps <fps>`. If a robot agent is chosen, there is a note to start the robot learning strategy via `main.py`.
 
-```
-python3 start.py --agent robot --strategy dqn-learner
-python3 start.py --agent robot --strategy ddqn-learner
-```
+If you want a robot agent, run `python3 main.py --strategy <your strategy> --load <load path> --save <save path>` to set up its learning strategy.
 
-for either the DQN or DDQN learning strategies.
-
-To save/load a model, run `python3 start.py --agent robot --strategy <your strategy> --load <load path> --save <save path>`.
-
-You can also run this simulation in "test mode" with the flag `--env test.` The test environment only allows the puck to be played in the agent's half of the board. Also, all scoring is off. This is a good way to prepare your model for game training. Training in this simulated environment allows the model to learn basic puck interactions due to these interactions happening more frequently.
-
-If you want to run the simulation without a gui (or headless), add `--mode cli`. All the command line configuration is the same. Obviously, your agent has to be the robot because there is no gui.
-
-To define the fps of the gui, enter the desired fps after the `--fps` flag. The default fps is 60. A value of -1 turns off the fps throttling. FPS does not affect `cli` mode.
+If you want to throttle the speed of the robot, there is a flag `--wait` for `main.py`. The units for `--wait` are in seconds.
 
 ## Warnings
 + Beware of how you set your rewards because these settings drastically effect the exploitation/exploration tradeoff. 
