@@ -1,4 +1,4 @@
-""" Goal Comaponent """
+""" Goal Component """
 from typing import Tuple
 
 

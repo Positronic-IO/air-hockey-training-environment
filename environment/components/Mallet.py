@@ -65,9 +65,9 @@ class Mallet:
         self.last_x = self.x
         self.last_y = self.y
 
-        if self.name != "agent":
-            self.x += self.dx
-            self.y += self.dy
+        # if self.name != "agent":
+        self.x += self.dx
+        self.y += self.dy
 
         # Enforce mallet to be in table
         if self.x < self.left_lim:
@@ -95,10 +95,11 @@ class Mallet:
         self.x = self.mallet_start_x
         self.y = self.mallet_start_y
 
+        self.dx = 0
+        self.dy = 0
+
         # Update Redis
         self.update_redis()
-
-        return None
 
     def location(self) -> Tuple[int, int]:
         """ Current Cartesian coordinates """
