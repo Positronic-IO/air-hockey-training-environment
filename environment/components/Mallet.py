@@ -1,9 +1,15 @@
 """ Mallet Component """
+import json
 import random
 from typing import Tuple
 
+from redis import Redis
 
-class Mallet(object):
+
+class Mallet:
+
+    redis = Redis()
+
     def __init__(self, name: str, x: int, y: int, **kwargs):
         """ Create a mallet """
 
@@ -34,9 +40,27 @@ class Mallet(object):
         self.mallet_start_x = self.x
         self.mallet_start_y = self.y
 
+        # Update Redis
+        self.update_redis()
+
+    def update_redis(self) -> None:
+        """ Put into Redis """
+
+        # Redis
+        self.redis.set(
+            self.name,
+            json.dumps(
+                {
+                    "position": self.location(),
+                    "velocity": self.velocity(),
+                    "prev_position": self.prev_location(),
+                }
+            ),
+        )
+
     def update_mallet(self) -> None:
         """ Update mallet position """
-        
+
         # Save current state for later
         self.last_x = self.x
         self.last_y = self.y
@@ -60,6 +84,9 @@ class Mallet(object):
             self.dy = 0
             self.y = self.b_lim
 
+        # Update Redis
+        self.update_redis()
+
         return None
 
     def reset_mallet(self) -> None:
@@ -67,6 +94,9 @@ class Mallet(object):
 
         self.x = self.mallet_start_x
         self.y = self.mallet_start_y
+
+        # Update Redis
+        self.update_redis()
 
         return None
 
@@ -79,3 +109,8 @@ class Mallet(object):
         """ Previous location """
 
         return self.last_x, self.last_y
+
+    def velocity(self) -> Tuple[int, int]:
+        """ Velocity of Puck """
+
+        return self.dx, self.dy

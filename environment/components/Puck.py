@@ -1,9 +1,14 @@
+import json
 import random
 from typing import Tuple
 
+from redis import Redis
 
-class Puck(object):
+
+class Puck:
     """ Puck object """
+
+    redis = Redis()
 
     def __init__(self, x: int, y: int, dx: int = -5, dy: int = 3):
         """ Create a goal """
@@ -28,6 +33,24 @@ class Puck(object):
 
         # Default puck speed
         self.puck_speed = 10
+
+        # Update Redis
+        self.update_redis()
+
+    def update_redis(self) -> None:
+        """ Put into Redis """
+
+        # Redis
+        self.redis.set(
+            self.name,
+            json.dumps(
+                {
+                    "position": self.location(),
+                    "velocity": self.velocity(),
+                    "prev_position": self.prev_location(),
+                }
+            ),
+        )
 
     def update_puck(self) -> None:
         """ Update puck position """
@@ -55,6 +78,9 @@ class Puck(object):
         self.x += self.dx
         self.y += self.dy
 
+        # Update Redis
+        self.update_redis()
+
         return None
 
     def friction_on_puck(self) -> None:
@@ -71,6 +97,9 @@ class Puck(object):
             self.dy -= 1
         elif self.dy < -1:
             self.dy += 1
+
+        # Update Redis
+        self.update_redis()
 
         return None
 
@@ -93,6 +122,9 @@ class Puck(object):
         self.last_x = self.x
         self.last_y = self.y
 
+        # Update Redis
+        self.update_redis()
+
         return None
 
     def reset(self) -> None:
@@ -101,6 +133,9 @@ class Puck(object):
         self.y = self.puck_start_y
         self.dx = -5
         self.dy = 3
+
+        # Update Redis
+        self.update_redis()
 
         return None
 
@@ -113,3 +148,8 @@ class Puck(object):
         """ Previous location """
 
         return self.last_x, self.last_y
+
+    def velocity(self) -> Tuple[int, int]:
+        """ Velocity of Puck """
+
+        return self.dx, self.dy
