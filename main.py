@@ -88,9 +88,13 @@ def main() -> None:
                 opponent_velocity=env.opponent.velocity(),
             )
 
+            # Record reward
+            reward = env.reward()
+            env.cumulative_reward += reward
+
             # Observation of the game at the moment
             observation = Observation(
-                state=state, action=action, reward=env.reward(), new_state=new_state
+                state=state, action=action, reward=reward, new_state=new_state
             )
 
             # Update model
@@ -98,6 +102,40 @@ def main() -> None:
                 agent.update(observation, iterations)
             else:
                 agent.update(observation)
+
+            # Save results to csv
+            if args.get("results"):
+                results = dict()
+                new = False
+
+                if env.agent_cumulative_score > agent_cumulative_score:
+                    results["agent"] = [env.agent_cumulative_score]
+                    agent_cumulative_score = env.agent_cumulative_score
+                    new = True
+                else:
+                    results["agent"] = [agent_cumulative_score]
+
+                if env.cpu_cumulative_score > opponent_cumulative_score:
+                    results["opponent"] = [env.cpu_cumulative_score]
+                    opponent_cumulative_score = env.cpu_cumulative_score
+                    new = True
+                else:
+                    results["opponent"] = [opponent_cumulative_score]
+
+                if env.agent_score == 10:
+                    results["agent_win"] = [1]
+                else:
+                    results["agent_win"] = [0]
+
+                if env.cpu_score == 10:
+                    results["cpu_win"] = [1]
+                else:
+                    results["cpu_win"] = [0]
+                
+                results["cumu_reward"] = [env.cumulative_reward] 
+
+                if new:
+                    write_results(args["results"], results)
 
         # After so many iterations, save motedel
         if hasattr(agent, "save_model") and iterations % iterations_on_save == 0:
