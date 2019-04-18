@@ -19,7 +19,7 @@ class AirHockey:
     actions = ["U", "D", "L", "R"]
 
     # Default rewwards
-    rewards = {"point": 1, "loss": -1, "hit": 1.5, "miss": -1}
+    rewards = {"point": 1, "loss": -1, "hit": 1, "miss": -1}
 
     def __init__(self, **kwargs) -> None:
         """ Initiate an air hockey game """
