@@ -89,12 +89,15 @@ def main() -> None:
             )
 
             # Record reward
-            reward = env.reward()
-            env.cumulative_reward += reward
-
+            reward = env.reward
+            done = env.done
             # Observation of the game at the moment
             observation = Observation(
-                state=state, action=action, reward=reward, new_state=new_state
+                state=state,
+                action=action,
+                reward=reward,
+                done=done,
+                new_state=new_state,
             )
 
             # Update model
@@ -131,8 +134,13 @@ def main() -> None:
                     results["cpu_win"] = [1]
                 else:
                     results["cpu_win"] = [0]
-                
-                results["cumu_reward"] = [env.cumulative_reward] 
+
+                results["cum_reward"] = [env.cumulative_reward]
+
+                if observation.done:
+                    results["done"] = [1]
+                else:
+                    results["done"] = [0]
 
                 if new:
                     write_results(args["results"], results)

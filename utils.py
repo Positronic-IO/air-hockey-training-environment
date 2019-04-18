@@ -24,7 +24,7 @@ State = namedtuple(
     ],
 )
 
-Observation = namedtuple("observation", ["state", "action", "reward", "new_state"])
+Observation = namedtuple("observation", ["state", "action", "reward", "done", "new_state"])
 
 
 def parse_args_agent() -> Dict[str, str]:

@@ -19,7 +19,7 @@ class AirHockey:
     actions = ["U", "D", "L", "R"]
 
     # Default rewwards
-    rewards = {"point": 3, "loss": -2, "hit": 1, "miss": -0.5}
+    rewards = {"point": 1, "loss": -1, "hit": 1.5, "miss": -1}
 
     def __init__(self, **kwargs) -> None:
         """ Initiate an air hockey game """
@@ -91,8 +91,12 @@ class AirHockey:
         # Agent velocity momentum for
         self.momentum = 2
 
-        # Cumulative reward
+        # Reward
+        self.reward = 0
         self.cumulative_reward = 0
+
+        # If episode is done
+        self.done = False
 
         # Cumulative scores
         self.agent_cumulative_score = 0
@@ -113,26 +117,6 @@ class AirHockey:
             print("Stalled")
 
         return None
-
-    def reward(self) -> int:
-        """ Get reward of the current action """
-
-        # We won, the opponent is a failure
-        if self.update_score() == 1:
-            return self.rewards["point"]
-
-        # If we lost
-        if self.update_score() == -1:
-            return self.rewards["loss"]
-
-        # We hit the puck
-        if (
-            abs(self.agent.x - self.puck.x) <= 35
-            and abs(self.agent.y - self.puck.y) <= 35
-        ):
-            return self.rewards["hit"]
-
-        return self.rewards["miss"]
 
     # TODO - Have the opponent be its own process (for more complex opponents in the future)
     def malletAI(self, mallet: Mallet) -> None:
@@ -259,6 +243,8 @@ class AirHockey:
         ):
             self.agent_score += 1
             self.agent_cumulative_score += 1
+            self.reward = self.rewards["point"]
+            self.cumulative_reward += self.reward
 
             # Push to redis
             self.redis.set(
@@ -269,8 +255,9 @@ class AirHockey:
             )
 
             print(f"Computer {self.cpu_score}, Agent {self.agent_score}")
+            self.done = True
             self.reset()
-            return 1
+            return None
 
         # When the computer scores on the agent
         if (
@@ -279,6 +266,8 @@ class AirHockey:
         ):
             self.cpu_score += 1
             self.cpu_cumulative_score += 1
+            self.reward = self.rewards["loss"]
+            self.cumulative_reward += self.reward
 
             # Push to redis
             self.redis.set(
@@ -288,9 +277,23 @@ class AirHockey:
                 ),
             )
             print(f"Computer {self.cpu_score}, Agent {self.agent_score}")
+            self.done = True
             self.reset()
-            return -1
+            return None
 
+        # # We hit the puck
+        if (
+            abs(self.agent.x - self.puck.x) <= 35
+            and abs(self.agent.y - self.puck.y) <= 35
+        ):
+            self.reward = self.rewards["hit"]
+            self.cumulative_reward += self.reward
+            self.done = False
+            return None
+
+        self.reward = self.rewards["miss"]
+        self.cumulative_reward += self.reward
+        self.done = False
         return None
 
     def reset(self, total: bool = False) -> None:
