@@ -145,8 +145,7 @@ class DuelingDDQN(Agent):
         """ Load a model"""
 
         self.model_path = path
-        self.model.load_weights(path)
-        print("Model loaded")
+        self.model.load(path)
 
     def save_model(self, path: str = "", epoch: int = 0) -> None:
         """ Save a model """
@@ -157,4 +156,4 @@ class DuelingDDQN(Agent):
         # Create path with epoch number
         head, ext = os.path.splitext(path)
         path = get_model_path(f"{head}_{epoch}" + ext)
-        self.model.save_weights(path)
+        self.model.save(path)

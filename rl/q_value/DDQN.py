@@ -8,7 +8,7 @@ from typing import Tuple
 import numpy as np
 import tensorflow as tf
 from keras import backend as K
-from keras.layers import BatchNormalization, Dense, Dropout
+from keras.layers import BatchNormalization, Dense, Dropout, Flatten
 from keras.layers.core import Activation, Dense
 from keras.models import Sequential
 from keras.optimizers import Adam, RMSprop
@@ -26,22 +26,22 @@ class DDQN(Agent):
         super().__init__(env)
         # Replay memory
         self.memory = list()
-        self.max_memory = 10 ** 5  # number of previous transitions to remember
+        self.max_memory = 10 ** 7  # number of previous transitions to remember
 
         self.gamma = 0.95  # discount rate
         self.epsilon = 1.0  # exploration rate
         self.epsilon_min = 0.01
         self.epsilon_decay = 0.99
         self.learning_rate = 0.001
-        self.batch_size = 10 ** 2
-        self.model = self._buildmodel()
+        self.batch_size = 10 ** 4
+        self.model = self.build_model()
 
-    def _buildmodel(self):
+    def build_model(self):
         """ Create our DNN model for Q-value approximation """
 
         model = Sequential()
 
-        model.add(Dense(12, kernel_initializer="normal", input_shape=(3, 2)))
+        model.add(Dense(12, kernel_initializer="normal", input_shape=(7, 2)))
         model.add(Activation("relu"))
 
         model.add(Dense(30, kernel_initializer="normal"))
@@ -49,6 +49,8 @@ class DDQN(Agent):
 
         model.add(Dense(20, kernel_initializer="normal"))
         model.add(Activation("relu"))
+
+        model.add(Flatten())
 
         model.add(Dense(4, kernel_initializer="random_uniform"))
         model.add(Activation("linear"))
@@ -72,7 +74,7 @@ class DDQN(Agent):
 
         # Compute rewards for any posible action
         rewards = self.model.predict([np.array([state])], batch_size=1)
-        idx = np.argmax(rewards[0][0])
+        idx = np.argmax(rewards[0])
         return self.env.actions[idx]
 
     def update(self, data: Observation, iterations: int) -> None:
@@ -94,12 +96,12 @@ class DDQN(Agent):
             for observation in minibatch:
                 reward = observation.reward
                 target = self.model.predict(np.array([observation.new_state]))
-                reward += self.gamma * target[0][0].max()
+                reward += self.gamma * target[0].max()
 
                 # Update action we should take, then break out of loop
                 for i in range(len(self.env.actions)):
                     if observation.action == self.env.actions[i]:
-                        target[0][0][i] = reward
+                        target[0][i] = reward
                         break
 
                 self.model.fit(
@@ -111,14 +113,13 @@ class DDQN(Agent):
 
         return None
 
-    def loadmodel(self, path: str) -> None:
+    def load_model(self, path: str) -> None:
         """ Load a model"""
 
         self.model_path = path
-        self.model.load_weights(path)
-        print("Model loaded")
+        self.model.load(path)
 
-    def savemodel(self, path: str = "", epoch: int = 0) -> None:
+    def save_model(self, path: str = "", epoch: int = 0) -> None:
         """ Save a model """
         # If we are not given a path, use the same path as the one we loaded the model
         if not path:
@@ -127,4 +128,4 @@ class DDQN(Agent):
         # Create path with epoch number
         head, ext = os.path.splitext(path)
         path = get_model_path(f"{head}_{epoch}" + ext)
-        self.model.save_weights(path)
+        self.model.save(path)

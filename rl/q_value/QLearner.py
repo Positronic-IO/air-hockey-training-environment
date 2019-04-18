@@ -27,14 +27,16 @@ class QLearner(Agent):
         # Helps over fitting, encourages to exploration
         if state in self.Q and np.random.uniform(0, 1) < self.epsilon:
             # We use the action which corresponds to the highest Q-value
-            action = max(self.Q[state.agent_state], key=self.Q[state.agent_state].get)
+            action = max(
+                self.Q[state.agent_location], key=self.Q[state.agent_location].get
+            )
         else:
             action = np.random.choice(self.env.actions)
             if state not in self.Q:
-                self.Q[state.agent_state] = {}
-            self.Q[state.agent_state][action] = 0
+                self.Q[state.agent_location] = {}
+            self.Q[state.agent_location][action] = 0
 
-        self.last_state = state.agent_state
+        self.last_state = state.agent_location
         self.last_action = action
 
         return action
@@ -44,15 +46,15 @@ class QLearner(Agent):
 
         old = self.Q[self.last_state][self.last_action]
 
-        if data.new_state.agent_state in self.Q:
+        if data.new_state.agent_location in self.Q:
             # Discount reward so we are not too fixated on short-term success.
             # Helps the algorithm focus on the future.
             new = (
                 self.gamma
-                * self.Q[data.new_state.agent_state][
+                * self.Q[data.new_state.agent_location][
                     max(
-                        self.Q[data.new_state.agent_state],
-                        key=self.Q[data.new_state.agent_state].get,
+                        self.Q[data.new_state.agent_location],
+                        key=self.Q[data.new_state.agent_location].get,
                     )
                 ]
             )

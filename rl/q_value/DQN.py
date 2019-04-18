@@ -32,7 +32,7 @@ class DQN(Agent):
 
         model = Sequential()
 
-        model.add(Dense(12, kernel_initializer="normal", input_shape=(3, 2)))
+        model.add(Dense(12, kernel_initializer="normal", input_shape=(7, 2)))
         model.add(Activation("relu"))
 
         model.add(Dense(30, kernel_initializer="normal"))
@@ -102,7 +102,7 @@ class DQN(Agent):
         """ Load a model"""
 
         self.model_path = path
-        self.model.load_weights(path)
+        self.model.load(path)
 
     def save_model(self, path: str = "", epoch: int = 0) -> None:
         """ Save a model """
@@ -113,4 +113,4 @@ class DQN(Agent):
         # Create path with epoch number
         head, ext = os.path.splitext(path)
         path = get_model_path(f"{head}_{epoch}" + ext)
-        self.model.save_weights(path)
+        self.model.save(path)
