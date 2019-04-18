@@ -34,22 +34,24 @@ class DDQN(Agent):
         self.epsilon_decay = 0.99
         self.learning_rate = 0.001
         self.batch_size = 10 ** 4
+
+        self.target_model = self.build_model()
         self.model = self.build_model()
 
-        self.version = "0.2.0"
+        self.version = "0.3.0"
 
     def build_model(self):
         """ Create our DNN model for Q-value approximation """
 
         model = Sequential()
 
-        model.add(Dense(12, kernel_initializer="normal", input_shape=(7, 2)))
+        model.add(Dense(24, kernel_initializer="normal", input_shape=(7, 2)))
         model.add(Activation("relu"))
 
-        model.add(Dense(30, kernel_initializer="normal"))
+        model.add(Dense(24, kernel_initializer="normal"))
         model.add(Activation("relu"))
 
-        model.add(Dense(20, kernel_initializer="normal"))
+        model.add(Dense(24, kernel_initializer="normal"))
         model.add(Activation("relu"))
 
         model.add(Flatten())
@@ -62,6 +64,12 @@ class DDQN(Agent):
         print(model.summary())
 
         return model
+
+    def update_target_model(self) -> None:
+        """ Copy weights from model to target_model """
+
+        print("Sync target model")
+        self.target_model.set_weights(self.model.get_weights())
 
     def remember(self, state: State, action: str, reward: int, next_state: State):
         """ Push data into memory for replay later """
@@ -96,15 +104,26 @@ class DDQN(Agent):
             # Sample observations from memory for experience replay
             minibatch = random.sample(self.memory, self.batch_size)
             for observation in minibatch:
-                reward = observation.reward
                 target = self.model.predict(np.array([observation.new_state]))
-                reward += self.gamma * target[0].max()
 
-                # Update action we should take, then break out of loop
-                for i in range(len(self.env.actions)):
-                    if observation.action == self.env.actions[i]:
-                        target[0][i] = reward
-                        break
+                if observation.done:
+                    # Sync Target Model
+                    self.update_target_model()
+
+                    # Update action we should take, then break out of loop
+                    for i in range(len(self.env.actions)):
+                        if observation.action == self.env.actions[i]:
+                            target[0][i] = observation.reward
+
+                else:
+                    t = self.target_model.predict(np.array([observation.new_state]))
+
+                    # Update action we should take, then break out of loop
+                    for i in range(len(self.env.actions)):
+                        if observation.action == self.env.actions[i]:
+                            target[0][i] = observation.reward + self.gamma * np.amax(
+                                t[0]
+                            )
 
                 self.model.fit(
                     np.array([observation.state]), target, epochs=1, verbose=0
