@@ -1,6 +1,7 @@
 """ Air Hockey Game Environment """
 
 import json
+from time import time
 from typing import Any, Dict, Tuple, Union
 
 import numpy as np
@@ -18,15 +19,7 @@ class AirHockey:
     actions = ["U", "D", "L", "R"]
 
     # Default rewwards
-    rewards = {
-        "point": 1,
-        "loss": -1,
-        "hit": 1,
-        "miss": -1,
-        "euclid_reward": 1,
-        "euclid_penalty": -1,
-        "boundary": -1,
-    }
+    rewards = {"point": 3, "loss": -2, "hit": 1, "miss": -1}
 
     def __init__(self, **kwargs) -> None:
         """ Initiate an air hockey game """
@@ -96,22 +89,29 @@ class AirHockey:
         # Define step size of mallet
         self.step_size = 1
 
-    # def _minimize_euclidean_distance(self) -> bool:
-    #     """ Penalize robot if euclidean distance between puck is minimized """
+        # Set timer for stalling
+        self.timer = time()
 
-    #     puck = self.puck.location()
-    #     puck_previous = self.puck.prev_location()
+        # Agent velocity momentum for
+        self.momentum = 2
 
-    #     agent = self.agent.location()
-    #     agent_previous = self.agent.prev_location()
 
-    #     if np.linalg.norm(np.array(puck) - np.array(agent)) < np.linalg.norm(
-    #         np.array(puck_previous) - np.array(agent_previous)
-    #     ):
-    #         return True
-    #     return False
+    def check_stall(self) -> None:
+        """ Check to see if the game has stalled """
 
-    # TODO - Get this figured out
+        if self.puck.x < self.table_midpoints[0]:
+            self.timer = time()
+            return None
+
+        delta = time() - self.timer
+
+        if (delta > 3) and (self.puck.x > self.table_midpoints[0]):
+            self.reset()
+            self.timer = time()
+            print("Stalled")
+
+        return None
+
     def reward(self) -> int:
         """ Get reward of the current action """
 
@@ -128,31 +128,15 @@ class AirHockey:
             abs(self.agent.x - self.puck.x) <= 35
             and abs(self.agent.y - self.puck.y) <= 35
         ):
-
             return self.rewards["hit"]
 
-        # Penalize if puck hangs around the outside
-        if abs(self.agent.x - 47) or abs(self.agent.x - self.table_midpoints[0]) < 50:
-            return self.rewards["boundary"]
-
-        if abs(self.agent.y - 47) or abs(self.agent.y - self.table_size[1]) < 50:
-            return self.rewards["boundary"]
-
-        # We missed the puck
-        # if self.puck.x < self.agent.x:
-        #     return self.rewards["miss"]
-
-        # If we do not chase down the puck
-        # if self._minimize_euclidean_distance():
-        #     return self.rewards["euclid_reward"]
-        # else:
-        #     return self.rewards["euclid_penalty"]
-
-        return 0
+        return self.rewards["miss"]
 
     # TODO - Have the opponent be its own process (for more complex opponents in the future)
     def malletAI(self, mallet: Mallet) -> None:
         """ The 'AI' of the computer """
+
+        self.check_stall()
 
         if self.puck.x < mallet.x:
             if self.puck.x < mallet.left_lim:
@@ -208,6 +192,9 @@ class AirHockey:
 
         if isinstance(action, str) and action == self.actions[3]:
             self.agent.x += -self.step_size
+
+        if self.puck.x < self.agent.x:
+            self.agent.dx -= self.momentum
 
         # Set agent position
         self.agent.update_mallet()
