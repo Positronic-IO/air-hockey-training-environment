@@ -49,9 +49,6 @@ def main() -> None:
     # Game loop
     while True:
 
-        # Set robot step size
-        env.step_size = 10
-
         # For first move, move in a random direction
         if init:
             action = str(np.random.choice(env.actions))
@@ -65,9 +62,13 @@ def main() -> None:
 
             # Current state
             state = State(
-                agent_state=agent.location(),
-                puck_state=env.puck.location(),
-                puck_prev_state=env.puck.prev_location(),
+                agent_location=agent.location(),
+                puck_location=env.puck.location(),
+                puck_prev_location=env.puck.prev_location(),
+                puck_velocity=env.puck.velocity(),
+                opponent_location=env.opponent.location(),
+                opponent_prev_location=env.opponent.prev_location(),
+                opponent_velocity=env.opponent.velocity(),
             )
 
             # Determine next action
@@ -78,9 +79,13 @@ def main() -> None:
 
             # New state
             new_state = State(
-                agent_state=agent.location(),
-                puck_state=env.puck.location(),
-                puck_prev_state=env.puck.prev_location(),
+                agent_location=agent.location(),
+                puck_location=env.puck.location(),
+                puck_prev_location=env.puck.prev_location(),
+                puck_velocity=env.puck.velocity(),
+                opponent_location=env.opponent.location(),
+                opponent_prev_location=env.opponent.prev_location(),
+                opponent_velocity=env.opponent.velocity(),
             )
 
             # Observation of the game at the moment

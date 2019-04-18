@@ -11,7 +11,18 @@ import pandas as pd
 # Define custom types
 Action = Union[str, Tuple[int, int]]
 
-State = namedtuple("state", ["agent_state", "puck_state", "puck_prev_state"])
+State = namedtuple(
+    "state",
+    [
+        "agent_location",
+        "puck_location",
+        "puck_prev_location",
+        "puck_velocity",
+        "opponent_location",
+        "opponent_prev_location",
+        "opponent_velocity",
+    ],
+)
 
 Observation = namedtuple("observation", ["state", "action", "reward", "new_state"])
 
