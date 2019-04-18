@@ -17,6 +17,8 @@ pillow = "*"
 seaborn = "*"
 pandas = "*"
 h5py = "*"
+tensorflow-tensorboard = "*"
+redis = "*"
 
 [requires]
 python_version = "3.6"
