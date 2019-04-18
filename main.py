@@ -101,10 +101,7 @@ def main() -> None:
             )
 
             # Update model
-            if args.get("strategy") in ["ddqn", "dueling-ddqn"]:
-                agent.update(observation, iterations)
-            else:
-                agent.update(observation)
+            agent.update(observation)
 
             # Save results to csv
             if args.get("results"):

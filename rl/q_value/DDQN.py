@@ -4,6 +4,7 @@ import os
 import random
 import time
 from typing import Tuple
+from collections import deque
 
 import numpy as np
 import tensorflow as tf
@@ -25,7 +26,7 @@ class DDQN(Agent):
     def __init__(self, env):
         super().__init__(env)
         # Replay memory
-        self.memory = list()
+        self.memory = deque()
         self.max_memory = 10 ** 7  # number of previous transitions to remember
 
         self.gamma = 0.95  # discount rate
@@ -33,10 +34,13 @@ class DDQN(Agent):
         self.epsilon_min = 0.01
         self.epsilon_decay = 0.99
         self.learning_rate = 0.001
-        self.batch_size = 10 ** 4
+        self.batch_size = 10 ** 3
+        self.sync_target_interval = 10 ** 5
 
         self.target_model = self.build_model()
         self.model = self.build_model()
+
+        self.batch_counter = 0
 
         self.version = "0.3.0"
 
@@ -45,13 +49,13 @@ class DDQN(Agent):
 
         model = Sequential()
 
-        model.add(Dense(24, kernel_initializer="normal", input_shape=(7, 2)))
+        model.add(Dense(12, kernel_initializer="normal", input_shape=(7, 2)))
         model.add(Activation("relu"))
 
-        model.add(Dense(24, kernel_initializer="normal"))
+        model.add(Dense(30, kernel_initializer="normal"))
         model.add(Activation("relu"))
 
-        model.add(Dense(24, kernel_initializer="normal"))
+        model.add(Dense(20, kernel_initializer="normal"))
         model.add(Activation("relu"))
 
         model.add(Flatten())
@@ -87,18 +91,24 @@ class DDQN(Agent):
         idx = np.argmax(rewards[0])
         return self.env.actions[idx]
 
-    def update(self, data: Observation, iterations: int) -> None:
+    def update(self, data: Observation) -> None:
         """ Experience replay """
 
         # Push data into observat
         self.memory.append(data)
 
-        # Update model in intervals
-        if iterations > self.batch_size and iterations % self.batch_size == 0:
+        # Governs how much history is stored in memory
+        if len(self.memory) > self.max_memory:
+            self.memory.popleft()
 
-            # Governs how much history is stored in memory
-            if len(self.memory) > self.max_memory:
-                self.memory.pop()
+        assert len(self.memory) < self.max_memory + 1, "Max memory exceeded"
+
+        # Update model in intervals
+        self.batch_counter += 1
+        if self.batch_counter > self.sync_target_interval:
+
+            # Reset Batch counter
+            self.batch_counter = 0
 
             print("Updating replay")
             # Sample observations from memory for experience replay
