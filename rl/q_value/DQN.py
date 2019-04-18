@@ -11,7 +11,7 @@ from keras.layers.core import Activation, Dense
 from keras.models import Sequential
 from keras.optimizers import Adam, RMSprop
 
-from environment import Agent
+from rl.Agent import Agent
 from rl.helpers import huber_loss
 from utils import Observation, State, get_model_path
 
@@ -112,5 +112,5 @@ class DQN(Agent):
 
         # Create path with epoch number
         head, ext = os.path.splitext(path)
-        path = getmodel_path(f"{head}_{epoch}" + ext)
+        path = get_model_path(f"{head}_{epoch}" + ext)
         self.model.save_weights(path)

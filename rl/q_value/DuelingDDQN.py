@@ -12,7 +12,7 @@ from keras.layers import Dense, Dropout, Input, Lambda, add, Flatten, Activation
 from keras.models import Sequential, Model
 from keras.optimizers import Adam, RMSprop
 
-from environment import Agent
+from rl.Agent import Agent
 from rl.helpers import huber_loss
 from utils import Observation, State, get_model_path
 
@@ -45,10 +45,10 @@ class DuelingDDQN(Agent):
         self.max_memory = 50000  # number of previous transitions to remember
 
         # create main model and target model
-        self._model = self._build_model()
-        self._target_model = self._build_model()
+        self.model = self.build_model()
+        self.target_model = self.build_model()
 
-    def _build_model(self):
+    def build_model(self):
         """ Create our DNN model for Q-value approximation """
 
         state_input = Input(shape=((3, 2)))
@@ -80,11 +80,11 @@ class DuelingDDQN(Agent):
 
         return model
 
-    def _update_target_model(self) -> None:
+    def _updatetarget_model(self) -> None:
         """
         After some time interval update the target model to be same with model
         """
-        self._target_model.set_weights(self._model.get_weights())
+        self.target_model.set_weights(self.model.get_weights())
 
     def get_action(self, state: State) -> str:
         """ Apply an espilon-greedy policy to pick next action """
@@ -94,7 +94,7 @@ class DuelingDDQN(Agent):
             return np.random.choice(self.env.actions)
 
         # Compute rewards for any posible action
-        rewards = self._model.predict([np.array([state])], batch_size=1)
+        rewards = self.model.predict([np.array([state])], batch_size=1)
         idx = np.argmax(rewards[0][0])
         return self.env.actions[idx]
 
@@ -111,7 +111,7 @@ class DuelingDDQN(Agent):
 
         # Update the target model to be same with model
         if iterations % self.update_target_freq == 0:
-            self._update_target_model()
+            self._updatetarget_model()
 
         num_samples = min(self.batch_size * self.timestep_per_train, len(self.memory))
         replay_samples = random.sample(self.memory, num_samples)
@@ -126,9 +126,9 @@ class DuelingDDQN(Agent):
             reward.append(replay_samples[i][2])
             update_target[i, :, :] = replay_samples[i][3]
 
-        target = self._model.predict(update_input)
-        target_val = self._model.predict(update_target)
-        target_val_ = self._target_model.predict(update_target)
+        target = self.model.predict(update_input)
+        target_val = self.model.predict(update_target)
+        target_val_ = self.target_model.predict(update_target)
         for i in range(num_samples):
             # the key point of Double DQN
             # selection of action is from model
@@ -137,7 +137,7 @@ class DuelingDDQN(Agent):
             target[i][self.env.actions.index(action[i])] = reward[i] + self.gamma * (
                 target_val_[i][a]
             )
-        loss = self._model.fit(
+        loss = self.model.fit(
             update_input, target, batch_size=self.batch_size, nb_epoch=1, verbose=0
         )
 
@@ -145,7 +145,7 @@ class DuelingDDQN(Agent):
         """ Load a model"""
 
         self.model_path = path
-        self._model.load_weights(path)
+        self.model.load_weights(path)
         print("Model loaded")
 
     def save_model(self, path: str = "", epoch: int = 0) -> None:
@@ -157,4 +157,4 @@ class DuelingDDQN(Agent):
         # Create path with epoch number
         head, ext = os.path.splitext(path)
         path = get_model_path(f"{head}_{epoch}" + ext)
-        self._model.save_weights(path)
+        self.model.save_weights(path)

@@ -96,31 +96,31 @@ class AirHockey:
         # Define step size of mallet
         self.step_size = 1
 
-    def _minimize_euclidean_distance(self) -> bool:
-        """ Penalize robot if euclidean distance between puck is minimized """
+    # def _minimize_euclidean_distance(self) -> bool:
+    #     """ Penalize robot if euclidean distance between puck is minimized """
 
-        puck = self.puck.location()
-        puck_previous = self.puck.prev_location()
+    #     puck = self.puck.location()
+    #     puck_previous = self.puck.prev_location()
 
-        agent = self.agent.location()
-        agent_previous = self.agent.prev_location()
+    #     agent = self.agent.location()
+    #     agent_previous = self.agent.prev_location()
 
-        if np.linalg.norm(np.array(puck) - np.array(agent)) < np.linalg.norm(
-            np.array(puck_previous) - np.array(agent_previous)
-        ):
-            return True
-        return False
+    #     if np.linalg.norm(np.array(puck) - np.array(agent)) < np.linalg.norm(
+    #         np.array(puck_previous) - np.array(agent_previous)
+    #     ):
+    #         return True
+    #     return False
 
     # TODO - Get this figured out
     def reward(self) -> int:
         """ Get reward of the current action """
 
         # We won, the opponent is a failure
-        if self._update_score() == 1:
+        if self.update_score() == 1:
             return self.rewards["point"]
 
         # If we lost
-        if self._update_score() == -1:
+        if self.update_score() == -1:
             return self.rewards["loss"]
 
         # We hit the puck
@@ -143,10 +143,10 @@ class AirHockey:
         #     return self.rewards["miss"]
 
         # If we do not chase down the puck
-        if self._minimize_euclidean_distance():
-            return self.rewards["euclid_reward"]
-        else:
-            return self.rewards["euclid_penalty"]
+        # if self._minimize_euclidean_distance():
+        #     return self.rewards["euclid_reward"]
+        # else:
+        #     return self.rewards["euclid_penalty"]
 
         return 0
 
@@ -253,14 +253,14 @@ class AirHockey:
         self.agent.update_mallet()
 
         # Update score
-        self._update_score()
+        self.update_score()
 
         self.ticks_to_friction -= 1
         self.ticks_to_ai -= 1
 
         return None
 
-    def _update_score(self) -> Union[int, None]:
+    def update_score(self) -> Union[int, None]:
         """ Get current score """
 
         # When then agent scores on the computer
@@ -310,7 +310,7 @@ class AirHockey:
         if total:
             self.cpu_score = 0
             self.agent_score = 0
-            
+
             self.redis.set(
                 "scores",
                 json.dumps(
@@ -323,14 +323,3 @@ class AirHockey:
         self.opponent.reset_mallet()
 
         return None
-
-    def observe(self) -> Dict[str, Any]:
-        """ Observe state of game """
-
-        state = {
-            "puck": self.puck.location(),
-            "agent": self.agent.location(),
-            "opponent": self.opponent.location(),
-            "reward": self.reward(),
-        }
-        return state

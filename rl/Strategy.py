@@ -5,7 +5,12 @@ from .q_value import DDQN, DQN, DuelingDDQN, QLearner
 
 class Strategy:
 
-    strategies = {"q-learner": QLearner, "dqn": DQN, "ddqn": DDQN, "dueling-ddqn": DuelingDDQN}
+    strategies = {
+        "q-learner": QLearner,
+        "dqn": DQN,
+        "ddqn": DDQN,
+        "dueling-ddqn": DuelingDDQN,
+    }
 
     def __init__(self):
         pass

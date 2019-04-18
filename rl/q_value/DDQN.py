@@ -13,7 +13,7 @@ from keras.layers.core import Activation, Dense
 from keras.models import Sequential
 from keras.optimizers import Adam, RMSprop
 
-from environment import Agent
+from rl.Agent import Agent
 from rl.helpers import huber_loss
 from utils import Observation, State, get_model_path
 
@@ -34,9 +34,9 @@ class DDQN(Agent):
         self.epsilon_decay = 0.99
         self.learning_rate = 0.001
         self.batch_size = 10 ** 2
-        self._model = self._build_model()
+        self.model = self._buildmodel()
 
-    def _build_model(self):
+    def _buildmodel(self):
         """ Create our DNN model for Q-value approximation """
 
         model = Sequential()
@@ -71,7 +71,7 @@ class DDQN(Agent):
             return np.random.choice(self.env.actions)
 
         # Compute rewards for any posible action
-        rewards = self._model.predict([np.array([state])], batch_size=1)
+        rewards = self.model.predict([np.array([state])], batch_size=1)
         idx = np.argmax(rewards[0][0])
         return self.env.actions[idx]
 
@@ -93,7 +93,7 @@ class DDQN(Agent):
             minibatch = random.sample(self.memory, self.batch_size)
             for observation in minibatch:
                 reward = observation.reward
-                target = self._model.predict(np.array([observation.new_state]))
+                target = self.model.predict(np.array([observation.new_state]))
                 reward += self.gamma * target[0][0].max()
 
                 # Update action we should take, then break out of loop
@@ -102,7 +102,7 @@ class DDQN(Agent):
                         target[0][0][i] = reward
                         break
 
-                self._model.fit(
+                self.model.fit(
                     np.array([observation.state]), target, epochs=1, verbose=0
                 )
 
@@ -111,14 +111,14 @@ class DDQN(Agent):
 
         return None
 
-    def load_model(self, path: str) -> None:
+    def loadmodel(self, path: str) -> None:
         """ Load a model"""
 
         self.model_path = path
-        self._model.load_weights(path)
+        self.model.load_weights(path)
         print("Model loaded")
 
-    def save_model(self, path: str = "", epoch: int = 0) -> None:
+    def savemodel(self, path: str = "", epoch: int = 0) -> None:
         """ Save a model """
         # If we are not given a path, use the same path as the one we loaded the model
         if not path:
@@ -127,4 +127,4 @@ class DDQN(Agent):
         # Create path with epoch number
         head, ext = os.path.splitext(path)
         path = get_model_path(f"{head}_{epoch}" + ext)
-        self._model.save_weights(path)
+        self.model.save_weights(path)
