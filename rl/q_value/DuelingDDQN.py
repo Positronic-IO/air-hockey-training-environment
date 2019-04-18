@@ -48,6 +48,8 @@ class DuelingDDQN(Agent):
         self.model = self.build_model()
         self.target_model = self.build_model()
 
+        self.version = "0.1.0"
+
     def build_model(self):
         """ Create our DNN model for Q-value approximation """
 

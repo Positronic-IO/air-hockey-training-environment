@@ -36,6 +36,8 @@ class DDQN(Agent):
         self.batch_size = 10 ** 4
         self.model = self.build_model()
 
+        self.version = "0.2.0"
+
     def build_model(self):
         """ Create our DNN model for Q-value approximation """
 

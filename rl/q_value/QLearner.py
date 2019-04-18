@@ -20,6 +20,8 @@ class QLearner(Agent):
         self.learning_rate = 0.7
         self.gamma = 0.9
         self.epsilon = 0.9
+    
+        self.version = "0.1.0"
 
     def get_action(self, state: State) -> str:
         """ Give current state, predict next action which maximizes reward """
