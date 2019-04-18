@@ -19,7 +19,7 @@ class AirHockey:
     actions = ["U", "D", "L", "R"]
 
     # Default rewwards
-    rewards = {"point": 3, "loss": -2, "hit": 1, "miss": -1}
+    rewards = {"point": 3, "loss": -2, "hit": 1, "miss": -0.5}
 
     def __init__(self, **kwargs) -> None:
         """ Initiate an air hockey game """
@@ -41,10 +41,6 @@ class AirHockey:
             "scores",
             json.dumps({"agent_score": self.agent_score, "cpu_score": self.cpu_score}),
         )
-
-        # Cumulative scores
-        self.agent_cumulative_score = 0
-        self.cpu_cumulative_score = 0
 
         self.ticks_to_friction = 60
         self.ticks_to_ai = 10
@@ -95,6 +91,12 @@ class AirHockey:
         # Agent velocity momentum for
         self.momentum = 2
 
+        # Cumulative reward
+        self.cumulative_reward = 0
+
+        # Cumulative scores
+        self.agent_cumulative_score = 0
+        self.cpu_cumulative_score = 0
 
     def check_stall(self) -> None:
         """ Check to see if the game has stalled """
