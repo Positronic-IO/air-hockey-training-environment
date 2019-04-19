@@ -8,7 +8,7 @@ Currently, this project supports 3 types of reinforcement learning techniques: Q
 
 Many examples use of reinforcement learning capture the state from video frames; thus, their architecture involves CNNs. This project captures the state of the board via the coordinates of agent, puck, and opponent.
 
-Ours model uses the [Huber Loss](https://en.wikipedia.org/wiki/Huber_loss) as the loss function for training. For reinforcement learning, this loss function is recommended.
+Our model uses the [Huber Loss](https://en.wikipedia.org/wiki/Huber_loss) as the loss function for training. For reinforcement learning, this loss function is recommended.
 
 
 ## Installation
@@ -31,13 +31,11 @@ Q-learning is an exception because it uses the traditional Q-learning algorithm 
 
 ## Run Simulator
 
-There are two important scripts in the repo, `gui.py` and `main.py`. `gui.py` brings up a gui of the air hockey environment and either allows the user to play with their mouse or display results from a robot agent vis Redis updates. `main.py` controls what type of learning strategy your robot wants to use.
+There are two important scripts in the repo, `gui.py` and `train.py`. `gui.py` brings up a gui of the air hockey environment and either allows the user to play with their mouse, a loaded model,  or display results from a robot agent training via Redis updates. `train.py` controls what type of learning strategy your robot wants to use.
 
-In our virtual environment, we can start the gui with either a human or robot agent eith a specific fps via `python3 gui.py --agent <agent> --fps <fps>`. If a robot agent is chosen, there is a note to start the robot learning strategy via `main.py`.
+In our virtual environment, we can start the gui with either a human or robot agent eith a specific fps via `python3 gui.py --agent <agent> --strategy <strategy> --load <load> --fps <fps>`. If you want to load a model, you also have to specify the strategy your agent wants to use. (This is due to each strategy having certain hyperparameters.)
 
-If you want a robot agent, run `python3 main.py --strategy <your strategy> --load <load path> --save <save path>` to set up its learning strategy.
-
-If you want to throttle the speed of the robot, there is a flag `--wait` for `main.py`. The units for `--wait` are in seconds.
+If you want a robot agent, run `python3 train.py --strategy <your strategy> --load <load path> --save <save path>` to set up its learning strategy.
 
 ## Warnings
 + Beware of how you set your rewards because these settings drastically effect the exploitation/exploration tradeoff. 
