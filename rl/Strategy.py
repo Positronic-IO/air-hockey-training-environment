@@ -1,6 +1,6 @@
 """ Dynamically choosing learning algorithm """
 
-from .q_value import DDQN, DQN, DuelingDDQN, QLearner
+from .q_value import DDQN, DQN, DuelingDDQN, QLearner, c51
 
 
 class Strategy:
@@ -10,6 +10,7 @@ class Strategy:
         "dqn": DQN,
         "ddqn": DDQN,
         "dueling-ddqn": DuelingDDQN,
+        "c51": c51,
     }
 
     def __init__(self):
