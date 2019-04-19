@@ -25,9 +25,10 @@ class DDQN(Agent):
 
     def __init__(self, env):
         super().__init__(env)
+
         # Replay memory
-        self.memory = deque(maxlen=self.max_memory)
         self.max_memory = 10 ** 7  # number of previous transitions to remember
+        self.memory = deque(maxlen=self.max_memory)
 
         self.gamma = 0.95  # discount rate
         self.epsilon = 1.0  # exploration rate
@@ -61,7 +62,7 @@ class DDQN(Agent):
         model.add(Flatten())
 
         model.add(Dense(4, kernel_initializer="random_uniform"))
-        model.add(Activation("linear    "))
+        model.add(Activation("linear"))
 
         model.compile(loss=huber_loss, optimizer=Adam(lr=self.learning_rate))
 
