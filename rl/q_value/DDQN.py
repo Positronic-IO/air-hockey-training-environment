@@ -76,7 +76,7 @@ class DDQN(Agent):
         print("Sync target model")
         self.target_model.set_weights(self.model.get_weights())
 
-    def remember(self, data: Observation):
+    def remember(self, data: Observation) -> None:
         """ Push data into memory for replay later """
 
         # Push data into observation and remove one from buffer
@@ -85,17 +85,17 @@ class DDQN(Agent):
         if len(self.memory) > self.max_memory:
             self.memory.popleft()
 
-    def get_action(self, state: State) -> str:
+    def get_action(self, state: State) -> int:
         """ Apply an espilon-greedy policy to pick next action """
 
         # Helps over fitting, encourages to exploration
         if np.random.uniform(0, 1) < self.epsilon:
-            return np.random.choice(self.env.actions)
+            return np.random.randint(0, len(self.env.actions))
 
         # Compute rewards for any posible action
         rewards = self.model.predict([np.array([state])], batch_size=1)
         idx = np.argmax(rewards[0])
-        return self.env.actions[idx]
+        return idx
 
     def update(self, data: Observation) -> None:
         """ Experience replay """

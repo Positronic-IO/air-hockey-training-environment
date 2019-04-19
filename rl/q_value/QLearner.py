@@ -23,7 +23,7 @@ class QLearner(Agent):
     
         self.version = "0.1.0"
 
-    def get_action(self, state: State) -> str:
+    def get_action(self, state: State) -> int:
         """ Give current state, predict next action which maximizes reward """
 
         # Helps over fitting, encourages to exploration
@@ -33,7 +33,7 @@ class QLearner(Agent):
                 self.Q[state.agent_location], key=self.Q[state.agent_location].get
             )
         else:
-            action = np.random.choice(self.env.actions)
+            action = np.random.randint(0, len(self.env.actions))
             if state not in self.Q:
                 self.Q[state.agent_location] = {}
             self.Q[state.agent_location][action] = 0

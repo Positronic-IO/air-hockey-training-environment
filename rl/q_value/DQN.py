@@ -57,7 +57,7 @@ class DQN(Agent):
 
         return model
 
-    def get_action(self, state: State) -> str:
+    def get_action(self, state: State) -> int:
         """ Apply an espilon-greedy policy to pick next action """
 
         # Compute rewards for any posible action
@@ -65,18 +65,17 @@ class DQN(Agent):
         # Helps over fitting, encourages to exploration
         if np.random.uniform(0, 1) < self.epsilon:
             # We use the action which corresponds to the highest reward
-            idx = np.argmax(rewards[0])
-            action = self.env.actions[idx]
+            idx = np.random.randint(0, len(self.env.actions))
+            return idx
 
-        else:
-            action = np.random.choice(self.env.actions)
-
+        idx = np.argmax(rewards[0])
+            
         # Update
         self.last_state = state
-        self.last_action = action
+        self.last_action = idx
         self.last_target = rewards
 
-        return action
+        return idx
 
     def update(self, data: Observation) -> None:
         """ Updates learner with new state/Q values """
