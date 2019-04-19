@@ -28,7 +28,7 @@ class DDQN(Agent):
 
         # Replay memory
         self.max_memory = 10 ** 7  # number of previous transitions to remember
-        self.memory = deque(maxlen=self.max_memory)
+        self.memory = deque()
 
         self.gamma = 0.95  # discount rate
         self.epsilon = 1.0  # exploration rate
@@ -81,7 +81,9 @@ class DDQN(Agent):
 
         # Push data into observation and remove one from buffer
         self.memory.append(data)
-        self.memory.popleft()
+
+        if len(self.memory) > self.max_memory:
+            self.memory.popleft()
 
     def get_action(self, state: State) -> str:
         """ Apply an espilon-greedy policy to pick next action """
