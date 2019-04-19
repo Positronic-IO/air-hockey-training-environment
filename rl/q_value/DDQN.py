@@ -85,12 +85,6 @@ class DDQN(Agent):
     def get_action(self, state: State) -> str:
         """ Apply an espilon-greedy policy to pick next action """
 
-        if self.init:
-            print("Initalize model")
-            self.target_model = self.build_model()
-            self.model = self.build_model()
-            init = False
-
         # Helps over fitting, encourages to exploration
         if np.random.uniform(0, 1) < self.epsilon:
             return np.random.choice(self.env.actions)
