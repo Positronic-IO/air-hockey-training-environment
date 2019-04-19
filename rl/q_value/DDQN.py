@@ -26,7 +26,7 @@ class DDQN(Agent):
     def __init__(self, env):
         super().__init__(env)
         # Replay memory
-        self.memory = deque()
+        self.memory = deque(maxlen=self.max_memory)
         self.max_memory = 10 ** 7  # number of previous transitions to remember
 
         self.gamma = 0.95  # discount rate
@@ -37,12 +37,10 @@ class DDQN(Agent):
         self.batch_size = 10 ** 3
         self.sync_target_interval = 10 ** 5
 
-        self.target_model = None
-        self.model = None
+        self.target_model = self.build_model()
+        self.model = self.build_model()
 
         self.batch_counter = 0
-
-        self.init = True
 
         self.version = "0.3.0"
 
@@ -63,7 +61,7 @@ class DDQN(Agent):
         model.add(Flatten())
 
         model.add(Dense(4, kernel_initializer="random_uniform"))
-        model.add(Activation("linear"))
+        model.add(Activation("linear    "))
 
         model.compile(loss=huber_loss, optimizer=Adam(lr=self.learning_rate))
 
@@ -77,9 +75,12 @@ class DDQN(Agent):
         print("Sync target model")
         self.target_model.set_weights(self.model.get_weights())
 
-    def remember(self, state: State, action: str, reward: int, next_state: State):
+    def remember(self, data: Observation):
         """ Push data into memory for replay later """
-        self.memory.append((state, action, reward, next_state))
+
+        # Push data into observation and remove one from buffer
+        self.memory.append(data)
+        self.memory.popleft()
 
     def get_action(self, state: State) -> str:
         """ Apply an espilon-greedy policy to pick next action """
@@ -102,12 +103,8 @@ class DDQN(Agent):
     def update(self, data: Observation) -> None:
         """ Experience replay """
 
-        # Push data into observat
-        self.memory.append(data)
-
-        # Governs how much history is stored in memory
-        if len(self.memory) > self.max_memory:
-            self.memory.popleft()
+        # Push data into observation and remove one from buffer
+        self.remember(data)
 
         assert len(self.memory) < self.max_memory + 1, "Max memory exceeded"
 
@@ -155,12 +152,10 @@ class DDQN(Agent):
     def load_model(self, path: str) -> None:
         """ Load a model"""
 
-        "Loading model"
+        print("Loading model")
 
-        self.init = False
         self.model_path = path
-        self.model = load_model(path)
-        self.target_model = load_model(path)
+        self.model = load_model(path, custom_objects={"huber_loss": huber_loss})
 
     def save_model(self, path: str = "", epoch: int = 0) -> None:
         """ Save a model """
