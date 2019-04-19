@@ -33,7 +33,7 @@ class DuelingDDQN(Agent):
         self.epsilon = 1.0
         self.initial_epsilon = 1.0
         self.final_epsilon = 0.0001
-        self.batch_size = 10**3
+        self.batch_size = 10 ** 3
         self.observe = 5000
         self.explore = 50000
         self.frame_per_action = 4
@@ -82,10 +82,8 @@ class DuelingDDQN(Agent):
 
         return model
 
-    def _updatetarget_model(self) -> None:
-        """
-        After some time interval update the target model to be same with model
-        """
+    def update_target_model(self) -> None:
+        """ After some time interval update the target model to be same with model """
         self.target_model.set_weights(self.model.get_weights())
 
     def get_action(self, state: State) -> str:
@@ -113,7 +111,7 @@ class DuelingDDQN(Agent):
 
         # Update the target model to be same with model
         if iterations % self.update_target_freq == 0:
-            self._updatetarget_model()
+            self.update_target_model()
 
         num_samples = min(self.batch_size * self.timestep_per_train, len(self.memory))
         replay_samples = random.sample(self.memory, num_samples)
