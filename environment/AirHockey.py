@@ -8,7 +8,7 @@ import numpy as np
 from redis import Redis
 
 from environment.components import Goal, Mallet, Puck
-from utils import Action
+from utils import Action, config
 
 
 class AirHockey:
@@ -19,7 +19,7 @@ class AirHockey:
     actions = ["U", "D", "L", "R"]
 
     # Default rewwards
-    rewards = {"point": 1, "loss": -1, "hit": 1, "miss": -1}
+    rewards = config["rewards"]
 
     def __init__(self, **kwargs) -> None:
         """ Initiate an air hockey game """

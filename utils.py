@@ -2,6 +2,7 @@
 
 import argparse
 import os
+import json
 import sys
 from collections import namedtuple
 from typing import Any, Dict, List, Tuple, Union
@@ -9,7 +10,7 @@ from typing import Any, Dict, List, Tuple, Union
 import pandas as pd
 
 # Define custom types
-Action = Union[str, Tuple[int, int]]
+Action = Union[int, str, Tuple[int, int]]
 
 State = namedtuple(
     "state",
@@ -25,6 +26,11 @@ State = namedtuple(
 )
 
 Observation = namedtuple("observation", ["state", "action", "reward", "done", "new_state"])
+
+
+#  Load configuration
+with open("./config.json", "r") as f:
+    config = json.load(f)
 
 
 def parse_args_agent() -> Dict[str, str]:
