@@ -129,7 +129,7 @@ def main() -> None:
     # Make gui
     draw_screen(env)
 
-    if args["agent"] == "robot":
+    if args["agent"] == "robot" and args.get("load"):
         # If user is a robot, set learning style for agent
         agent = Strategy().make(args["strategy"], env)
 
