@@ -7,10 +7,14 @@ from typing import Union
 import numpy as np
 
 from environment import AirHockey
-from environment.test import TestAirHockey
 from rl import Strategy
 from utils import Observation, State, get_model_path, parse_args_agent, write_results
 
+try:
+    import sentry_sdk
+    # sentry_sdk.init("https://f19813407c4f4c8eb66632f8287cd334@sentry.io/1443046")
+except ImportError:
+    pass
 
 def main() -> None:
     """ Main guts of game """
@@ -51,7 +55,7 @@ def main() -> None:
 
         # For first move, move in a random direction
         if init:
-            action = str(np.random.choice(env.actions))
+            action = np.random.randint(0, len(env.actions) -1)
 
             # Update game state
             agent.move(action)
