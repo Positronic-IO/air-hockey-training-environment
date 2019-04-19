@@ -65,7 +65,7 @@ def parse_args_agent() -> Dict[str, str]:
 
 
 def parse_args_gui() -> Dict[str, str]:
-    #     """ Parse arguments for rendering """
+    """ Parse arguments for rendering """
 
     ap = argparse.ArgumentParser()
     ap.add_argument("-a", "--agent", default="human", help="Agent for gameplay")
