@@ -3,10 +3,12 @@ import json
 from typing import Union
 
 import pygame
+from keras.models import load_model
 from redis import Redis
 
 from environment import AirHockey
-from utils import parse_args_gui
+from rl import Strategy
+from utils import parse_args_gui, State, get_model_path
 
 # Set up redis
 redis = Redis()
@@ -127,6 +129,15 @@ def main() -> None:
     # Make gui
     draw_screen(env)
 
+    if args["agent"] == "robot":
+        # If user is a robot, set learning style for agent
+        agent = Strategy().make(args["strategy"], env)
+
+        # If we pass a weights file, load it.
+        if hasattr(agent, "load_model") and args.get("load"):
+            file_name = get_model_path(args["load"])
+            agent.load_model(file_name)
+
     # Game loop
     while True:
 
@@ -135,6 +146,24 @@ def main() -> None:
             # Grab and set user position
             pos = pygame.mouse.get_pos()
             env.update_state(action=pos)
+
+        if args["agent"] == "robot" and args.get("load"):
+            # Current state
+            state = State(
+                agent_location=agent.location(),
+                puck_location=env.puck.location(),
+                puck_prev_location=env.puck.prev_location(),
+                puck_velocity=env.puck.velocity(),
+                opponent_location=env.opponent.location(),
+                opponent_prev_location=env.opponent.prev_location(),
+                opponent_velocity=env.opponent.velocity(),
+            )
+
+            # Determine next action
+            action = agent.get_action(state)
+
+            # Update game state
+            agent.move(action)
 
         scores = json.loads(redis.get("scores"))
 

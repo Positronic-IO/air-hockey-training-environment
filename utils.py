@@ -63,7 +63,8 @@ def parse_args_gui() -> Dict[str, str]:
 
     ap = argparse.ArgumentParser()
     ap.add_argument("-a", "--agent", default="human", help="Agent for gameplay")
-
+    ap.add_argument("-l", "--load", help="Load model for robot agent")
+    ap.add_argument("--strategy", help="Playing strategy")
     ap.add_argument(
         "--fps",
         default=-1,
@@ -75,9 +76,11 @@ def parse_args_gui() -> Dict[str, str]:
     print("-" * 35)
     print(f"Agent: {args['agent']}")
     print(f"FPS: {args['fps']}")
-
-    if args["agent"] == "robot":
-        print("Note: Make sure to run main.py for updating the robot agent.")
+    
+    if args.get("load") and args.get("strategy"):
+        print(f"Strategy: {args['strategy']}")
+        print(f"Model name: {args['load']}")
+    
     print("-" * 35)
 
     return args

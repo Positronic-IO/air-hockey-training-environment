@@ -11,7 +11,7 @@ import tensorflow as tf
 from keras import backend as K
 from keras.layers import BatchNormalization, Dense, Dropout, Flatten
 from keras.layers.core import Activation, Dense
-from keras.models import Sequential
+from keras.models import Sequential, load_model
 from keras.optimizers import Adam, RMSprop
 
 from rl.Agent import Agent
@@ -37,10 +37,12 @@ class DDQN(Agent):
         self.batch_size = 10 ** 3
         self.sync_target_interval = 10 ** 5
 
-        self.target_model = self.build_model()
-        self.model = self.build_model()
+        self.target_model = None
+        self.model = None
 
         self.batch_counter = 0
+
+        self.init = True
 
         self.version = "0.3.0"
 
@@ -81,6 +83,12 @@ class DDQN(Agent):
 
     def get_action(self, state: State) -> str:
         """ Apply an espilon-greedy policy to pick next action """
+
+        if self.init:
+            print("Initalize model")
+            self.target_model = self.build_model()
+            self.model = self.build_model()
+            init = False
 
         # Helps over fitting, encourages to exploration
         if np.random.uniform(0, 1) < self.epsilon:
@@ -147,8 +155,12 @@ class DDQN(Agent):
     def load_model(self, path: str) -> None:
         """ Load a model"""
 
+        "Loading model"
+
+        self.init = False
         self.model_path = path
-        self.model.load(path)
+        self.model = load_model(path)
+        self.target_model = load_model(path)
 
     def save_model(self, path: str = "", epoch: int = 0) -> None:
         """ Save a model """
