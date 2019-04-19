@@ -83,13 +83,13 @@ class AirHockey:
         )
 
         # Define step size of mallet
-        self.step_size = 1
+        self.step_size = 10
 
         # Set timer for stalling
         self.timer = time()
 
         # Agent velocity momentum for
-        self.momentum = 2
+        self.momentum = 1
 
         # Reward
         self.reward = 0
@@ -160,13 +160,14 @@ class AirHockey:
 
         return None
 
-    def update_state(self, action: Action) -> None:
-        """ Update state of game """
+    def _move(self, action: Action) -> None:
+        """ Move agent's mallet """
 
         # Update action
         if isinstance(action, tuple):  # Cartesian Coordinates
             self.agent.x, self.agent.y = action[0], action[1]
 
+        # Strings
         if isinstance(action, str) and action == self.actions[0]:
             self.agent.y += self.step_size
 
@@ -179,8 +180,41 @@ class AirHockey:
         if isinstance(action, str) and action == self.actions[3]:
             self.agent.x += -self.step_size
 
-        if self.puck.x < self.agent.x:
-            self.agent.dx -= self.momentum
+        # Integers
+        if isinstance(action, int) and action == 0:
+            self.agent.y += self.step_size
+
+        if isinstance(action, int) and action == 1:
+            self.agent.y += -self.step_size
+
+        if isinstance(action, int) and action == 2:
+            self.agent.x += self.step_size
+
+        if isinstance(action, int) and action == 3:
+            self.agent.x += -self.step_size
+
+        # if self.puck.x < self.agent.x:
+        #     self.agent.dx += -self.momentum
+
+        # if self.puck.x > self.agent.x:
+        #     self.agent.dx += self.momentum
+
+        # if self.puck.y < self.agent.y:
+        #     self.agent.dy += -self.momentum
+
+        # if self.puck.y > self.agent.y:
+        #     self.agent.dy += self.momentum
+
+        return None
+
+    def update_state(self, action: Action) -> None:
+        """ Update state of game """
+
+        # Move mallet
+        self._move(action)
+
+        # if self.puck.x < self.agent.x:
+        #     self.agent.dx -= self.momentum
 
         # Set agent position
         self.agent.update_mallet()
@@ -198,18 +232,18 @@ class AirHockey:
 
         # Determine puck physics
         if (
-            abs(self.agent.x - self.puck.x) <= 35
-            and abs(self.agent.y - self.puck.y) <= 35
+            abs(self.agent.x - self.puck.x) <= 50
+            and abs(self.agent.y - self.puck.y) <= 50
         ):
-            self.puck.dx = -1 * self.puck.dx + self.agent.dx
-            self.puck.dy = -1 * self.puck.dy + self.agent.dy
+            self.puck.dx = -3 * self.puck.dx + self.agent.dx
+            self.puck.dy = -3 * self.puck.dy + self.agent.dy
 
         if (
-            abs(self.opponent.x - self.puck.x) <= 35
-            and abs(self.opponent.y - self.puck.y) <= 35
+            abs(self.opponent.x - self.puck.x) <= 50
+            and abs(self.opponent.y - self.puck.y) <= 50
         ):
-            self.puck.dx = -1 * self.puck.dx + self.opponent.dx
-            self.puck.dy = -1 * self.puck.dy + self.opponent.dy
+            self.puck.dx = -3 * self.puck.dx + self.opponent.dx
+            self.puck.dy = -3 * self.puck.dy + self.opponent.dy
 
         # Update puck position
         self.puck.limit_puck_speed()
