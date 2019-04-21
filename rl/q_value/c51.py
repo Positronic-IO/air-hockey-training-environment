@@ -1,22 +1,17 @@
 """ C51 DDQN Algorithm"""
 
+import math
 import os
 import random
 import time
-import math
-from typing import Tuple, Union
 from collections import deque
+from typing import Tuple, Union
 
 import numpy as np
-import tensorflow as tf
-from keras import backend as K
-from keras.layers import BatchNormalization, Dense, Dropout, Flatten, Input
-from keras.layers.core import Activation, Dense
-from keras.models import Sequential, load_model, Model
-from keras.optimizers import Adam, RMSprop
 
 from rl.Agent import Agent
 from rl.helpers import huber_loss
+from rl.Networks import Networks
 from utils import Observation, State, get_model_path
 
 
@@ -29,7 +24,7 @@ class c51(Agent):
 
         # get size of state and action
         self.state_size = (7, 2)
-        self.action_size = 4
+        self.action_size = len(self.env.actions)
 
         # these is hyper parameters for the DQN
         self.gamma = 0.99
@@ -57,33 +52,24 @@ class c51(Agent):
         self.memory = deque()
         self.max_memory = 50000  # number of previous transitions to remember
 
-        # Models for value distribution
-        self.model = self.build_model()
-        self.target_model = self.build_model()
-        print(self.model.summary())
+        # Counters
         self.batch_counter = 0
         self.sync_counter = 0
         self.t = 0
+
+        # Model construction
+        self.build_model()
 
         self.version = "0.1.0"
 
     def build_model(self):
         """ Create our DNN model for Q-value approximation """
 
-        state_input = Input(shape=(self.state_size))
-        x = Dense(12, kernel_initializer="normal", activation="relu")(state_input)
-        x = Dense(30, kernel_initializer="normal", activation="relu")(x)
-        x = Dense(20, kernel_initializer="normal", activation="relu")(x)
-        x = Flatten()(x)
+        model = Networks().c51(self.state_size, self.action_size, self.learning_rate)
 
-        distribution_list = list()
-        for i in range(self.action_size):
-            distribution_list.append(Dense(51, activation="softmax")(x))
-
-        model = Model(input=state_input, output=distribution_list)
-
-        model.compile(loss=huber_loss, optimizer=Adam(lr=self.learning_rate))
-
+        self.model = model
+        self.target_model = model
+        print(self.model.summary())
         return model
 
     def update_target_model(self) -> None:
@@ -97,7 +83,7 @@ class c51(Agent):
 
         # Helps over fitting, encourages to exploration
         if np.random.uniform(0, 1) < self.epsilon:
-            return np.random.randint(0, len(self.env.actions))
+            return np.random.randint(0, self.action_size)
 
         # Compute rewards for any posible action
         z = self.model.predict(np.array([state]), batch_size=1)
@@ -164,9 +150,7 @@ class c51(Agent):
                 next_states[i, :, :] = replay_samples[i][4]
 
             z = self.model.predict(next_states)
-            z_ = self.target_model.predict(
-                next_states
-            )
+            z_ = self.target_model.predict(next_states)
 
             # Get Optimal Actions for the next states (from distribution z)
             optimal_action_idxs = list()
@@ -207,22 +191,3 @@ class c51(Agent):
 
             return loss.history["loss"]
         return None
-
-    def load_model(self, path: str) -> None:
-        """ Load a model"""
-
-        print("Loading model")
-
-        self.model_path = path
-        self.model = load_model(path, custom_objects={"huber_loss": huber_loss})
-
-    def save_model(self, path: str = "", epoch: int = 0) -> None:
-        """ Save a model """
-        # If we are not given a path, use the same path as the one we loaded the model
-        if not path:
-            path = self.model_path
-
-        # Create path with epoch number
-        head, ext = os.path.splitext(path)
-        path = get_model_path(f"{head}_{epoch}" + ext)
-        self.model.save(path)

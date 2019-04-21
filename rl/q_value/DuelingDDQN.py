@@ -6,14 +6,10 @@ import time
 from typing import Tuple
 
 import numpy as np
-import tensorflow as tf
-from keras import backend as K
-from keras.layers import Dense, Dropout, Input, Lambda, add, Flatten, Activation
-from keras.models import Sequential, Model
-from keras.optimizers import Adam, RMSprop
 
 from rl.Agent import Agent
 from rl.helpers import huber_loss
+from rl.Networks import Networks
 from utils import Observation, State, get_model_path
 
 
@@ -23,9 +19,14 @@ class DuelingDDQN(Agent):
 
     def __init__(self, env):
         super().__init__(env)
+
         # Replay memory
         self.memory = list()
         self.max_memory = 10 ** 5  # number of previous transitions to remember
+
+        # get size of state and action
+        self.state_size = (7, 2)
+        self.action_size = len(self.env.actions)
 
         # these is hyper parameters for the Double DQN
         self.gamma = 0.99
@@ -44,43 +45,20 @@ class DuelingDDQN(Agent):
         self.memory = list()
         self.max_memory = 50000  # number of previous transitions to remember
 
-        # create main model and target model
-        self.model = self.build_model()
-        self.target_model = self.build_model()
+        # Model construction
+        self.build_model()
 
         self.version = "0.1.0"
 
     def build_model(self):
         """ Create our DNN model for Q-value approximation """
 
-        state_input = Input(shape=((3, 2)))
-        x = Dense(12, kernel_initializer="normal", activation="relu")(state_input)
-        x = Dense(30, kernel_initializer="normal", activation="relu")(x)
-        x = Dense(20, kernel_initializer="normal", activation="relu")(x)
-        x = Flatten()(x)
+        model = Networks().dueling_ddqn(self.state_size, self.learning_rate)
 
-        # state value tower - V
-        state_value = Dense(256, kernel_initializer="normal", activation="relu")(x)
-        state_value = Dense(4, kernel_initializer="random_uniform")(state_value)
-        state_value = Lambda(lambda s: K.expand_dims(s[:, 0]), output_shape=(4,))(
-            state_value
-        )
-
-        # action advantage tower - A
-        action_advantage = Dense(256, kernel_initializer="normal", activation="relu")(x)
-        action_advantage = Dense(4)(action_advantage)
-        action_advantage = Lambda(
-            lambda a: a[:, :] - K.mean(a[:, :], keepdims=True), output_shape=(4,)
-        )(action_advantage)
-
-        # merge to state-action value function Q
-        state_action_value = add([state_value, action_advantage])
-
-        model.compile(loss=huber_loss, optimizer=Adam(lr=self.learning_rate))
-
-        print(model.summary())
-
-        return model
+        self.model = model
+        self.target_model = model
+        print(self.model.summary())
+        return None
 
     def update_target_model(self) -> None:
         """ After some time interval update the target model to be same with model """
@@ -91,7 +69,7 @@ class DuelingDDQN(Agent):
 
         # Helps over fitting, encourages to exploration
         if np.random.uniform(0, 1) < self.epsilon:
-            return np.random.randint(0, len(self.env.actions))
+            return np.random.randint(0, self.action_size)
 
         # Compute rewards for any posible action
         rewards = self.model.predict([np.array([state])], batch_size=1)
@@ -140,20 +118,3 @@ class DuelingDDQN(Agent):
         loss = self.model.fit(
             update_input, target, batch_size=self.batch_size, nb_epoch=1, verbose=0
         )
-
-    def load_model(self, path: str) -> None:
-        """ Load a model"""
-
-        self.model_path = path
-        self.model.load(path)
-
-    def save_model(self, path: str = "", epoch: int = 0) -> None:
-        """ Save a model """
-        # If we are not given a path, use the same path as the one we loaded the model
-        if not path:
-            path = self.model_path
-
-        # Create path with epoch number
-        head, ext = os.path.splitext(path)
-        path = get_model_path(f"{head}_{epoch}" + ext)
-        self.model.save(path)
