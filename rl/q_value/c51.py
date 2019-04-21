@@ -108,13 +108,14 @@ class c51(Agent):
         if len(self.memory) > self.max_memory:
             self.memory.popleft()
 
+        assert len(self.memory) < self.max_memory + 1, "Max memory exceeded"
+
     def update(self, data: Observation) -> Union[float, None]:
         """ Experience replay """
 
         # Push data into observation and remove one from buffer
         self.remember(data)
 
-        assert len(self.memory) < self.max_memory + 1, "Max memory exceeded"
 
         self.sync_counter += 1
         if self.sync_counter > self.update_target_freq:
