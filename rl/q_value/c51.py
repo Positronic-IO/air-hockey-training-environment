@@ -163,10 +163,10 @@ class c51(Agent):
                 done.append(replay_samples[i][3])
                 next_states[i, :, :] = replay_samples[i][4]
 
-            z = self.model.predict(next_states)  # Return a list [32x51, 32x51, 32x51]
+            z = self.model.predict(next_states)
             z_ = self.target_model.predict(
                 next_states
-            )  # Return a list [32x51, 32x51, 32x51]
+            )
 
             # Get Optimal Actions for the next states (from distribution z)
             optimal_action_idxs = list()
