@@ -3,7 +3,7 @@ from typing import Tuple
 
 import tensorflow as tf
 from keras import backend as K
-from keras.layers import BatchNormalization, Dense, Dropout, Flatten, Input, Lambda
+from keras.layers import BatchNormalization, Dense, Dropout, Flatten, Input, Lambda, add
 from keras.layers.core import Activation, Dense
 from keras.models import Model, Sequential, load_model
 from keras.optimizers import Adam, RMSprop
@@ -42,6 +42,7 @@ class Networks:
         # merge to state-action value function Q
         state_action_value = add([state_value, action_advantage])
 
+        model = Model(input=state_input, output=state_action_value)
         model.compile(loss=huber_loss, optimizer=Adam(lr=learning_rate))
 
         return model
