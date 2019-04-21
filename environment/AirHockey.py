@@ -350,7 +350,7 @@ class AirHockey:
 
         return None
 
-    def opponent_play(self, strategy: str = "basic"):
+    def opponent_play(self, strategy: str = "basic") -> None:
         """ Method for opponent's gameplay logic """
 
         if strategy == "basic":
