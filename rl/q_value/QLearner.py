@@ -13,14 +13,14 @@ class QLearner:
     """ Uses Q-learning to update/maximize rewards """
 
     def __init__(self, env):
-        super().__init__(env)
+        self.env = env
         self.Q = {}
         self.last_state = None
         self.last_action = None
         self.learning_rate = 0.7
         self.gamma = 0.9
         self.epsilon = 0.9
-        
+
         self.version = "0.1.0"
 
     def move(self, action: Action) -> None:
