@@ -66,9 +66,8 @@ class DQN(Agent):
         if np.random.uniform(0, 1) < self.epsilon:
             # We use the action which corresponds to the highest reward
             idx = np.random.randint(0, len(self.env.actions))
-            return idx
-
-        idx = np.argmax(rewards[0])
+        else:
+            idx = np.argmax(rewards[0])
             
         # Update
         self.last_state = state
