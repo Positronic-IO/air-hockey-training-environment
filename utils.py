@@ -1,8 +1,8 @@
 """ Helpful utility functions """
 
 import argparse
-import os
 import json
+import os
 import sys
 from collections import namedtuple
 from typing import Any, Dict, List, Tuple, Union
