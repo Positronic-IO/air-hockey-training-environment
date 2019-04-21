@@ -8,7 +8,8 @@ import numpy as np
 from redis import Redis
 
 from environment.components import Goal, Mallet, Puck
-from utils import Action, config
+from utils import Action, config, State, Observation
+from rl.q_value import QLearner
 
 
 class AirHockey:
@@ -118,43 +119,44 @@ class AirHockey:
 
         return None
 
-    # TODO - Have the opponent be its own process (for more complex opponents in the future)
-    def malletAI(self, mallet: Mallet) -> None:
+    def mallet_ai(self) -> None:
         """ The 'AI' of the computer """
 
         self.check_stall()
 
-        if self.puck.x < mallet.x:
-            if self.puck.x < mallet.left_lim:
-                mallet.dx = 1
+        if self.puck.x < self.opponent.x:
+            if self.puck.x < self.opponent.left_lim:
+                self.opponent.dx = 1
             else:
-                mallet.dx = -2
+                self.opponent.dx = -2
 
-        if self.puck.x > mallet.x:
-            if self.puck.x > mallet.right_lim:
-                mallet.dx = -1
+        if self.puck.x > self.opponent.x:
+            if self.puck.x > self.opponent.right_lim:
+                self.opponent.dx = -1
             else:
-                mallet.dx = 2
+                self.opponent.dx = 2
 
-        if self.puck.y < mallet.y:
-            if self.puck.y < mallet.u_lim:
-                mallet.dy = 1
+        if self.puck.y < self.opponent.y:
+            if self.puck.y < self.opponent.u_lim:
+                self.opponent.dy = 1
             else:
-                mallet.dy = -6
+                self.opponent.dy = -6
 
-        if self.puck.y > mallet.y:
+        if self.puck.y > self.opponent.y:
             if self.puck.y <= 360:  # was 250
-                mallet.dy = 6
-            # elif puck.y<=350:
-            #    agent.dy = 2
+                self.opponent.dy = 6
+
             else:
-                if mallet.y > 200:
-                    mallet.dy = -2
+                if self.opponent.y > 200:
+                    self.opponent.dy = -2
                 else:
-                    mallet.dy = 0
+                    self.opponent.dy = 0
             # Addresses situation when the puck and the computer are on top of each other.
             # Breaks loop
-            if abs(self.puck.y - mallet.y) < 40 and abs(self.puck.x - mallet.x) < 40:
+            if (
+                abs(self.puck.y - self.opponent.y) < 40
+                and abs(self.puck.x - self.opponent.x) < 40
+            ):
                 self.puck.dx += 2
                 self.puck.dy += 2
 
@@ -225,9 +227,7 @@ class AirHockey:
         self.agent.update_mallet()
 
         # Computer makes its move
-        while self.ticks_to_ai == 0:
-            self.malletAI(self.opponent)
-            self.ticks_to_ai = 10
+        self.opponent_play(strategy="basic")
         self.opponent.update_mallet()
 
         # Determine puck physics
@@ -349,3 +349,11 @@ class AirHockey:
         self.opponent.reset_mallet()
 
         return None
+
+    def opponent_play(self, strategy: str = "basic"):
+        """ Method for opponent's gameplay logic """
+
+        if strategy == "basic":
+            while self.ticks_to_ai == 0:
+                self.mallet_ai()
+                self.ticks_to_ai = 10
