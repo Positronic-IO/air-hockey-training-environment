@@ -3,7 +3,7 @@ from typing import Tuple
 
 import tensorflow as tf
 from keras import backend as K
-from keras.layers import BatchNormalization, Dense, Dropout, Flatten, Input
+from keras.layers import BatchNormalization, Dense, Dropout, Flatten, Input, Lambda
 from keras.layers.core import Activation, Dense
 from keras.models import Model, Sequential, load_model
 from keras.optimizers import Adam, RMSprop
