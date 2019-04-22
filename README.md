@@ -4,7 +4,7 @@ This project is a simulated air hockey gaming environment.
 
 Either one can use this to play for fun, capture state, or train reinforcement learning models.
 
-Currently, this project supports 3 types of reinforcement learning techniques: Q-learning, Deep Q-learning (DQN), and Double DQN (DDQN).
+Currently, this project supports 3 types of reinforcement learning techniques: Q-learning, Deep Q-learning (DQN), and Double DQN (DDQN), c51-DDQN, and Dueling DDQN.
 
 Many examples use of reinforcement learning capture the state from video frames; thus, their architecture involves CNNs. This project captures the state of the board via the coordinates of agent, puck, and opponent.
 
@@ -39,7 +39,6 @@ If you want a robot agent, run `python3 train.py --strategy <your strategy> --lo
 
 ## Warnings
 + Beware of how you set your rewards because these settings drastically effect the exploitation/exploration tradeoff. 
-+ In the DQN and DDQN model achitecture, there is no dropout or any type of normalization. There is no need for this in reinforcement learning. Overfitting can be a good thing. If you feel your model is not robust enough, try introducing more noise into the system via modifying the gameplay.
 
 ## Todo
 + Have the agent duel against itself.
