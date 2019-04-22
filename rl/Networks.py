@@ -16,7 +16,7 @@ class Networks:
         """ Neural network architectures for Reinforcement Learning algorithms """
 
     @staticmethod
-    def dueling_ddqn(state_size: Tuple[int, int], learning_rate: float) -> Model:
+    def dueling_ddqn(state_size: Tuple[int, int], action_size: Tuple[int, int], learning_rate: float) -> Model:
         """ Duelling DDQN Neural Net """
 
         state_input = Input(shape=state_size)
@@ -27,16 +27,16 @@ class Networks:
 
         # state value tower - V
         state_value = Dense(256, kernel_initializer="normal", activation="relu")(x)
-        state_value = Dense(4, kernel_initializer="random_uniform")(state_value)
+        state_value = Dense(1, kernel_initializer="random_uniform")(state_value)
         state_value = Lambda(lambda s: K.expand_dims(s[:, 0]), output_shape=(4,))(
             state_value
         )
 
         # action advantage tower - A
         action_advantage = Dense(256, kernel_initializer="normal", activation="relu")(x)
-        action_advantage = Dense(4)(action_advantage)
+        action_advantage = Dense(action_size)(action_advantage)
         action_advantage = Lambda(
-            lambda a: a[:, :] - K.mean(a[:, :], keepdims=True), output_shape=(4,)
+            lambda a: a[:, :] - K.mean(a[:, :], keepdims=True), output_shape=(action_size,)
         )(action_advantage)
 
         # merge to state-action value function Q

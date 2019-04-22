@@ -61,7 +61,7 @@ class DuelingDDQN(Agent):
     def build_model(self):
         """ Create our DNN model for Q-value approximation """
 
-        model = Networks().dueling_ddqn(self.state_size, self.learning_rate)
+        model = Networks().dueling_ddqn(self.state_size, self.action_size, self.learning_rate)
 
         self.model = model
         self.target_model = model
@@ -140,9 +140,7 @@ class DuelingDDQN(Agent):
             target = self.model.predict(update_input)
             target_val = self.model.predict(update_target)
             target_val_ = self.target_model.predict(update_target)
-            print(target.shape)
-            print(target_val.shape)
-            print(target_val_.shape)
+
             for i in range(num_samples):
                 # like Q Learning, get maximum Q value at s'
                 # But from target model
