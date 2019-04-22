@@ -12,9 +12,55 @@ from utils import Observation, State, get_model_path, parse_args_agent, write_re
 
 try:
     import sentry_sdk
+
     # sentry_sdk.init("https://f19813407c4f4c8eb66632f8287cd334@sentry.io/1443046")
 except ImportError:
     pass
+
+
+def stats(
+    env: AirHockey,
+    agent_cumulative_score: float,
+    opponent_cumulative_score: float,
+    filename: str,
+) -> None:
+    """ Record training stats """
+
+    results = dict()
+    new = False
+
+    if env.agent_cumulative_score > agent_cumulative_score:
+        results["agent"] = [env.agent_cumulative_score]
+        agent_cumulative_score = env.agent_cumulative_score
+        new = True
+    else:
+        results["agent"] = [agent_cumulative_score]
+
+    if env.cpu_cumulative_score > opponent_cumulative_score:
+        results["opponent"] = [env.cpu_cumulative_score]
+        opponent_cumulative_score = env.cpu_cumulative_score
+        new = True
+    else:
+        results["opponent"] = [opponent_cumulative_score]
+
+    if env.agent_score == 10:
+        results["agent_win"] = [1]
+    else:
+        results["agent_win"] = [0]
+
+    if env.cpu_score == 10:
+        results["cpu_win"] = [1]
+    else:
+        results["cpu_win"] = [0]
+
+    results["reward_per_episode"] = [env.reward_per_episode]
+
+    if new:
+        write_results(filename, results)
+        env.reward_per_episode = 0
+
+    return agent_cumulative_score, opponent_cumulative_score
+
 
 def main() -> None:
     """ Main guts of game """
@@ -55,7 +101,7 @@ def main() -> None:
 
         # For first move, move in a random direction
         if init:
-            action = np.random.randint(0, len(env.actions) -1)
+            action = np.random.randint(0, len(env.actions) - 1)
 
             # Update game state
             agent.move(action)
@@ -94,6 +140,7 @@ def main() -> None:
 
             # Record reward
             reward = env.reward
+            env.reward_per_episode += reward
             done = env.done
             # Observation of the game at the moment
             observation = Observation(
@@ -109,42 +156,12 @@ def main() -> None:
 
             # Save results to csv
             if args.get("results"):
-                results = dict()
-                new = False
-
-                if env.agent_cumulative_score > agent_cumulative_score:
-                    results["agent"] = [env.agent_cumulative_score]
-                    agent_cumulative_score = env.agent_cumulative_score
-                    new = True
-                else:
-                    results["agent"] = [agent_cumulative_score]
-
-                if env.cpu_cumulative_score > opponent_cumulative_score:
-                    results["opponent"] = [env.cpu_cumulative_score]
-                    opponent_cumulative_score = env.cpu_cumulative_score
-                    new = True
-                else:
-                    results["opponent"] = [opponent_cumulative_score]
-
-                if env.agent_score == 10:
-                    results["agent_win"] = [1]
-                else:
-                    results["agent_win"] = [0]
-
-                if env.cpu_score == 10:
-                    results["cpu_win"] = [1]
-                else:
-                    results["cpu_win"] = [0]
-
-                results["cum_reward"] = [env.cumulative_reward]
-
-                if observation.done:
-                    results["done"] = [1]
-                else:
-                    results["done"] = [0]
-
-                if new:
-                    write_results(args["results"], results)
+                agent_cumulative_score, opponent_cumulative_score = stats(
+                    env,
+                    agent_cumulative_score,
+                    opponent_cumulative_score,
+                    args["results"],
+                )
 
         # After so many iterations, save motedel
         if hasattr(agent, "save_model") and iterations % iterations_on_save == 0:

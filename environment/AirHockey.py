@@ -89,10 +89,7 @@ class AirHockey:
         # Set timer for stalling
         self.timer = time()
 
-        # Agent velocity momentum for
-        self.momentum = 1
-
-        # Reward
+             # Reward
         self.reward = 0
         self.cumulative_reward = 0
 
@@ -102,6 +99,9 @@ class AirHockey:
         # Cumulative scores
         self.agent_cumulative_score = 0
         self.cpu_cumulative_score = 0
+
+        # Reward per episode
+        self.reward_per_episode = 0
 
     def check_stall(self) -> None:
         """ Check to see if the game has stalled """
@@ -195,18 +195,6 @@ class AirHockey:
         if isinstance(action, int) and action == 3:
             self.agent.x += -self.step_size
 
-        # if self.puck.x < self.agent.x:
-        #     self.agent.dx += -self.momentum
-
-        # if self.puck.x > self.agent.x:
-        #     self.agent.dx += self.momentum
-
-        # if self.puck.y < self.agent.y:
-        #     self.agent.dy += -self.momentum
-
-        # if self.puck.y > self.agent.y:
-        #     self.agent.dy += self.momentum
-
         return None
 
     def update_state(self, action: Action) -> None:
@@ -214,9 +202,6 @@ class AirHockey:
 
         # Move mallet
         self._move(action)
-
-        # if self.puck.x < self.agent.x:
-        #     self.agent.dx -= self.momentum
 
         # Set agent position
         self.agent.update_mallet()
