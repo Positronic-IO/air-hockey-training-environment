@@ -68,7 +68,7 @@ def parse_args_gui() -> Dict[str, str]:
     """ Parse arguments for rendering """
 
     ap = argparse.ArgumentParser()
-    ap.add_argument("-a", "--agent", default="human", help="Agent for gameplay")
+    ap.add_argument("-a", "--agent", default="robot", help="Agent for gameplay")
     ap.add_argument("-l", "--load", help="Load model for robot agent")
     ap.add_argument("--strategy", help="Playing strategy")
     ap.add_argument(
