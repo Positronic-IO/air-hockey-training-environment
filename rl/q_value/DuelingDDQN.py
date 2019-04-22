@@ -58,7 +58,7 @@ class DuelingDDQN(Agent):
 
         self.version = "0.1.0"
 
-    def build_model(self):
+    def build_model(self) -> None:
         """ Create our DNN model for Q-value approximation """
 
         model = Networks().dueling_ddqn(self.state_size, self.action_size, self.learning_rate)

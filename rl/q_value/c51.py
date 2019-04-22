@@ -62,7 +62,7 @@ class c51(Agent):
 
         self.version = "0.1.0"
 
-    def build_model(self):
+    def build_model(self) -> None:
         """ Create our DNN model for Q-value approximation """
 
         model = Networks().c51(self.state_size, self.action_size, self.learning_rate)
