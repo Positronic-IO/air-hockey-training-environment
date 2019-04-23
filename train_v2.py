@@ -39,8 +39,8 @@ class Train:
 
         # If we pass a weights file, load it.
         if hasattr(self.agent, "load_model") and config["training"]["agent"]["load"]:
-            file_name = get_model_path(config["training"]["agent"]["load"])
-            self.agent.load_model(file_name)
+            self.agent.load_path = get_model_path(config["training"]["agent"]["load"])
+            self.agent.load_model()
 
         if (
             hasattr(self.agent, "save_model")
@@ -63,8 +63,10 @@ class Train:
             hasattr(self.opponent, "load_model")
             and config["training"]["opponent"]["load"]
         ):
-            file_name = get_model_path(config["training"]["opponent"]["load"])
-            self.agent.load_model(file_name)
+            self.agent.load_path = get_model_path(
+                config["training"]["opponent"]["load"]
+            )
+            self.agent.load_model()
 
         if (
             hasattr(self.opponent, "save_model")
@@ -191,8 +193,10 @@ class Train:
             and self.iterations % self.iterations_on_save == 0
         ):
             if config["training"]["agent"]["save"]:
-                path = get_model_path(config["training"]["agent"]["save"])
-                self.agent.save_model(path, self.epoch)
+                self.agent.save_path = get_model_path(
+                    config["training"]["agent"]["save"]
+                )
+                self.agent.save_model(self.epoch)
             else:
                 self.agent.save_model(epoch=self.epoch)
             self.epoch += 1
@@ -280,8 +284,10 @@ class Train:
                     and self.iterations % self.iterations_on_save == 0
                 ):
                     if config["training"]["opponent"]["save"]:
-                        path = get_model_path(config["training"]["opponent"]["save"])
-                        self.opponent.save_model(path, self.epoch - 1)
+                        self.opponent.save_path = get_model_path(
+                            config["training"]["opponent"]["save"]
+                        )
+                        self.opponent.save_model(self.epoch - 1)
                     else:
                         self.opponent.save_model(epoch=self.epoch - 1)
 

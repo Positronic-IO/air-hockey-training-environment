@@ -76,8 +76,8 @@ def main() -> None:
 
     # If we pass a weights file, load it.
     if hasattr(agent, "load_model") and args.get("load"):
-        file_name = get_model_path(args["load"])
-        agent.load_model(file_name)
+        agent.load_path = get_model_path(args["load"])
+        agent.load_model()
 
     if hasattr(agent, "save_model") and not args.get("save") and not args.get("load"):
         print("Please specify a path to save model.")
@@ -166,8 +166,8 @@ def main() -> None:
         # After so many iterations, save motedel
         if hasattr(agent, "save_model") and iterations % iterations_on_save == 0:
             if args.get("save"):
-                path = get_model_path(args["save"])
-                agent.save_model(path, epoch)
+                agent.save_path = get_model_path(args["save"])
+                agent.save_model(epoch)
             else:
                 agent.save_model(epoch=epoch)
             epoch += 1
