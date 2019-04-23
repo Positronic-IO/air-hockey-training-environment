@@ -34,7 +34,6 @@ class Strategy:
         try:
             config = get_config_strategy(name)
         except KeyError:
-            print("Strategy not found")
-            sys.exit()
+            raise KeyError("Strategy not found")
 
         return self.strategies[name](env, config, agent_name)
