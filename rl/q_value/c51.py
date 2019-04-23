@@ -19,8 +19,8 @@ class c51(Agent):
 
     """ Reference: https://github.com/flyyufelix/C51-DDQN-Keras """
 
-    def __init__(self, env):
-        super().__init__(env)
+    def __init__(self, env, agent_name="main"):
+        super().__init__(env, agent_name)
 
         # get size of state and action
         self.state_size = (7, 2)
@@ -31,7 +31,7 @@ class c51(Agent):
         self.learning_rate = 0.0001
         self.epsilon = 1.0
         self.initial_epsilon = 1.0
-        self.final_epsilon = 0.0001
+        self.final_epsilon = 1
         self.batch_size = 32
         self.observe = 2000
         self.explore = 50000

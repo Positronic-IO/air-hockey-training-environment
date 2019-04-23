@@ -89,7 +89,7 @@ class AirHockey:
         # Set timer for stalling
         self.timer = time()
 
-             # Reward
+        # Reward
         self.reward = 0
         self.cumulative_reward = 0
 
@@ -162,58 +162,59 @@ class AirHockey:
 
         return None
 
-    def _move(self, action: Action) -> None:
+    def _move(self, agent: Mallet, action: Action) -> None:
         """ Move agent's mallet """
 
         # Update action
         if isinstance(action, tuple):  # Cartesian Coordinates
-            self.agent.x, self.agent.y = action[0], action[1]
+            agent.x, self.agent.y = action[0], action[1]
 
         # Strings
         if isinstance(action, str) and action == self.actions[0]:
-            self.agent.y += self.step_size
+            agent.y += self.step_size
 
         if isinstance(action, str) and action == self.actions[1]:
-            self.agent.y += -self.step_size
+            agent.y += -self.step_size
 
         if isinstance(action, str) and action == self.actions[2]:
-            self.agent.x += self.step_size
+            agent.x += self.step_size
 
         if isinstance(action, str) and action == self.actions[3]:
-            self.agent.x += -self.step_size
+            agent.x += -self.step_size
 
         # Integers
         if isinstance(action, int) and action == 0:
-            self.agent.y += self.step_size
+            agent.y += self.step_size
 
         if isinstance(action, int) and action == 1:
-            self.agent.y += -self.step_size
+            agent.y += -self.step_size
 
         if isinstance(action, int) and action == 2:
-            self.agent.x += self.step_size
+            agent.x += self.step_size
 
         if isinstance(action, int) and action == 3:
-            self.agent.x += -self.step_size
+            agent.x += -self.step_size
+
+        # Set agent position
+        agent.update_mallet()
+
+        # Update agent velocity
+        agent.dx = agent.x - agent.last_x
+        agent.dy = agent.y - agent.last_y
+        agent.update_mallet()
 
         return None
 
-    def update_state(self, action: Action) -> None:
+    def update_state(self, action: Action, agent_name: str = "main") -> None:
         """ Update state of game """
 
         # Move mallet
-        self._move(action)
-
-        # Set agent position
-        self.agent.update_mallet()
-
-        # Update agent velocity
-        self.agent.dx = self.agent.x - self.agent.last_x
-        self.agent.dy = self.agent.y - self.agent.last_y
-        self.agent.update_mallet()
-
-        # Computer makes its move
-        self.opponent_play(strategy="basic")
-        self.opponent.update_mallet()
+        if agent_name == "main":
+            self._move(self.agent, action)
+        elif agent_name == "opponent":
+            self._move(self.opponent, action)
+        else:
+            raise ValueError("Invalid agent name")
 
         # Determine puck physics
         if (
@@ -243,6 +244,10 @@ class AirHockey:
         self.agent.last_x = self.agent.x
         self.agent.last_y = self.agent.y
         self.agent.update_mallet()
+
+        self.opponent.last_x = self.opponent.x
+        self.opponent.last_y = self.opponent.y
+        self.opponent.update_mallet()
 
         # Update score
         self.update_score()
@@ -334,11 +339,3 @@ class AirHockey:
         self.opponent.reset_mallet()
 
         return None
-
-    def opponent_play(self, strategy: str = "basic") -> None:
-        """ Method for opponent's gameplay logic """
-
-        if strategy == "basic":
-            while self.ticks_to_ai == 0:
-                self.mallet_ai()
-                self.ticks_to_ai = 10

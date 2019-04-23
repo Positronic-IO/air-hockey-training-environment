@@ -1,6 +1,6 @@
 """ Initialize an agent for a game """
 import os
-from typing import Tuple
+from typing import Tuple, Union
 
 from keras.models import Model, load_model
 
@@ -9,24 +9,30 @@ from utils import Action, get_model_path
 
 
 class Agent:
-    def __init__(self, env=None):
+    def __init__(self, env=None, agent_name="main"):
 
         if env is not None:
             self.env = env
         else:
             raise ValueError("Please pass an instance of the gaming environment")
-
+        self.agent_name = agent_name
         self.model = Model()
 
     def move(self, action: Action) -> None:
         """ Move agent """
 
-        self.env.update_state(action)
+        self.env.update_state(agent_name=self.agent_name, action=action)
         return None
 
-    def location(self) -> Tuple[int, int]:
+    def location(self) -> Union[None, Tuple[int, int]]:
         """ Return agent's location """
-        return self.env.agent.location()
+
+        if self.agent_name == "main":
+            return self.env.agent.location()
+        elif self.agent_name == "opponent":
+            return self.env.opponent.location()
+        else:
+            raise ValueError("Invalid agent name")
 
     def load_model(self, path: str) -> None:
         """ Load a model"""

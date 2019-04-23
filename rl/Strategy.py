@@ -16,10 +16,10 @@ class Strategy:
     def __init__(self):
         pass
 
-    def make(self, name, env):
+    def make(self, name, env, agent_name="main"):
         """ Return instance of learner """
 
         if env is None:
             raise ValueError("Need to pass a gaming environment")
 
-        return self.strategies[name](env)
+        return self.strategies[name](env, agent_name)

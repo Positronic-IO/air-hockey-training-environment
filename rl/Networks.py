@@ -21,20 +21,27 @@ class Networks:
 
         state_input = Input(shape=state_size)
         x = Dense(12, kernel_initializer="normal", activation="relu")(state_input)
+        x = Dropout(rate=0.3)(x)
         x = Dense(30, kernel_initializer="normal", activation="relu")(x)
+        x = Dropout(rate=0.3)(x)
         x = Dense(20, kernel_initializer="normal", activation="relu")(x)
+        x = Dropout(rate=0.3)(x)
         x = Flatten()(x)
 
         # state value tower - V
         state_value = Dense(256, kernel_initializer="normal", activation="relu")(x)
+        state_value = Dropout(rate=0.3)(state_value)
         state_value = Dense(1, kernel_initializer="random_uniform")(state_value)
+        state_value = Dropout(rate=0.3)(state_value)
         state_value = Lambda(lambda s: K.expand_dims(s[:, 0]), output_shape=(4,))(
             state_value
         )
 
         # action advantage tower - A
         action_advantage = Dense(256, kernel_initializer="normal", activation="relu")(x)
+        action_advantage = BatchNormalization()(action_advantage)
         action_advantage = Dense(action_size)(action_advantage)
+        action_advantage = BatchNormalization()(action_advantage)
         action_advantage = Lambda(
             lambda a: a[:, :] - K.mean(a[:, :], keepdims=True), output_shape=(action_size,)
         )(action_advantage)
@@ -103,8 +110,11 @@ class Networks:
 
         state_input = Input(shape=state_size)
         x = Dense(12, kernel_initializer="normal", activation="relu")(state_input)
+        x = BatchNormalization()(x)
         x = Dense(30, kernel_initializer="normal", activation="relu")(x)
+        x = BatchNormalization()(x)
         x = Dense(20, kernel_initializer="normal", activation="relu")(x)
+        x = BatchNormalization()(x)
         x = Flatten()(x)
 
         distribution_list = [

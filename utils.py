@@ -33,35 +33,26 @@ with open("./config.json", "r") as f:
     config = json.load(f)
 
 
-def parse_args_agent() -> Dict[str, str]:
-    """ Parse arguments for agent settings """
+# def parse_config_agent() -> None:
+#     """ Parse arguments for agent settings """
 
-    ap = argparse.ArgumentParser()
-    ap.add_argument("--strategy", default="q-learner", help="Learning strategy")
-    ap.add_argument("--load", help="Path to load a model")
-    ap.add_argument("--save", help="Path to save a model")
-    ap.add_argument("--results", help="Path to save results as csv")
-    ap.add_argument("--wait", default=0, help="Throttle on calulations")
-    args = vars(ap.parse_args())
+#     print("-" * 35)
 
-    print("-" * 35)
+#     print("Agent: Robot")
+#     print(f"Learning Algorithm: {config["training"]["agent"]['strategy']}")
 
-    print("Agent: Robot")
-    print(f"Learning Algorithm: {args['strategy']}")
-    print(f"Patience: {args.get('wait')} seconds")
+#     if args.get("load"):
+#         print(f"Loading model at: {config["training"]["agent"]['load']}")
 
-    if args.get("load"):
-        print(f"Loading model at: {args['load']}")
+#     if args.get("save"):
+#         print(f"Saving model at: {config["training"]["agent"]['save']}")
 
-    if args.get("save"):
-        print(f"Saving model at: {args['save']}")
+#     if args.get("results"):
+#         print(f"Saving results at: {config["training"]["agent"]['results']}")
 
-    if args.get("results"):
-        print(f"Saving results at: {args['results']}")
+#     print("-" * 35)
 
-    print("-" * 35)
-
-    return args
+#     return None
 
 
 def parse_args_gui() -> Dict[str, str]:
@@ -70,7 +61,7 @@ def parse_args_gui() -> Dict[str, str]:
     ap = argparse.ArgumentParser()
     ap.add_argument("-a", "--agent", default="robot", help="Agent for gameplay")
     ap.add_argument("-l", "--load", help="Load model for robot agent")
-    ap.add_argument("--strategy", help="Playing strategy")
+    ap.add_argument("-s", "--strategy", help="Playing strategy")
     ap.add_argument(
         "--fps",
         default=-1,

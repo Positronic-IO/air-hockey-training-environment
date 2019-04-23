@@ -18,8 +18,8 @@ class DuelingDDQN(Agent):
 
     """ Reference: https://github.com/flyyufelix/VizDoom-Keras-RL/blob/master/dueling_ddqn.py """
 
-    def __init__(self, env):
-        super().__init__(env)
+    def __init__(self, env, agent_name="main"):
+        super().__init__(env, agent_name)
 
         # Replay memory
         self.memory = list()
@@ -34,7 +34,7 @@ class DuelingDDQN(Agent):
         self.learning_rate = 0.0001
         self.epsilon = 1.0
         self.initial_epsilon = 1.0
-        self.final_epsilon = 0.0001
+        self.final_epsilon = 1.0
         self.batch_size = 10 ** 3
         self.observe = 5000
         self.explore = 50000

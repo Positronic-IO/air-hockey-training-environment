@@ -16,8 +16,8 @@ class DQN(Agent):
 
     """ Reference: https://keon.io/deep-q-learning/ """
 
-    def __init__(self, env):
-        super().__init__(env)
+    def __init__(self, env, agent_name="main"):
+        super().__init__(env, agent_name)
 
         # get size of state and action
         self.state_size = (7, 2)
