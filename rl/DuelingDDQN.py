@@ -4,10 +4,11 @@ import os
 import random
 import time
 from collections import deque
-from typing import Tuple
+from typing import Dict, Tuple, Union
 
 import numpy as np
 
+from environment import AirHockey
 from rl.Agent import Agent
 from rl.helpers import huber_loss
 from rl.Networks import Networks
@@ -18,50 +19,53 @@ class DuelingDDQN(Agent):
 
     """ Reference: https://github.com/flyyufelix/VizDoom-Keras-RL/blob/master/dueling_ddqn.py """
 
-    def __init__(self, env, agent_name="main"):
+    def __init__(
+        self,
+        env: AirHockey,
+        config: Dict[str, Union[str, int]],
+        agent_name: str = "main",
+    ):
         super().__init__(env, agent_name)
-
-        # Replay memory
-        self.memory = list()
-        self.max_memory = 10 ** 5  # number of previous transitions to remember
 
         # get size of state and action
         self.state_size = (7, 2)
         self.action_size = len(self.env.actions)
 
         # these is hyper parameters for the Double DQN
-        self.gamma = 0.99
-        self.learning_rate = 0.0001
-        self.epsilon = 1.0
-        self.initial_epsilon = 1.0
-        self.final_epsilon = 1.0
-        self.batch_size = 10 ** 3
-        self.observe = 5000
-        self.explore = 50000
-        self.frame_per_action = 4
-        self.update_target_freq = 3000
-        self.timestep_per_train = (
-            10 ** 4
-        )  # Number of timesteps between training interval
+        self.gamma = config["params"]["gamma"]
+        self.learning_rate = config["params"]["learning_rate"]
+        self.epsilon = config["params"]["epsilon"]
+        self.initial_epsilon = config["params"]["initial_epsilon"]
+        self.final_epsilon = config["params"]["final_epsilon"]
+        self.batch_size = config["params"]["batch_size"]
+        self.observe = config["params"]["observe"]
+        self.explore = config["params"]["explore"]
+        self.frame_per_action = config["params"]["frame_per_action"]
+        self.update_target_freq = config["params"]["update_target_freq"]
+        self.timestep_per_train = config["params"][
+            "timestep_per_train"
+        ]  # Number of timesteps between training interval
 
         # create replay memory using deque
         self.memory = deque()
-        self.max_memory = 50000  # number of previous transitions to remember
+        self.max_memory = config["params"][
+            "max_memory"
+        ]  # number of previous transitions to remember
 
         # Model construction
         self.build_model()
 
         # Counters
-        self.batch_counter = 0
-        self.sync_counter = 0
-        self.t = 0
+        self.batch_counter, self.sync_counter, self.t = 0, 0, 0
 
         self.version = "0.1.0"
 
     def build_model(self) -> None:
         """ Create our DNN model for Q-value approximation """
 
-        model = Networks().dueling_ddqn(self.state_size, self.action_size, self.learning_rate)
+        model = Networks().dueling_ddqn(
+            self.state_size, self.action_size, self.learning_rate
+        )
 
         self.model = model
         self.target_model = model

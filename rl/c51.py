@@ -1,14 +1,15 @@
-""" C51 DDQN Algorithm"""
+""" C51 DDQN """
 
 import math
 import os
 import random
 import time
 from collections import deque
-from typing import Tuple, Union
+from typing import Dict, Tuple, Union
 
 import numpy as np
 
+from environment import AirHockey
 from rl.Agent import Agent
 from rl.helpers import huber_loss
 from rl.Networks import Networks
@@ -19,7 +20,12 @@ class c51(Agent):
 
     """ Reference: https://github.com/flyyufelix/C51-DDQN-Keras """
 
-    def __init__(self, env, agent_name="main"):
+    def __init__(
+        self,
+        env: AirHockey,
+        config: Dict[str, Union[str, int]],
+        agent_name: str = "main",
+    ):
         super().__init__(env, agent_name)
 
         # get size of state and action
@@ -27,35 +33,37 @@ class c51(Agent):
         self.action_size = len(self.env.actions)
 
         # these is hyper parameters for the DQN
-        self.gamma = 0.99
-        self.learning_rate = 0.0001
-        self.epsilon = 1.0
-        self.initial_epsilon = 1.0
-        self.final_epsilon = 1
-        self.batch_size = 32
-        self.observe = 2000
-        self.explore = 50000
-        self.frame_per_action = 4
-        self.update_target_freq = 3000
-        self.timestep_per_train = 10000  # Number of timesteps between training interval
+        self.gamma = config["params"]["gamma"]
+        self.learning_rate = config["params"]["learning_rate"]
+        self.epsilon = config["params"]["epsilon"]
+        self.initial_epsilon = config["params"]["initial_epsilon"]
+        self.final_epsilon = config["params"]["final_epsilon"]
+        self.batch_size = config["params"]["batch_size"]
+        self.observe = config["params"]["observe"]
+        self.explore = config["params"]["explore"]
+        self.frame_per_action = config["params"]["frame_per_action"]
+        self.update_target_freq = config["params"]["update_target_freq"]
+        self.timestep_per_train = config["params"][
+            "timestep_per_train"
+        ]  # Number of timesteps between training interval
 
         # Initialize Atoms
-        self.num_atoms = 51  # 51 for C51
-        self.v_max = (
-            10
-        )  # Max possible score for Defend the center is 26 - 0.1*26 = 23.4
-        self.v_min = -10  # -0.1*26 - 1 = -3.6
+        self.num_atoms = config["params"]["num_atoms"]  # Defaults to51 for C51
+        self.v_max = config["params"][
+            "v_max"
+        ]  # Max possible score for Defend the center is 26 - 0.1*26 = 23.4
+        self.v_min = config["params"]["v_min"]
         self.delta_z = (self.v_max - self.v_min) / float(self.num_atoms - 1)
         self.z = [self.v_min + i * self.delta_z for i in range(self.num_atoms)]
 
-        # Create replay memory using deque
+        # create replay memory using deque
         self.memory = deque()
-        self.max_memory = 50000  # number of previous transitions to remember
+        self.max_memory = config["params"][
+            "max_memory"
+        ]  # number of previous transitions to remember
 
         # Counters
-        self.batch_counter = 0
-        self.sync_counter = 0
-        self.t = 0
+        self.batch_counter, self.sync_counter, self.t = 0, 0, 0
 
         # Model construction
         self.build_model()
@@ -115,7 +123,6 @@ class c51(Agent):
 
         # Push data into observation and remove one from buffer
         self.remember(data)
-
 
         self.sync_counter += 1
         if self.sync_counter > self.update_target_freq:

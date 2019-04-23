@@ -1,25 +1,26 @@
 """ Q-Learner """
 
 import random
-from typing import Tuple
+from typing import Dict, Tuple, Union
 
 import numpy as np
 
+from environment import AirHockey
 from rl.Agent import Agent
-from utils import Observation, State, Action
+from utils import Action, Observation, State
 
 
 class QLearner:
     """ Uses Q-learning to update/maximize rewards """
 
-    def __init__(self, env):
+    def __init__(self, env: AirHockey, config: Dict[str, Union[str, int]]):
         self.env = env
         self.Q = {}
         self.last_state = None
         self.last_action = None
-        self.learning_rate = 0.7
-        self.gamma = 0.9
-        self.epsilon = 0.9
+        self.learning_rate = config["params"]["learning_rate"]
+        self.gamma = config["params"]["gamma"]
+        self.epsilon = config["params"]["epsilon"]
 
         self.version = "0.1.0"
 

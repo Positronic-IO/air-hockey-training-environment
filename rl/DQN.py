@@ -1,11 +1,12 @@
-""" DNN Q-Learning Approximator """
+""" DQN """
 
 import os
 import random
-from typing import Tuple
+from typing import Dict, Tuple, Union
 
 import numpy as np
 
+from environment import AirHockey
 from rl.Agent import Agent
 from rl.helpers import huber_loss
 from rl.Networks import Networks
@@ -16,7 +17,12 @@ class DQN(Agent):
 
     """ Reference: https://keon.io/deep-q-learning/ """
 
-    def __init__(self, env, agent_name="main"):
+    def __init__(
+        self,
+        env: AirHockey,
+        config: Dict[str, Union[str, int]],
+        agent_name: str = "main",
+    ):
         super().__init__(env, agent_name)
 
         # get size of state and action
@@ -24,8 +30,8 @@ class DQN(Agent):
         self.action_size = len(self.env.actions)
 
         # Hyperparameters
-        self.gamma = 0.1
-        self.epsilon = 0.9
+        self.gamma = config["params"]["gamma"]
+        self.epsilon = config["params"]["epsilon"]
 
         # Model construction
         self.build_model()

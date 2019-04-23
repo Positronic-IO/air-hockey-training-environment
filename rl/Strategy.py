@@ -1,6 +1,15 @@
 """ Dynamically choosing learning algorithm """
 
-from .q_value import DDQN, DQN, DuelingDDQN, QLearner, c51
+import sys
+
+from environment import AirHockey
+from utils import get_config_strategy
+
+from rl.c51 import c51
+from rl.DDQN import DDQN
+from rl.DQN import DQN
+from rl.DuelingDDQN import DuelingDDQN
+from rl.QLearner import QLearner
 
 
 class Strategy:
@@ -16,10 +25,16 @@ class Strategy:
     def __init__(self):
         pass
 
-    def make(self, name, env, agent_name="main"):
+    def make(self, name: str, env: AirHockey, agent_name: str = "main"):
         """ Return instance of learner """
 
         if env is None:
             raise ValueError("Need to pass a gaming environment")
 
-        return self.strategies[name](env, agent_name)
+        try:
+            config = get_config_strategy(name)
+        except KeyError:
+            print("Strategy not found")
+            sys.exit()
+
+        return self.strategies[name](env, config, agent_name)

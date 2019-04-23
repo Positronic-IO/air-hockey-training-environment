@@ -1,0 +1,12 @@
+{
+    "params": {
+        "max_memory": 1000000,
+        "gamma": 0.95,
+        "epsilon": 1,
+        "epsilon_min": 0.01,
+        "epsilon_decay": 0.99,
+        "learning_rate": 0.001,
+        "batch_size": 100,
+        "sync_target_interval": 1000000
+    }
+}

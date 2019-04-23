@@ -1,13 +1,14 @@
-""" DNN Q-Learning Approximator """
+""" DDQN """
 
 import os
 import random
 import time
 from collections import deque
-from typing import Tuple
+from typing import Dict, Tuple, Union
 
 import numpy as np
 
+from environment import AirHockey
 from rl.Agent import Agent
 from rl.helpers import huber_loss
 from rl.Networks import Networks
@@ -18,24 +19,31 @@ class DDQN(Agent):
 
     """ Reference: https://keon.io/deep-q-learning/ """
 
-    def __init__(self, env, agent_name="main"):
+    def __init__(
+        self,
+        env: AirHockey,
+        config: Dict[str, Union[str, int]],
+        agent_name: str = "main",
+    ):
         super().__init__(env, agent_name)
 
         # get size of state and action
         self.state_size = (7, 2)
         self.action_size = len(self.env.actions)
 
-        # Replay memory
-        self.max_memory = 10 ** 7  # number of previous transitions to remember
+        # create replay memory using deque
         self.memory = deque()
+        self.max_memory = config["params"][
+            "max_memory"
+        ]  # number of previous transitions to remember
 
-        self.gamma = 0.95  # discount rate
-        self.epsilon = 1.0  # exploration rate
-        self.epsilon_min = 0.01
-        self.epsilon_decay = 0.99
-        self.learning_rate = 0.001
-        self.batch_size = 10 ** 3
-        self.sync_target_interval = 10 ** 5
+        self.gamma = config["params"]["gamma"]  # discount rate
+        self.epsilon = config["params"]["epsilon"]  # exploration rate
+        self.epsilon_min = config["params"]["epsilon_min"]
+        self.epsilon_decay = config["params"]["epsilon_decay"]
+        self.learning_rate = config["params"]["learning_rate"]
+        self.batch_size = config["params"]["batch_size"]
+        self.sync_target_interval = config["params"]["sync_target_interval"]
 
         # Model construction
         self.build_model()

@@ -1,0 +1,16 @@
+{
+    "params": {
+        "max_memory": 100000,
+        "learning_rate": 0.0001,
+        "gamma": 0.99,
+        "epsilon": 1,
+        "initial_epsilon": 1,
+        "final_epsilon": 0.01,
+        "batch_size": 1000,
+        "observe": 5000,
+        "explore": 50000,
+        "frame_per_action": 4,
+        "update_target_freq": 3000,
+        "timestep_per_train": 10000
+    }
+}

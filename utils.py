@@ -25,12 +25,30 @@ State = namedtuple(
     ],
 )
 
-Observation = namedtuple("observation", ["state", "action", "reward", "done", "new_state"])
+Observation = namedtuple(
+    "observation", ["state", "action", "reward", "done", "new_state"]
+)
 
 
 #  Load configuration
 with open("./config.json", "r") as f:
     config = json.load(f)
+
+
+def get_config_strategy(name: str) -> Dict[str, Union[str, int]]:
+    """ Grab config for different strategies """
+
+    strategies = {
+        "dqn": os.path.join(os.getcwd(), "rl", "configs", "dqn.json"),
+        "ddqn": os.path.join(os.getcwd(), "rl", "configs", "ddqn.json"),
+        "dueling-ddqn": os.path.join(os.getcwd(), "rl", "configs", "dueling-ddqn.json"),
+        "c51": os.path.join(os.getcwd(), "rl", "configs", "c51.json"),
+    }
+
+    with open(strategies[name], "r") as f:
+        config = json.load(f)
+
+    return config
 
 
 # def parse_config_agent() -> None:
@@ -73,11 +91,11 @@ def parse_args_gui() -> Dict[str, str]:
     print("-" * 35)
     print(f"Agent: {args['agent']}")
     print(f"FPS: {args['fps']}")
-    
+
     if args.get("load") and args.get("strategy"):
         print(f"Strategy: {args['strategy']}")
         print(f"Model name: {args['load']}")
-    
+
     print("-" * 35)
 
     return args

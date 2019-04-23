@@ -9,7 +9,6 @@ from redis import Redis
 
 from environment.components import Goal, Mallet, Puck
 from utils import Action, config, State, Observation
-from rl.q_value import QLearner
 
 
 class AirHockey:
