@@ -3,12 +3,13 @@ import json
 from typing import Union
 
 import pygame
+import numpy as np
 from keras.models import load_model
 from redis import Redis
 
 from environment import AirHockey
 from rl import Strategy
-from utils import parse_args_gui, State, get_model_path
+from utils import parse_args_gui, State, get_model_path, config
 
 # Set up redis
 redis = Redis()
@@ -109,8 +110,84 @@ def rerender_environment(env: AirHockey) -> None:
 
     # Draw puck
     pygame.draw.circle(screen, black, puck["position"], env.puck_radius, 0)
-
     pygame.display.flip()
+
+
+def main_player(env, player, init) -> None:
+    """ Main player """
+
+    # For first move, move in a random direction
+    if init:
+        action = np.random.randint(0, len(env.actions) - 1)
+
+        # Update game state
+        player.move(action)
+
+        init = False
+    else:
+        # Now, let the model do all the work
+
+        # Current state
+        state = State(
+            agent_location=player.location(),
+            puck_location=env.puck.location(),
+            puck_prev_location=env.puck.prev_location(),
+            puck_velocity=env.puck.velocity(),
+            opponent_location=env.opponent.location(),
+            opponent_prev_location=env.opponent.prev_location(),
+            opponent_velocity=env.opponent.velocity(),
+        )
+
+        # Determine next action
+        action = player.get_action(state)
+
+        # Update game state
+        player.move(action)
+
+    return init
+
+
+def opponent_player(env, player, init_opponent) -> None:
+    """ Opponent player """
+
+    puck = json.loads(env.redis.get("puck"))
+    agent = json.loads(env.redis.get("agent"))
+
+    # # For first move, move in a random direction
+    if init_opponent:
+
+        action = np.random.randint(0, len(env.actions) - 1)
+
+        # Update game state
+        player.move(action)
+
+        init_opponent = False
+    else:
+        # Now, let the model do all the work
+
+        # Current state
+        state = State(
+            agent_location=player.location(),
+            puck_location=puck["position"],
+            puck_prev_location=puck["prev_position"],
+            puck_velocity=puck["velocity"],
+            opponent_location=agent["position"],
+            opponent_prev_location=agent["prev_position"],
+            opponent_velocity=agent["velocity"],
+        )
+
+        # Determine next action
+        action = player.get_action(state)
+
+        # Update game state
+        player.move(action)
+
+        # Update agent velocity
+        env.opponent.dx = env.opponent.x - env.opponent.last_x
+        env.opponent.dy = env.opponent.y - env.opponent.last_y
+        env.opponent.update_mallet()
+
+    return init_opponent
 
 
 def main() -> None:
@@ -129,14 +206,27 @@ def main() -> None:
     # Make gui
     draw_screen(env)
 
-    if args["agent"] == "robot" and args.get("load"):
+    init, init_opponent = True, True
+
+    if args["agent"] == "robot" and not config["observe"]:
         # If user is a robot, set learning style for agent
-        agent = Strategy().make(args["strategy"], env)
+        agent = Strategy().make(
+            config["training"]["agent"]["strategy"], env, agent_name="main"
+        )
 
         # If we pass a weights file, load it.
-        if hasattr(agent, "load_model") and args.get("load"):
-            file_name = get_model_path(args["load"])
+        if hasattr(agent, "load_model") and config["training"]["agent"]["strategy"]:
+            file_name = get_model_path(config["training"]["agent"]["load"])
             agent.load_model(file_name)
+
+        opponent = Strategy().make(
+            config["training"]["opponent"]["strategy"], env, agent_name="opponent"
+        )
+
+        # If we pass a weights file, load it.
+        if hasattr(opponent, "load_model") and config["training"]["opponent"]["load"]:
+            file_name = get_model_path(config["training"]["opponent"]["load"])
+            opponent.load_model(file_name)
 
     # Game loop
     while True:
@@ -147,23 +237,10 @@ def main() -> None:
             pos = pygame.mouse.get_pos()
             env.update_state(action=pos)
 
-        if args["agent"] == "robot" and args.get("load"):
-            # Current state
-            state = State(
-                agent_location=agent.location(),
-                puck_location=env.puck.location(),
-                puck_prev_location=env.puck.prev_location(),
-                puck_velocity=env.puck.velocity(),
-                opponent_location=env.opponent.location(),
-                opponent_prev_location=env.opponent.prev_location(),
-                opponent_velocity=env.opponent.velocity(),
-            )
+        if args["agent"] == "robot" and not config["observe"]:
 
-            # Determine next action
-            action = agent.get_action(state)
-
-            # Update game state
-            agent.move(action)
+            init = main_player(env, agent, init)
+            init_opponent = opponent_player(env, opponent, init_opponent)
 
         scores = json.loads(redis.get("scores"))
 
