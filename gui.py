@@ -1,272 +1,309 @@
-""" Air Hockey Simulator """
+""" Air Hockey Simulator Gui """
 import json
-from typing import Union
 
-import pygame
 import numpy as np
+import pygame
 from keras.models import load_model
 from redis import Redis
 
 from environment import AirHockey
 from rl import Strategy
-from utils import parse_args_gui, State, get_model_path, config
-
-# Set up redis
-redis = Redis()
+from utils import State, config, get_model_path, parse_args_gui
 
 # Initialize the game engine
 pygame.init()
 
-# Define some colors
-black = (0, 0, 0)
-white = (255, 255, 255)
-green = (0, 255, 0)
-red = (255, 0, 0)
-blue = (0, 0, 255)
 
-# Offest for drawing the center line of table
-middle_line_offset = 4.5
+class AirHockeyGui:
 
+    # Set up redis
+    redis = Redis()
 
-def draw_table(env: AirHockey) -> None:
-    """ Re-renders table """
+    # Define some colors
+    black = (0, 0, 0)
+    white = (255, 255, 255)
+    green = (0, 255, 0)
+    red = (255, 0, 0)
+    blue = (0, 0, 255)
 
-    # Make screen
-    screen = pygame.display.set_mode(env.table_size)
-    screen.fill(blue)
+    # Offest for drawing the center line of table
+    middle_line_offset = 4.5
 
-    # Base of rink
-    pygame.draw.rect(screen, white, (25, 25, env.rink_size[0], env.rink_size[1]), 0)
+    def __init__(self):
 
-    # middle section
-    pygame.draw.line(
-        screen,
-        red,
-        [
-            env.table_midpoints[0],
-            ((env.table_size[1] - env.rink_size[1]) / 2) + middle_line_offset,
-        ],
-        [
-            env.table_midpoints[0],
-            env.table_size[1]
-            - ((env.table_size[1] - env.rink_size[1]) / 2)
-            + middle_line_offset,
-        ],
-        5,
-    )
+        # Parse args
+        self.args = parse_args_gui()
 
-    # rink frame
-    pygame.draw.rect(screen, black, (25, 25, env.rink_size[0], env.rink_size[1]), 5)
+        # Initiate game environment
+        self.env = AirHockey()
 
+        # Make gui
+        self.draw_screen()
 
-def draw_screen(env: AirHockey) -> None:
-    """ Create GUI """
+        self.init, self.init_opponent = True, True
 
-    # Set title of game window
-    pygame.display.set_caption("Air Hockey")
+        if self.args["agent"] == "robot" and not config["observe"]:
+            # If user is a robot, set learning style for agent
+            self.main_agent = Strategy().make(
+                config["training"]["agent"]["strategy"], env, agent_name="main"
+            )
 
-    # Draw table
-    draw_table(env)
+            # If we pass a weights file, load it.
+            if (
+                hasattr(main_agent, "load_model")
+                and config["training"]["agent"]["strategy"]
+            ):
+                self.main_agent.load_path = get_model_path(
+                    config["training"]["agent"]["load"]
+                )
+                self.main_agent.load_model()
 
+            self.opponent_agent = Strategy().make(
+                config["training"]["opponent"]["strategy"], env, agent_name="opponent"
+            )
 
-def rerender_environment(env: AirHockey) -> None:
-    """" Re-render environment """
+            # If we pass a weights file, load it.
+            if (
+                hasattr(self.opponent_agent, "load_model")
+                and config["training"]["opponent"]["load"]
+            ):
+                self.opponent_agent.load_path = get_model_path(
+                    config["training"]["opponent"]["load"]
+                )
+                self.opponent_agent.load_model()
 
-    puck = json.loads(redis.get("puck"))
-    agent = json.loads(redis.get("agent"))
-    opponent = json.loads(redis.get("opponent"))
+    def draw_table(self) -> None:
+        """ Re-renders table """
 
-    # Make screen
-    screen = pygame.display.set_mode(env.table_size)
+        # Make screen
+        screen = pygame.display.set_mode(self.env.table_size)
+        screen.fill(self.blue)
 
-    # Draw table
-    draw_table(env)
-
-    # Draw left mallet
-    pygame.draw.circle(screen, white, agent["position"], 20, 0)
-    pygame.draw.circle(screen, black, agent["position"], 20, 1)
-    pygame.draw.circle(screen, black, agent["position"], 5, 0)
-
-    # Draw right mallet
-    pygame.draw.circle(screen, white, opponent["position"], 20, 0)
-    pygame.draw.circle(screen, black, opponent["position"], 20, 1)
-    pygame.draw.circle(screen, black, opponent["position"], 5, 0)
-
-    # Draw left goal
-    pygame.draw.rect(
-        screen,
-        green,
-        (env.left_goal.x, env.left_goal.y, env.left_goal.w, env.left_goal.h),
-        0,
-    )
-
-    # Draw right goal
-    pygame.draw.rect(
-        screen,
-        green,
-        (env.right_goal.x, env.right_goal.y, env.right_goal.w, env.right_goal.h),
-        0,
-    )
-
-    # Draw puck
-    pygame.draw.circle(screen, black, puck["position"], env.puck_radius, 0)
-    pygame.display.flip()
-
-
-def main_player(env, player, init) -> None:
-    """ Main player """
-
-    # For first move, move in a random direction
-    if init:
-        action = np.random.randint(0, len(env.actions) - 1)
-
-        # Update game state
-        player.move(action)
-
-        init = False
-    else:
-        # Now, let the model do all the work
-
-        # Current state
-        state = State(
-            agent_location=player.location(),
-            puck_location=env.puck.location(),
-            puck_prev_location=env.puck.prev_location(),
-            puck_velocity=env.puck.velocity(),
-            opponent_location=env.opponent.location(),
-            opponent_prev_location=env.opponent.prev_location(),
-            opponent_velocity=env.opponent.velocity(),
+        # Base of rink
+        pygame.draw.rect(
+            screen,
+            self.white,
+            (25, 25, self.env.rink_size[0], self.env.rink_size[1]),
+            0,
         )
 
-        # Determine next action
-        action = player.get_action(state)
-
-        # Update game state
-        player.move(action)
-
-    return init
-
-
-def opponent_player(env, player, init_opponent) -> None:
-    """ Opponent player """
-
-    puck = json.loads(env.redis.get("puck"))
-    agent = json.loads(env.redis.get("agent"))
-
-    # # For first move, move in a random direction
-    if init_opponent:
-
-        action = np.random.randint(0, len(env.actions) - 1)
-
-        # Update game state
-        player.move(action)
-
-        init_opponent = False
-    else:
-        # Now, let the model do all the work
-
-        # Current state
-        state = State(
-            agent_location=player.location(),
-            puck_location=puck["position"],
-            puck_prev_location=puck["prev_position"],
-            puck_velocity=puck["velocity"],
-            opponent_location=agent["position"],
-            opponent_prev_location=agent["prev_position"],
-            opponent_velocity=agent["velocity"],
+        # middle section
+        pygame.draw.line(
+            screen,
+            self.red,
+            [
+                self.env.table_midpoints[0],
+                ((self.env.table_size[1] - self.env.rink_size[1]) / 2)
+                + self.middle_line_offset,
+            ],
+            [
+                self.env.table_midpoints[0],
+                self.env.table_size[1]
+                - ((self.env.table_size[1] - self.env.rink_size[1]) / 2)
+                + self.middle_line_offset,
+            ],
+            5,
         )
 
-        # Determine next action
-        action = player.get_action(state)
-
-        # Update game state
-        player.move(action)
-
-        # Update agent velocity
-        env.opponent.dx = env.opponent.x - env.opponent.last_x
-        env.opponent.dy = env.opponent.y - env.opponent.last_y
-        env.opponent.update_mallet()
-
-    return init_opponent
-
-
-def main() -> None:
-    """ Main guts of game """
-
-    # Parse args
-    args = parse_args_gui()
-
-    # Set game clock
-    clock = pygame.time.Clock()
-    fps = float(args.get("fps", -1))
-
-    # Initiate game environment
-    env = AirHockey()
-
-    # Make gui
-    draw_screen(env)
-
-    init, init_opponent = True, True
-
-    if args["agent"] == "robot" and not config["observe"]:
-        # If user is a robot, set learning style for agent
-        agent = Strategy().make(
-            config["training"]["agent"]["strategy"], env, agent_name="main"
+        # rink frame
+        pygame.draw.rect(
+            screen,
+            self.black,
+            (25, 25, self.env.rink_size[0], self.env.rink_size[1]),
+            5,
         )
 
-        # If we pass a weights file, load it.
-        if hasattr(agent, "load_model") and config["training"]["agent"]["strategy"]:
-            file_name = get_model_path(config["training"]["agent"]["load"])
-            agent.load_model(file_name)
+    def draw_screen(self) -> None:
+        """ Create GUI """
 
-        opponent = Strategy().make(
-            config["training"]["opponent"]["strategy"], env, agent_name="opponent"
+        # Set title of game window
+        pygame.display.set_caption("Air Hockey")
+
+        # Draw table
+        self.draw_table()
+
+    def rerender_environment(self) -> None:
+        """" Re-render environment """
+
+        puck = json.loads(self.redis.get("puck"))
+        agent = json.loads(self.redis.get("agent"))
+        opponent = json.loads(self.redis.get("opponent"))
+
+        # Make screen
+        screen = pygame.display.set_mode(self.env.table_size)
+
+        # Draw table
+        self.draw_table()
+
+        # Draw left mallet
+        pygame.draw.circle(screen, self.white, agent["position"], 20, 0)
+        pygame.draw.circle(screen, self.black, agent["position"], 20, 1)
+        pygame.draw.circle(screen, self.black, agent["position"], 5, 0)
+
+        # Draw right mallet
+        pygame.draw.circle(screen, self.white, opponent["position"], 20, 0)
+        pygame.draw.circle(screen, self.black, opponent["position"], 20, 1)
+        pygame.draw.circle(screen, self.black, opponent["position"], 5, 0)
+
+        # Draw left goal
+        pygame.draw.rect(
+            screen,
+            self.green,
+            (
+                self.env.left_goal.x,
+                self.env.left_goal.y,
+                self.env.left_goal.w,
+                self.env.left_goal.h,
+            ),
+            0,
         )
 
-        # If we pass a weights file, load it.
-        if hasattr(opponent, "load_model") and config["training"]["opponent"]["load"]:
-            file_name = get_model_path(config["training"]["opponent"]["load"])
-            opponent.load_model(file_name)
+        # Draw right goal
+        pygame.draw.rect(
+            screen,
+            self.green,
+            (
+                self.env.right_goal.x,
+                self.env.right_goal.y,
+                self.env.right_goal.w,
+                self.env.right_goal.h,
+            ),
+            0,
+        )
 
-    # Game loop
-    while True:
+        # Draw puck
+        pygame.draw.circle(
+            screen, self.black, puck["position"], self.env.puck_radius, 0
+        )
+        pygame.display.flip()
 
-        # Human agent
-        if args["agent"] == "human":
-            # Grab and set user position
-            pos = pygame.mouse.get_pos()
-            env.update_state(action=pos)
+    # Todo - Finish changing variables to calss attributes
+    def main_player_move(self) -> None:
+        """ Main player """
 
-        if args["agent"] == "robot" and not config["observe"]:
+        puck = json.loads(self.redis.get("puck"))
+        opponent = json.loads(self.redis.get("opponent"))
 
-            init = main_player(env, agent, init)
-            init_opponent = opponent_player(env, opponent, init_opponent)
+        # For first move, move in a random direction
+        if self.init:
+            action = np.random.randint(0, len(self.env.actions) - 1)
 
-        scores = json.loads(redis.get("scores"))
+            # Update game state
+            self.main_agent.move(action)
 
-        # Compute scores
-        if scores["cpu_score"] == 10:
-            print(f"Computer {scores['cpu_score']}, agent {scores['agent_score']}")
-            print("Computer wins!")
-            if args["agent"] == "human":
-                env.reset(total=True)
+            self.init = False
+        else:
+            # Now, let the model do all the work
 
-        if scores["agent_score"] == 10:
-            print(f"Computer {scores['cpu_score']}, agent {scores['agent_score']}")
-            print("Agent wins!")
+            # Current state
+            state = State(
+                agent_location=self.main_agent.location(),
+                puck_location=puck["position"],
+                puck_prev_location=puck["prev_position"],
+                puck_velocity=puck["velocity"],
+                opponent_location=opponent["position"],
+                opponent_prev_location=opponent["prev_position"],
+                opponent_velocity=opponent["velocity"],
+            )
 
-            if args["agent"] == "human":
-                env.reset(total=True)
+            # Determine next action
+            action = self.main_agent.get_action(state)
 
-        rerender_environment(env)
+            # Update game state
+            self.main_agent.move(action)
 
-        # frames per second
-        if fps > -1:
-            clock.tick(fps)
+        return None
 
-    pygame.quit()
+    def opponent_player_move(self) -> None:
+        """ Opponent player """
+
+        puck = json.loads(self.env.redis.get("puck"))
+        agent = json.loads(self.env.redis.get("agent"))
+
+        # # For first move, move in a random direction
+        if self.init_opponent:
+
+            action = np.random.randint(0, len(self.env.actions) - 1)
+
+            # Update game state
+            self.opponent_agent.move(action)
+
+            self.init_opponent = False
+        else:
+            # Now, let the model do all the work
+
+            # Current state
+            state = State(
+                agent_location=self.opponent_agent.location(),
+                puck_location=puck["position"],
+                puck_prev_location=puck["prev_position"],
+                puck_velocity=puck["velocity"],
+                opponent_location=agent["position"],
+                opponent_prev_location=agent["prev_position"],
+                opponent_velocity=agent["velocity"],
+            )
+
+            # Determine next action
+            action = self.opponent_agent.get_action(state)
+
+            # Update game state
+            self.opponent_agent.move(action)
+
+            # Update agent velocity
+            self.env.opponent.dx = self.env.opponent.x - self.env.opponent.last_x
+            self.env.opponent.dy = self.env.opponent.y - self.env.opponent.last_y
+            self.env.opponent.update_mallet()
+
+        return None
+
+    def run(self) -> None:
+        """ Main guts of game """
+
+        # Set game clock
+        clock = pygame.time.Clock()
+        fps = int(self.args.get("fps", -1))
+
+        # Game loop
+        while True:
+
+            # Human agent
+            if self.args["agent"] == "human":
+                # Grab and set user position
+                pos = pygame.mouse.get_pos()
+                self.env.update_state(action=pos)
+
+            if self.args["agent"] == "robot" and not config["observe"]:
+
+                self.main_player_move()
+                self.opponent_player_move()
+
+            scores = json.loads(self.redis.get("scores"))
+
+            # Compute scores
+            if scores["cpu_score"] == 10:
+                print(f"Computer {scores['cpu_score']}, agent {scores['agent_score']}")
+                print("Computer wins!")
+
+                if self.args["agent"] == "human":
+                    self.env.reset(total=True)
+
+            if scores["agent_score"] == 10:
+                print(f"Computer {scores['cpu_score']}, agent {scores['agent_score']}")
+                print("Agent wins!")
+
+                if self.args["agent"] == "human":
+                    self.env.reset(total=True)
+
+            self.rerender_environment()
+
+            # frames per second
+            if fps > -1:
+                clock.tick(fps)
+
+        pygame.quit()
 
 
 if __name__ == "__main__":
     # Run program
-    main()
+    gui = AirHockeyGui()
+    gui.run()
