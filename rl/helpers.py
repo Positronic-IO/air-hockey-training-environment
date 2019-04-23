@@ -1,7 +1,6 @@
 """ Helper functions for reinforment learning algorithms """
 
 import tensorflow as tf
-from keras import backend as K
 
 
 def huber_loss(y_true, y_pred, clip_delta=1.0) -> float:
