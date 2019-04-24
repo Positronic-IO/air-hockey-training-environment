@@ -1,0 +1,6 @@
+{
+    "params": {
+        "gamma": 0.1,
+        "epsilon": 0.9
+    }
+}

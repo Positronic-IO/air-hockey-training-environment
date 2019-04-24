@@ -131,8 +131,8 @@ class Puck:
         """ Rest puck to initial position """
         self.x = self.puck_start_x
         self.y = self.puck_start_y
-        self.dx = -5
-        self.dy = 3
+        self.dx = random.randint(-3, 3)
+        self.dy = random.randint(-3, 3)
 
         # Update Redis
         self.update_redis()

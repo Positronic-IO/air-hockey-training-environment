@@ -1,0 +1,72 @@
+""" Initialize an agent for a game """
+import os
+from typing import Tuple, Union
+
+from keras.models import Model, load_model
+
+from rl.helpers import huber_loss
+from utils import Action, get_model_path
+
+
+class Agent:
+    def __init__(self, env=None, agent_name="main"):
+
+        self.env = env
+        self.agent_name = agent_name
+        self.model = Model()
+        self._load_path = ""
+        self._save_path = ""
+
+    def move(self, action: Action) -> None:
+        """ Move agent """
+
+        self.env.update_state(agent_name=self.agent_name, action=action)
+        return None
+
+    def location(self) -> Union[None, Tuple[int, int]]:
+        """ Return agent's location """
+
+        if self.agent_name == "main":
+            return self.env.agent.location()
+        elif self.agent_name == "opponent":
+            return self.env.opponent.location()
+        else:
+            raise ValueError("Invalid agent name")
+
+    def load_model(self) -> None:
+        """ Load a model"""
+
+        print("Loading model")
+
+        self.model_path = self._load_path
+        self.model = load_model(
+            self._load_path, custom_objects={"huber_loss": huber_loss}
+        )
+
+    def save_model(self, epoch: int = 0) -> None:
+        """ Save a model """
+
+        # If we are not given a path, use the same path as the one we loaded the model
+        if not self._save_path:
+            self._save_path = self.model_path
+
+        # Create path with epoch number
+        head, ext = os.path.splitext(self._save_path)
+        path = get_model_path(f"{head}_{epoch}" + ext)
+        self.model.save(path)
+
+    @property
+    def save_path(self) -> None:
+        return self._save_path
+
+    @save_path.setter
+    def save_path(self, path: str) -> None:
+        self._save_path = path
+
+    @property
+    def load_path(self) -> None:
+        return self._load_path
+
+    @load_path.setter
+    def load_path(self, path: str) -> None:
+        self._load_path = path

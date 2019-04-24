@@ -1,12 +1,16 @@
 """ Helper functions for reinforment learning algorithms """
 
-from keras import backend as K
+import tensorflow as tf
 
 
-def huber_loss(y_true: float, y_pred: float) -> float:
-    """ Compute Huber Loss 
-        
-        References: https://en.wikipedia.org/wiki/Huber_loss
-                https://www.tensorflow.org/api_docs/python/tf/losses/huber_loss
+def huber_loss(y_true, y_pred, clip_delta=1.0) -> float:
+    """ Huber loss.
+        https://jaromiru.com/2017/05/27/on-using-huber-loss-in-deep-q-learning/
+        https://en.wikipedia.org/wiki/Huber_loss
         """
-    return K.mean(K.sqrt(1 + K.square(y_pred - y_true)) - 1, axis=-1)
+    error = y_true - y_pred
+    cond = tf.keras.backend.abs(error) < clip_delta
+
+    squared_loss = 0.5 * tf.keras.backend.square(error)
+    linear_loss = clip_delta * (tf.keras.backend.abs(error) - 0.5 * clip_delta)
+    return tf.where(cond, squared_loss, linear_loss)

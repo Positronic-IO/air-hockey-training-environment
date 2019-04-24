@@ -1,13 +1,14 @@
 """ Air Hockey Game Environment """
 
 import json
+from time import time
 from typing import Any, Dict, Tuple, Union
 
 import numpy as np
 from redis import Redis
 
 from environment.components import Goal, Mallet, Puck
-from utils import Action
+from utils import Action, config, State, Observation
 
 
 class AirHockey:
@@ -18,15 +19,7 @@ class AirHockey:
     actions = ["U", "D", "L", "R"]
 
     # Default rewwards
-    rewards = {
-        "point": 1,
-        "loss": -1,
-        "hit": 1,
-        "miss": -1,
-        "euclid_reward": 1,
-        "euclid_penalty": -1,
-        "boundary": -1,
-    }
+    rewards = config["rewards"]
 
     def __init__(self, **kwargs) -> None:
         """ Initiate an air hockey game """
@@ -48,10 +41,6 @@ class AirHockey:
             "scores",
             json.dumps({"agent_score": self.agent_score, "cpu_score": self.cpu_score}),
         )
-
-        # Cumulative scores
-        self.agent_cumulative_score = 0
-        self.cpu_cumulative_score = 0
 
         self.ticks_to_friction = 60
         self.ticks_to_ai = 10
@@ -96,147 +85,150 @@ class AirHockey:
         # Define step size of mallet
         self.step_size = 10
 
-    def _minimize_euclidean_distance(self) -> bool:
-        """ Penalize robot if euclidean distance between puck is minimized """
+        # Set timer for stalling
+        self.timer = time()
 
-        puck = self.puck.location()
-        puck_previous = self.puck.prev_location()
+        # Reward
+        self.reward = 0
+        self.cumulative_reward = 0
 
-        agent = self.agent.location()
-        agent_previous = self.agent.prev_location()
+        # If episode is done
+        self.done = False
 
-        if np.linalg.norm(np.array(puck) - np.array(agent)) < np.linalg.norm(
-            np.array(puck_previous) - np.array(agent_previous)
-        ):
-            return True
-        return False
+        # Cumulative scores
+        self.agent_cumulative_score = 0
+        self.cpu_cumulative_score = 0
 
-    # TODO - Get this figured out
-    def reward(self) -> int:
-        """ Get reward of the current action """
+        # Reward per episode
+        self.reward_per_episode = 0
 
-        # We won, the opponent is a failure
-        if self._update_score() == 1:
-            return self.rewards["point"]
+    def check_stall(self) -> None:
+        """ Check to see if the game has stalled """
 
-        # If we lost
-        if self._update_score() == -1:
-            return self.rewards["loss"]
+        if self.puck.x < self.table_midpoints[0]:
+            self.timer = time()
+            return None
 
-        # We hit the puck
-        if (
-            abs(self.agent.x - self.puck.x) <= 35
-            and abs(self.agent.y - self.puck.y) <= 35
-        ):
+        delta = time() - self.timer
 
-            return self.rewards["hit"]
+        if (delta > 3) and (self.puck.x > self.table_midpoints[0]):
+            self.reset()
+            self.timer = time()
+            print("Stalled")
 
-        # Penalize if puck hangs around the outside
-        if abs(self.agent.x - 47) or abs(self.agent.x - self.table_midpoints[0]) < 50:
-            return self.rewards["boundary"]
+        return None
 
-        if abs(self.agent.y - 47) or abs(self.agent.y - self.table_size[1]) < 50:
-            return self.rewards["boundary"]
-
-        # We missed the puck
-        # if self.puck.x < self.agent.x:
-        #     return self.rewards["miss"]
-
-        # If we do not chase down the puck
-        if self._minimize_euclidean_distance():
-            return self.rewards["euclid_reward"]
-        else:
-            return self.rewards["euclid_penalty"]
-
-        return 0
-
-    # TODO - Have the opponent be its own process (for more complex opponents in the future)
-    def malletAI(self, mallet: Mallet) -> None:
+    def mallet_ai(self) -> None:
         """ The 'AI' of the computer """
 
-        if self.puck.x < mallet.x:
-            if self.puck.x < mallet.left_lim:
-                mallet.dx = 1
-            else:
-                mallet.dx = -2
+        self.check_stall()
 
-        if self.puck.x > mallet.x:
-            if self.puck.x > mallet.right_lim:
-                mallet.dx = -1
+        if self.puck.x < self.opponent.x:
+            if self.puck.x < self.opponent.left_lim:
+                self.opponent.dx = 1
             else:
-                mallet.dx = 2
+                self.opponent.dx = -2
 
-        if self.puck.y < mallet.y:
-            if self.puck.y < mallet.u_lim:
-                mallet.dy = 1
+        if self.puck.x > self.opponent.x:
+            if self.puck.x > self.opponent.right_lim:
+                self.opponent.dx = -1
             else:
-                mallet.dy = -6
+                self.opponent.dx = 2
 
-        if self.puck.y > mallet.y:
+        if self.puck.y < self.opponent.y:
+            if self.puck.y < self.opponent.u_lim:
+                self.opponent.dy = 1
+            else:
+                self.opponent.dy = -6
+
+        if self.puck.y > self.opponent.y:
             if self.puck.y <= 360:  # was 250
-                mallet.dy = 6
-            # elif puck.y<=350:
-            #    agent.dy = 2
+                self.opponent.dy = 6
+
             else:
-                if mallet.y > 200:
-                    mallet.dy = -2
+                if self.opponent.y > 200:
+                    self.opponent.dy = -2
                 else:
-                    mallet.dy = 0
+                    self.opponent.dy = 0
             # Addresses situation when the puck and the computer are on top of each other.
             # Breaks loop
-            if abs(self.puck.y - mallet.y) < 40 and abs(self.puck.x - mallet.x) < 40:
+            if (
+                abs(self.puck.y - self.opponent.y) < 40
+                and abs(self.puck.x - self.opponent.x) < 40
+            ):
                 self.puck.dx += 2
                 self.puck.dy += 2
 
         return None
 
-    def update_state(self, action: Action) -> None:
-        """ Update state of game """
+    def _move(self, agent: Mallet, action: Action) -> None:
+        """ Move agent's mallet """
 
         # Update action
         if isinstance(action, tuple):  # Cartesian Coordinates
-            self.agent.x, self.agent.y = action[0], action[1]
+            agent.x, self.agent.y = action[0], action[1]
 
+        # Strings
         if isinstance(action, str) and action == self.actions[0]:
-            self.agent.y += self.step_size
+            agent.y += self.step_size
 
         if isinstance(action, str) and action == self.actions[1]:
-            self.agent.y += -self.step_size
+            agent.y += -self.step_size
 
         if isinstance(action, str) and action == self.actions[2]:
-            self.agent.x += self.step_size
+            agent.x += self.step_size
 
         if isinstance(action, str) and action == self.actions[3]:
-            self.agent.x += -self.step_size
+            agent.x += -self.step_size
+
+        # Integers
+        if isinstance(action, int) and action == 0:
+            agent.y += self.step_size
+
+        if isinstance(action, int) and action == 1:
+            agent.y += -self.step_size
+
+        if isinstance(action, int) and action == 2:
+            agent.x += self.step_size
+
+        if isinstance(action, int) and action == 3:
+            agent.x += -self.step_size
 
         # Set agent position
-        self.agent.update_mallet()
+        agent.update_mallet()
 
         # Update agent velocity
-        self.agent.dx = self.agent.x - self.agent.last_x
-        self.agent.dy = self.agent.y - self.agent.last_y
-        self.agent.update_mallet()
+        agent.dx = agent.x - agent.last_x
+        agent.dy = agent.y - agent.last_y
+        agent.update_mallet()
 
-        # Computer makes its move
-        while self.ticks_to_ai == 0:
-            self.malletAI(self.opponent)
-            self.ticks_to_ai = 10
-        self.opponent.update_mallet()
+        return None
+
+    def update_state(self, action: Action, agent_name: str = "main") -> None:
+        """ Update state of game """
+
+        # Move mallet
+        if agent_name == "main":
+            self._move(self.agent, action)
+        elif agent_name == "opponent":
+            self._move(self.opponent, action)
+        else:
+            raise ValueError("Invalid agent name")
 
         # Determine puck physics
         if (
-            abs(self.agent.x - self.puck.x) <= 35
-            and abs(self.agent.y - self.puck.y) <= 35
+            abs(self.agent.x - self.puck.x) <= 50
+            and abs(self.agent.y - self.puck.y) <= 50
         ):
-            self.puck.dx = -1 * self.puck.dx + self.agent.dx
-            self.puck.dy = -1 * self.puck.dy + self.agent.dy
+            self.puck.dx = -3 * self.puck.dx + self.agent.dx
+            self.puck.dy = -3 * self.puck.dy + self.agent.dy
 
         if (
-            abs(self.opponent.x - self.puck.x) <= 35
-            and abs(self.opponent.y - self.puck.y) <= 35
+            abs(self.opponent.x - self.puck.x) <= 50
+            and abs(self.opponent.y - self.puck.y) <= 50
         ):
-            self.puck.dx = -1 * self.puck.dx + self.opponent.dx
-            self.puck.dy = -1 * self.puck.dy + self.opponent.dy
+            self.puck.dx = -3 * self.puck.dx + self.opponent.dx
+            self.puck.dy = -3 * self.puck.dy + self.opponent.dy
 
         # Update puck position
         self.puck.limit_puck_speed()
@@ -252,15 +244,19 @@ class AirHockey:
         self.agent.last_y = self.agent.y
         self.agent.update_mallet()
 
+        self.opponent.last_x = self.opponent.x
+        self.opponent.last_y = self.opponent.y
+        self.opponent.update_mallet()
+
         # Update score
-        self._update_score()
+        self.update_score()
 
         self.ticks_to_friction -= 1
         self.ticks_to_ai -= 1
 
         return None
 
-    def _update_score(self) -> Union[int, None]:
+    def update_score(self) -> Union[int, None]:
         """ Get current score """
 
         # When then agent scores on the computer
@@ -270,6 +266,8 @@ class AirHockey:
         ):
             self.agent_score += 1
             self.agent_cumulative_score += 1
+            self.reward = self.rewards["point"]
+            self.cumulative_reward += self.reward
 
             # Push to redis
             self.redis.set(
@@ -280,8 +278,9 @@ class AirHockey:
             )
 
             print(f"Computer {self.cpu_score}, Agent {self.agent_score}")
+            self.done = True
             self.reset()
-            return 1
+            return None
 
         # When the computer scores on the agent
         if (
@@ -290,6 +289,8 @@ class AirHockey:
         ):
             self.cpu_score += 1
             self.cpu_cumulative_score += 1
+            self.reward = self.rewards["loss"]
+            self.cumulative_reward += self.reward
 
             # Push to redis
             self.redis.set(
@@ -299,9 +300,23 @@ class AirHockey:
                 ),
             )
             print(f"Computer {self.cpu_score}, Agent {self.agent_score}")
+            self.done = True
             self.reset()
-            return -1
+            return None
 
+        # # We hit the puck
+        if (
+            abs(self.agent.x - self.puck.x) <= 35
+            and abs(self.agent.y - self.puck.y) <= 35
+        ):
+            self.reward = self.rewards["hit"]
+            self.cumulative_reward += self.reward
+            self.done = False
+            return None
+
+        self.reward = self.rewards["miss"]
+        self.cumulative_reward += self.reward
+        self.done = False
         return None
 
     def reset(self, total: bool = False) -> None:
@@ -310,7 +325,7 @@ class AirHockey:
         if total:
             self.cpu_score = 0
             self.agent_score = 0
-            
+
             self.redis.set(
                 "scores",
                 json.dumps(
@@ -323,14 +338,3 @@ class AirHockey:
         self.opponent.reset_mallet()
 
         return None
-
-    def observe(self) -> Dict[str, Any]:
-        """ Observe state of game """
-
-        state = {
-            "puck": self.puck.location(),
-            "agent": self.agent.location(),
-            "opponent": self.opponent.location(),
-            "reward": self.reward(),
-        }
-        return state

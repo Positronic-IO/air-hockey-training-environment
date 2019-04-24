@@ -4,6 +4,7 @@ url = "https://pypi.org/simple"
 verify_ssl = true
 
 [dev-packages]
+sentry-sdk = "*"
 
 [packages]
 pygame = "*"
@@ -17,6 +18,8 @@ pillow = "*"
 seaborn = "*"
 pandas = "*"
 h5py = "*"
+tensorflow-tensorboard = "*"
+redis = "*"
 
 [requires]
 python_version = "3.6"
