@@ -15,7 +15,7 @@ from utils import Observation, State, get_model_path, write_results, config
 try:
     import sentry_sdk
 
-    sentry_sdk.init(os.getenv("sentry"))
+    # sentry_sdk.init(os.getenv("sentry"))
 except ImportError:
     pass
 
