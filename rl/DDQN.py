@@ -109,26 +109,38 @@ class DDQN(Agent):
             minibatch = random.sample(self.memory, self.batch_size)
             for observation in minibatch:
                 target = self.model.predict(np.array([observation.new_state]))
+                target_ = target
 
                 if observation.done:
                     # Sync Target Model
                     self.update_target_model()
 
                     # Update action we should take, then break out of loop
+                    # ! Deprecate
                     for i in range(len(self.env.actions)):
                         if observation.action == self.env.actions[i]:
-                            target[0][i] = observation.reward
+                            target_[0][i] = observation.reward
+
+                    target[0][observation.action] = observation.reward
+                    assert np.allclose(target, target_)
 
                 else:
                     t = self.target_model.predict(np.array([observation.new_state]))
 
                     # Update action we should take, then break out of loop
+                    # ! Deprecate
                     for i in range(len(self.env.actions)):
                         if observation.action == self.env.actions[i]:
-                            target[0][i] = observation.reward + self.gamma * np.amax(
+                            target_[0][i] = observation.reward + self.gamma * np.amax(
                                 t[0]
                             )
 
+                    target[0][
+                        observation.action
+                    ] = observation.reward + self.gamma * np.argmax(t[0])
+                    assert np.allclose(target, target_)
+
+                assert np.allclose(target, target_)
                 self.model.fit(
                     np.array([observation.state]), target, epochs=1, verbose=0
                 )

@@ -125,21 +125,26 @@ class DuelingDDQN(Agent):
 
             print("Update Model")
 
+            # Get samples from replay
             num_samples = min(
                 self.batch_size * self.timestep_per_train, len(self.memory)
             )
             replay_samples = random.sample(self.memory, num_samples)
 
-            update_input = np.zeros(((num_samples,) + self.state_size))
-            update_target = np.zeros(((num_samples,) + self.state_size))
-            action, reward, done = list(), list(), list()
+            # Convert Observations/trajectories into tensors
+            action = np.array([sample[1] for sample in replay_samples], dtype=np.int32)
+            reward = np.array(
+                [sample[2] for sample in replay_samples], dtype=np.float64
+            )
+            done = np.array(
+                [1 if sample[3] else 0 for sample in replay_samples], dtype=np.int8
+            )
 
-            for i in range(num_samples):
-                update_input[i, :, :] = replay_samples[i][0]
-                action.append(replay_samples[i][1])
-                reward.append(replay_samples[i][2])
-                done.append(replay_samples[i][3])
-                update_target[i, :, :] = replay_samples[i][4]
+            update_input = np.array([sample[0] for sample in replay_samples])
+            update_target = np.array([sample[4] for sample in replay_samples])
+
+            assert update_input.shape == ((num_samples,) + self.state_size)
+            assert update_target.shape == ((num_samples,) + self.state_size)
 
             target = self.model.predict(update_input)
             target_val = self.model.predict(update_target)
@@ -148,6 +153,9 @@ class DuelingDDQN(Agent):
             for i in range(num_samples):
                 # like Q Learning, get maximum Q value at s'
                 # But from target model
+
+                old_t = target[i][action[i]]
+
                 if done[i]:
                     target[i][action[i]] = reward[i]
                 else:
@@ -156,6 +164,9 @@ class DuelingDDQN(Agent):
                     # update is from target model
                     a = np.argmax(target_val[i])
                     target[i][action[i]] = reward[i] + self.gamma * (target_val_[i][a])
+
             loss = self.model.fit(
                 update_input, target, batch_size=self.batch_size, epochs=1, verbose=0
             )
+
+            return None

@@ -75,6 +75,7 @@ class DQN(Agent):
         for i in range(len(self.env.actions)):
             if self.last_action == self.env.actions[i]:
                 self.last_target[0][i] = reward
+        
 
         # Update model
         self.model.fit(

@@ -139,29 +139,36 @@ class c51(Agent):
             # Reset Batch counter
             self.batch_counter = 0
 
+            # Get samples from replay
             num_samples = min(
                 self.batch_size * self.timestep_per_train, len(self.memory)
             )
             replay_samples = random.sample(self.memory, num_samples)
 
-            state_inputs = np.zeros(((num_samples,) + self.state_size))
-            next_states = np.zeros(((num_samples,) + self.state_size))
+            # Convert Observations/trajectories into tensors
+            action = np.array([sample[1] for sample in replay_samples], dtype=np.int32)
+            reward = np.array(
+                [sample[2] for sample in replay_samples], dtype=np.float64
+            )
+            done = np.array(
+                [1 if sample[3] else 0 for sample in replay_samples], dtype=np.int8
+            )
+
+            state_inputs = np.array([sample[0] for sample in replay_samples])
+            next_states = np.array([sample[4] for sample in replay_samples])
+
+            assert state_inputs.shape == ((num_samples,) + self.state_size)
+            assert next_states.shape == ((num_samples,) + self.state_size)
+
+            # Initiate q-value distribution
             m_prob = [
                 np.zeros((num_samples, self.num_atoms)) for i in range(self.action_size)
             ]
-            action, reward, done = list(), list(), list()
-            for i in range(num_samples):
-                state_inputs[i, :, :] = replay_samples[i][0]
-                action.append(replay_samples[i][1])
-                reward.append(replay_samples[i][2])
-                done.append(replay_samples[i][3])
-                next_states[i, :, :] = replay_samples[i][4]
 
             z = self.model.predict(next_states)
             z_ = self.target_model.predict(next_states)
 
             # Get Optimal Actions for the next states (from distribution z)
-            optimal_action_idxs = list()
             z_concat = np.vstack(z)
             q = np.sum(
                 np.multiply(z_concat, np.array(self.z)), axis=1
