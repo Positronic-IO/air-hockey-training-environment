@@ -12,8 +12,7 @@ from rl.helpers import huber_loss
 
 
 class Networks:
-    def __init__(self):
-        """ Neural network architectures for Reinforcement Learning algorithms """
+    """ Neural network architectures for Reinforcement Learning algorithms """
 
     @staticmethod
     def dueling_ddqn(
