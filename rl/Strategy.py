@@ -31,9 +31,6 @@ class Strategy:
         if env is None:
             raise ValueError("Need to pass a gaming environment")
 
-        try:
-            config = get_config_strategy(name)
-        except KeyError:
-            raise KeyError("Strategy not found")
-
+        config = get_config_strategy(name)
+ 
         return self.strategies[name](env, config, agent_name)

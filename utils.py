@@ -45,8 +45,11 @@ def get_config_strategy(name: str) -> Dict[str, Union[str, int]]:
         "c51": os.path.join(os.getcwd(), "rl", "configs", "c51.json"),
     }
 
-    with open(strategies[name], "r") as f:
-        config = json.load(f)
+    try:
+        with open(strategies[name], "r") as f:
+            config = json.load(f)
+    except KeyError:
+        raise KeyError("Strategy not defined")
 
     return config
 
