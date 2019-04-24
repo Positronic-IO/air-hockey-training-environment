@@ -1,5 +1,6 @@
 """ Air Hockey Simulator """
 import json
+import os
 import random
 import sys
 import time
@@ -14,18 +15,9 @@ from utils import Observation, State, get_model_path, write_results, config
 try:
     import sentry_sdk
 
-    # sentry_sdk.init("https://f19813407c4f4c8eb66632f8287cd334@sentry.io/1443046")
+    sentry_sdk.init(os.getenv("sentry"))
 except ImportError:
     pass
-
-# If we pass a weights file, load it.
-# if hasattr(agent, "load_model") and args.get("load"):
-#     file_name = get_model_path(args["load"])
-#     agent.load_model(file_name)
-
-# if hasattr(agent, "save_model") and not args.get("save") and not args.get("load"):
-#     print("Please specify a path to save model.")
-#     sys.exit()
 
 
 class Train:
