@@ -18,7 +18,7 @@ class Strategy:
         "q-learner": QLearner,
         "dqn": DQN,
         "ddqn": DDQN,
-        "dueling-ddqn": DuelingDDQN,
+        "dueling": DuelingDDQN,
         "c51": c51,
     }
 

@@ -41,7 +41,7 @@ def get_config_strategy(name: str) -> Dict[str, Union[str, int]]:
     strategies = {
         "dqn": os.path.join(os.getcwd(), "rl", "configs", "dqn.json"),
         "ddqn": os.path.join(os.getcwd(), "rl", "configs", "ddqn.json"),
-        "dueling-ddqn": os.path.join(os.getcwd(), "rl", "configs", "dueling-ddqn.json"),
+        "dueling": os.path.join(os.getcwd(), "rl", "configs", "dueling-ddqn.json"),
         "c51": os.path.join(os.getcwd(), "rl", "configs", "c51.json"),
     }
 
@@ -52,56 +52,6 @@ def get_config_strategy(name: str) -> Dict[str, Union[str, int]]:
         raise KeyError("Strategy not defined")
 
     return config
-
-
-# def parse_config_agent() -> None:
-#     """ Parse arguments for agent settings """
-
-#     print("-" * 35)
-
-#     print("Agent: Robot")
-#     print(f"Learning Algorithm: {config["training"]["agent"]['strategy']}")
-
-#     if args.get("load"):
-#         print(f"Loading model at: {config["training"]["agent"]['load']}")
-
-#     if args.get("save"):
-#         print(f"Saving model at: {config["training"]["agent"]['save']}")
-
-#     if args.get("results"):
-#         print(f"Saving results at: {config["training"]["agent"]['results']}")
-
-#     print("-" * 35)
-
-#     return None
-
-
-def parse_args_gui() -> Dict[str, str]:
-    """ Parse arguments for rendering """
-
-    ap = argparse.ArgumentParser()
-    ap.add_argument("-a", "--agent", default="robot", help="Agent for gameplay")
-    ap.add_argument("-l", "--load", help="Load model for robot agent")
-    ap.add_argument("-s", "--strategy", help="Playing strategy")
-    ap.add_argument(
-        "--fps",
-        default=-1,
-        help="Define FPS of game. A value of -1 allows for the highest possible frame rate. Default to -1",
-    )
-
-    args = vars(ap.parse_args())
-
-    print("-" * 35)
-    print(f"Agent: {args['agent']}")
-    print(f"FPS: {args['fps']}")
-
-    if args.get("load") and args.get("strategy"):
-        print(f"Strategy: {args['strategy']}")
-        print(f"Model name: {args['load']}")
-
-    print("-" * 35)
-
-    return args
 
 
 def get_model_path(file_path: str) -> str:

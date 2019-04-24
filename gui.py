@@ -8,7 +8,7 @@ from redis import Redis
 
 from environment import AirHockey
 from rl import Strategy
-from utils import State, config, get_model_path, parse_args_gui
+from utils import State, config, get_model_path
 
 # Initialize the game engine
 pygame.init()
@@ -31,9 +31,6 @@ class AirHockeyGui:
 
     def __init__(self):
 
-        # Parse args
-        self.args = parse_args_gui()
-
         # Initiate game environment
         self.env = AirHockey()
 
@@ -42,7 +39,7 @@ class AirHockeyGui:
 
         self.init, self.init_opponent = True, True
 
-        if self.args["agent"] == "robot" and not config["observe"]:
+        if config["robot"] and not config["observe"]:
             # If user is a robot, set learning style for agent
             self.main_agent = Strategy().make(
                 config["live"]["agent"]["strategy"], self.env, agent_name="main"
@@ -50,7 +47,7 @@ class AirHockeyGui:
 
             # If we pass a weights file, load it.
             if (
-                hasattr(main_agent, "load_model")
+                hasattr(self.main_agent, "load_model")
                 and config["live"]["agent"]["strategy"]
             ):
                 self.main_agent.load_path = get_model_path(
@@ -260,18 +257,18 @@ class AirHockeyGui:
 
         # Set game clock
         clock = pygame.time.Clock()
-        fps = int(self.args.get("fps", -1))
+        fps = config["fps"]
 
         # Game loop
         while True:
 
             # Human agent
-            if self.args["agent"] == "human":
+            if not config["robot"]:
                 # Grab and set user position
                 pos = pygame.mouse.get_pos()
                 self.env.update_state(action=pos)
 
-            if self.args["agent"] == "robot" and not config["observe"]:
+            if config["robot"] and not config["observe"]:
 
                 self.main_player_move()
                 self.opponent_player_move()
@@ -283,15 +280,12 @@ class AirHockeyGui:
                 print(f"Computer {scores['cpu_score']}, agent {scores['agent_score']}")
                 print("Computer wins!")
 
-                if self.args["agent"] == "human":
-                    self.env.reset(total=True)
-
             if scores["agent_score"] == 10:
                 print(f"Computer {scores['cpu_score']}, agent {scores['agent_score']}")
                 print("Agent wins!")
 
-                if self.args["agent"] == "human":
-                    self.env.reset(total=True)
+            if not config["robot"]:
+                self.env.reset(total=True)
 
             self.rerender_environment()
 
