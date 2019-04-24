@@ -45,30 +45,30 @@ class AirHockeyGui:
         if self.args["agent"] == "robot" and not config["observe"]:
             # If user is a robot, set learning style for agent
             self.main_agent = Strategy().make(
-                config["training"]["agent"]["strategy"], env, agent_name="main"
+                config["live"]["agent"]["strategy"], self.env, agent_name="main"
             )
 
             # If we pass a weights file, load it.
             if (
                 hasattr(main_agent, "load_model")
-                and config["training"]["agent"]["strategy"]
+                and config["live"]["agent"]["strategy"]
             ):
                 self.main_agent.load_path = get_model_path(
-                    config["training"]["agent"]["load"]
+                    config["live"]["agent"]["load"]
                 )
                 self.main_agent.load_model()
 
             self.opponent_agent = Strategy().make(
-                config["training"]["opponent"]["strategy"], env, agent_name="opponent"
+                config["live"]["opponent"]["strategy"], self.env, agent_name="opponent"
             )
 
             # If we pass a weights file, load it.
             if (
                 hasattr(self.opponent_agent, "load_model")
-                and config["training"]["opponent"]["load"]
+                and config["live"]["opponent"]["load"]
             ):
                 self.opponent_agent.load_path = get_model_path(
-                    config["training"]["opponent"]["load"]
+                    config["live"]["opponent"]["load"]
                 )
                 self.opponent_agent.load_model()
 
@@ -177,7 +177,6 @@ class AirHockeyGui:
         )
         pygame.display.flip()
 
-    # Todo - Finish changing variables to calss attributes
     def main_player_move(self) -> None:
         """ Main player """
 
