@@ -50,31 +50,30 @@ class Train:
             print("Please specify a path to save model.")
             sys.exit()
 
-        self.opponent = Strategy().make(
-            config["training"]["opponent"]["strategy"], self.env, agent_name="opponent"
-        )
-        assert isinstance(
-            self.opponent,
-            Strategy().strategies[config["training"]["opponent"]["strategy"]],
-        )
-
-        # If we pass a weights file, load it.
-        if (
-            hasattr(self.opponent, "load_model")
-            and config["training"]["opponent"]["load"]
-        ):
-            self.agent.load_path = get_model_path(
-                config["training"]["opponent"]["load"]
+        if config["training"]["opponent"]["strategy"] != "basic":
+            self.opponent = Strategy().make(
+                config["training"]["opponent"]["strategy"],
+                self.env,
+                agent_name="opponent",
             )
-            self.agent.load_model()
 
-        if (
-            hasattr(self.opponent, "save_model")
-            and not config["training"]["opponent"]["save"]
-            and not config["training"]["opponent"]["load"]
-        ):
-            print("Please specify a path to save model.")
-            sys.exit()
+            # If we pass a weights file, load it.
+            if (
+                hasattr(self.opponent, "load_model")
+                and config["training"]["opponent"]["load"]
+            ):
+                self.agent.load_path = get_model_path(
+                    config["training"]["opponent"]["load"]
+                )
+                self.agent.load_model()
+
+            if (
+                hasattr(self.opponent, "save_model")
+                and not config["training"]["opponent"]["save"]
+                and not config["training"]["opponent"]["load"]
+            ):
+                print("Please specify a path to save model.")
+                sys.exit()
 
         # Interesting and important constants
         self.epoch = 0
