@@ -13,7 +13,7 @@ from utils import Action, Observation, State
 class QLearner:
     """ Uses Q-learning to update/maximize rewards """
 
-    def __init__(self, env: AirHockey, config: Dict[str, Union[str, int]]):
+    def __init__(self, env: AirHockey, config: Dict[str, Dict[str, int]]):
         self.env = env
         self.Q = {}
         self.last_state = None

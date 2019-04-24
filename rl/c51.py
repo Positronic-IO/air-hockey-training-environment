@@ -23,7 +23,7 @@ class c51(Agent):
     def __init__(
         self,
         env: AirHockey,
-        config: Dict[str, Union[str, int]],
+        config: Dict[str, Dict[str, int]],
         agent_name: str = "main",
     ):
         super().__init__(env, agent_name)
