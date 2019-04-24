@@ -2,8 +2,8 @@
     "training": {
         "agent": {
             "strategy": "dueling-ddqn",
-            "load": "models/showdown/dueling/v5_1.h5",
-            "load_": "",
+            "load_": "models/showdown/dueling/v5_1.h5",
+            "load": "",
             "save": "models/showdown/dueling/v6.h5"
         },
         "opponent": {
@@ -13,6 +13,18 @@
             "save": "models/showdown/dqn/v3.h5"
         },
         "results": "results/showdown_c51_dueling_v1.csv"
+    },
+    "live": {
+        "agent": {
+            "strategy": "dueling-ddqn",
+            "load_": "models/showdown/dueling/v5_1.h5",
+            "load": ""
+        },
+        "opponent": {
+            "strategy": "dueling-ddqn",
+            "load_": "models/showdown/dueling/v5_1.h5",
+            "load": ""
+        }
     },
     "rewards": {
         "point": 1,
