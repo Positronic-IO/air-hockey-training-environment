@@ -50,6 +50,8 @@ class DQN(Agent):
 
         # Compute rewards for any posible action
         rewards = self.model.predict(np.array([state]), batch_size=1)
+        assert len(rewards[0]) == self.action_size
+
         # Helps over fitting, encourages to exploration
         if np.random.uniform(0, 1) < self.epsilon:
             # We use the action which corresponds to the highest reward
@@ -69,6 +71,7 @@ class DQN(Agent):
 
         reward = data.reward
         rewards = self.model.predict(np.array([data.new_state]), batch_size=1)
+        assert len(rewards[0]) == self.action_size
         reward += self.gamma * rewards[0].max()
 
         # Update action we should take, then break out of loop
