@@ -29,6 +29,7 @@ class Agent:
         if self.agent_name == "main":
             return self.env.agent.location()
         elif self.agent_name == "opponent":
+            print(self.env.opponent.location())
             return self.env.opponent.location()
         else:
             raise ValueError("Invalid agent name")

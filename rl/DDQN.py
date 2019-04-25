@@ -28,7 +28,7 @@ class DDQN(Agent):
         super().__init__(env, agent_name)
 
         # get size of state and action
-        self.state_size = (7, 2)
+        self.state_size = (3, 4, 2)
         self.action_size = len(self.env.actions)
 
         # create replay memory using deque

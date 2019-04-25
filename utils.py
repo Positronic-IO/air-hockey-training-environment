@@ -12,18 +12,7 @@ import pandas as pd
 # Define custom types
 Action = Union[int, str, Tuple[int, int]]
 
-State = namedtuple(
-    "state",
-    [
-        "agent_location",
-        "puck_location",
-        "puck_prev_location",
-        "puck_velocity",
-        "opponent_location",
-        "opponent_prev_location",
-        "opponent_velocity",
-    ],
-)
+State = namedtuple("state", ["agent_location", "puck_location", "opponent_location"])
 
 Observation = namedtuple(
     "observation", ["state", "action", "reward", "done", "new_state"]
@@ -31,8 +20,12 @@ Observation = namedtuple(
 
 
 #  Load configuration
-with open("./config.json", "r") as f:
-    config = json.load(f)
+def get_config() -> Dict[str, Any]:
+    """ Load main config file """
+
+    with open(os.path.join(os.getcwd(), "config.json"), "r") as f:
+        config = json.load(f)
+        return config
 
 
 def get_config_strategy(name: str) -> Dict[str, Union[str, int]]:

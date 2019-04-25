@@ -8,7 +8,7 @@ import numpy as np
 from redis import Redis
 
 from environment.components import Goal, Mallet, Puck
-from utils import Action, config, State, Observation
+from utils import Action, get_config, State, Observation
 
 
 class AirHockey:
@@ -19,7 +19,7 @@ class AirHockey:
     actions = ["U", "D", "L", "R"]
 
     # Default rewwards
-    rewards = config["rewards"]
+    rewards = get_config()["rewards"]
 
     def __init__(self, **kwargs) -> None:
         """ Initiate an air hockey game """
@@ -37,10 +37,7 @@ class AirHockey:
         # Default scores
         self.cpu_score = 0
         self.agent_score = 0
-        self.redis.set(
-            "scores",
-            json.dumps({"agent_score": self.agent_score, "cpu_score": self.cpu_score}),
-        )
+        self._update_score_redis()
 
         self.ticks_to_friction = 60
         self.ticks_to_ai = 10
@@ -256,6 +253,14 @@ class AirHockey:
 
         return None
 
+    def _update_score_redis(self) -> None:
+        """ Push current score to redis """
+
+        self.redis.set(
+            "scores",
+            json.dumps({"agent_score": self.agent_score, "cpu_score": self.cpu_score}),
+        )
+
     def update_score(self) -> Union[int, None]:
         """ Get current score """
 
@@ -270,14 +275,9 @@ class AirHockey:
             self.cumulative_reward += self.reward
 
             # Push to redis
-            self.redis.set(
-                "scores",
-                json.dumps(
-                    {"agent_score": self.agent_score, "cpu_score": self.cpu_score}
-                ),
-            )
+            self._update_score_redis()
 
-            print(f"Computer {self.cpu_score}, Agent {self.agent_score}")
+            print(f"Agent {self.agent_score}, Computer {self.cpu_score}")
             self.done = True
             self.reset()
             return None
@@ -293,13 +293,9 @@ class AirHockey:
             self.cumulative_reward += self.reward
 
             # Push to redis
-            self.redis.set(
-                "scores",
-                json.dumps(
-                    {"agent_score": self.agent_score, "cpu_score": self.cpu_score}
-                ),
-            )
-            print(f"Computer {self.cpu_score}, Agent {self.agent_score}")
+            self._update_score_redis()
+
+            print(f"Agent {self.agent_score}, Computer {self.cpu_score}")
             self.done = True
             self.reset()
             return None
@@ -326,12 +322,8 @@ class AirHockey:
             self.cpu_score = 0
             self.agent_score = 0
 
-            self.redis.set(
-                "scores",
-                json.dumps(
-                    {"agent_score": self.agent_score, "cpu_score": self.cpu_score}
-                ),
-            )
+            # Push to redis
+            self._update_score_redis()
 
         self.puck.reset()
         self.agent.reset_mallet()

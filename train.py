@@ -4,13 +4,13 @@ import os
 import random
 import sys
 import time
-from typing import Union, Dict
+from typing import Dict, Union
 
 import numpy as np
 
-from environment import AirHockey
+from environment import AirHockey, States
 from rl import Strategy
-from utils import Observation, State, get_model_path, write_results, config
+from utils import Observation, State, get_config, get_model_path, write_results
 
 try:
     import sentry_sdk
@@ -23,49 +23,27 @@ except ImportError:
 class Train:
     def __init__(self):
 
+        # Load main config
+        self.config = get_config()
+
         # Set up game environment
         self.env = AirHockey()
 
-        # Set up players
-        self.agent = Strategy().make(config["training"]["agent"]["strategy"], self.env)
+        # Set up our agent
+        self.agent = Strategy().make(
+            self.config["training"]["agent"]["strategy"], self.env
+        )
+        self._agent_load_save()
 
-        # If we pass a weights file, load it.
-        if hasattr(self.agent, "load_model") and config["training"]["agent"]["load"]:
-            self.agent.load_path = get_model_path(config["training"]["agent"]["load"])
-            self.agent.load_model()
-
-        if (
-            hasattr(self.agent, "save_model")
-            and not config["training"]["agent"]["save"]
-            and not config["training"]["agent"]["load"]
-        ):
-            print("Please specify a path to save model.")
-            sys.exit()
-
-        if config["training"]["opponent"]["strategy"] != "basic":
+        # Set up opponent (if not the "basic" ai)
+        if self.config["training"]["opponent"]["strategy"] != "basic":
             self.opponent = Strategy().make(
-                config["training"]["opponent"]["strategy"],
+                self.config["training"]["opponent"]["strategy"],
                 self.env,
                 agent_name="opponent",
             )
 
-            # If we pass a weights file, load it.
-            if (
-                hasattr(self.opponent, "load_model")
-                and config["training"]["opponent"]["load"]
-            ):
-                self.agent.load_path = get_model_path(
-                    config["training"]["opponent"]["load"]
-                )
-                self.agent.load_model()
-
-            if (
-                hasattr(self.opponent, "save_model")
-                and not config["training"]["opponent"]["save"]
-                and not config["training"]["opponent"]["load"]
-            ):
-                print("Please specify a path to save model.")
-                sys.exit()
+            self._opponent_load_save()
 
         # Interesting and important constants
         self.epoch = 0
@@ -78,6 +56,75 @@ class Train:
 
         # Cumulative scores
         self.agent_cumulative_score, self.opponent_cumulative_score = 0, 0
+
+        # Set up buffers for agent position, puck position, opponent position
+        self.agent_location_buffer = States(self.config["capacity"])
+        self.puck_location_buffer = States(self.config["capacity"])
+        self.opponent_location_buffer = States(self.config["capacity"])
+
+        # Update buffers
+        self._update_buffers()
+
+    def _agent_load_save(self) -> None:
+        """ Load/Save models for agent """
+
+        # If we pass a weights file, load it.
+        if (
+            hasattr(self.agent, "load_model")
+            and self.config["training"]["agent"]["load"]
+        ):
+            self.agent.load_path = get_model_path(
+                self.config["training"]["agent"]["load"]
+            )
+            self.agent.load_model()
+
+        if (
+            hasattr(self.agent, "save_model")
+            and not self.config["training"]["agent"]["save"]
+            and not self.config["training"]["agent"]["load"]
+        ):
+            print("Please specify a path to save model.")
+            sys.exit()
+
+        return None
+
+    def _opponent_load_save(self) -> None:
+        """ Load/Save models for opponent """
+
+        # If we pass a weights file, load it.
+        if (
+            hasattr(self.opponent, "load_model")
+            and self.config["training"]["opponent"]["load"]
+        ):
+            self.opponent.load_path = get_model_path(
+                self.config["training"]["opponent"]["load"]
+            )
+            self.opponent.load_model()
+
+        if (
+            hasattr(self.opponent, "save_model")
+            and not self.config["training"]["opponent"]["save"]
+            and not self.config["training"]["opponent"]["load"]
+        ):
+            print("Please specify a path to save model.")
+            sys.exit()
+
+        return None
+
+    def _update_buffers(self) -> None:
+        """ Update redis buffers """
+
+        self.puck_location = json.loads(self.env.redis.get("puck"))["location"]
+        self.agent_location = json.loads(self.env.redis.get("agent_mallet"))["location"]
+        self.opponent_location = json.loads(self.env.redis.get("opponent_mallet"))[
+            "location"
+        ]
+
+        self.agent_location_buffer.append(self.agent_location)
+        self.puck_location_buffer.append(self.puck_location)
+        self.opponent_location_buffer.append(self.opponent_location)
+
+        return None
 
     def stats(self) -> None:
         """ Record training stats """
@@ -111,7 +158,7 @@ class Train:
         # results["reward_per_episode"] = [self.env.reward_per_episode]
 
         if self.new:
-            write_results(config["training"]["results"], results)
+            write_results(self.config["training"]["results"], results)
             self.env.reward_per_episode = 0
             self.new = False
 
@@ -131,15 +178,14 @@ class Train:
         else:
             # Now, let the model do all the work
 
+            # Update buffers
+            self._update_buffers()
+
             # Current state
             state = State(
-                agent_location=self.agent.location(),
-                puck_location=self.env.puck.location(),
-                puck_prev_location=self.env.puck.prev_location(),
-                puck_velocity=self.env.puck.velocity(),
-                opponent_location=self.env.opponent.location(),
-                opponent_prev_location=self.env.opponent.prev_location(),
-                opponent_velocity=self.env.opponent.velocity(),
+                agent_location=self.agent_location_buffer.retreive(),
+                puck_location=self.puck_location_buffer.retreive(),
+                opponent_location=self.opponent_location_buffer.retreive(),
             )
 
             # Determine next action
@@ -148,15 +194,14 @@ class Train:
             # Update game state
             self.agent.move(action)
 
+            # Update buffers
+            self._update_buffers()
+
             # New state
             new_state = State(
-                agent_location=self.agent.location(),
-                puck_location=self.env.puck.location(),
-                puck_prev_location=self.env.puck.prev_location(),
-                puck_velocity=self.env.puck.velocity(),
-                opponent_location=self.env.opponent.location(),
-                opponent_prev_location=self.env.opponent.prev_location(),
-                opponent_velocity=self.env.opponent.velocity(),
+                agent_location=self.agent_location_buffer.retreive(),
+                puck_location=self.puck_location_buffer.retreive(),
+                opponent_location=self.opponent_location_buffer.retreive(),
             )
 
             # Record reward
@@ -175,7 +220,7 @@ class Train:
             self.agent.update(observation)
 
             # Save results to csv
-            if config["training"]["results"]:
+            if self.config["training"]["results"]:
                 self.stats()
 
         # After so many iterations, save motedel
@@ -183,9 +228,9 @@ class Train:
             hasattr(self.agent, "save_model")
             and self.iterations % self.iterations_on_save == 0
         ):
-            if config["training"]["agent"]["save"]:
+            if self.config["training"]["agent"]["save"]:
                 self.agent.save_path = get_model_path(
-                    config["training"]["agent"]["save"]
+                    self.config["training"]["agent"]["save"]
                 )
                 self.agent.save_model(self.epoch)
             else:
@@ -197,16 +242,15 @@ class Train:
     def opponent_player(self) -> None:
         """ Opponent player """
 
-        if config["training"]["opponent"]["strategy"] == "basic":
+        # Update buffers
+        self._update_buffers()
+
+        if self.config["training"]["opponent"]["strategy"] == "basic":
             while self.env.ticks_to_ai == 0:
                 self.env.mallet_ai()
                 self.env.ticks_to_ai = 10
             self.env.opponent.update_mallet()
         else:
-
-            puck = json.loads(self.env.redis.get("puck"))
-            agent = json.loads(self.env.redis.get("agent"))
-            opponent = json.loads(self.env.redis.get("opponent"))
 
             # # For first move, move in a random direction
             if self.init_opponent:
@@ -220,15 +264,14 @@ class Train:
             else:
                 # Now, let the model do all the work
 
+                # Update buffers
+                self._update_buffers()
+
                 # Current state
                 state = State(
-                    agent_location=self.opponent.location(),
-                    puck_location=puck["position"],
-                    puck_prev_location=puck["prev_position"],
-                    puck_velocity=puck["velocity"],
-                    opponent_location=agent["position"],
-                    opponent_prev_location=agent["prev_position"],
-                    opponent_velocity=agent["velocity"],
+                    agent_location=self.opponent_location_buffer.retreive(),
+                    puck_location=self.puck_location_buffer.retreive(),
+                    opponent_location=self.agent_location_buffer.retreive(),
                 )
 
                 # Determine next action
@@ -237,15 +280,14 @@ class Train:
                 # Update game state
                 self.opponent.move(action)
 
+                # Update buffers
+                self._update_buffers()
+
                 # New state
                 new_state = State(
-                    agent_location=self.opponent.location(),
-                    puck_location=puck["position"],
-                    puck_prev_location=puck["prev_position"],
-                    puck_velocity=puck["velocity"],
-                    opponent_location=agent["position"],
-                    opponent_prev_location=agent["prev_position"],
-                    opponent_velocity=agent["velocity"],
+                    agent_location=self.opponent_location_buffer.retreive(),
+                    puck_location=self.puck_location_buffer.retreive(),
+                    opponent_location=self.agent_location_buffer.retreive(),
                 )
 
                 # Observation of the game at the moment
@@ -262,8 +304,6 @@ class Train:
                 # Update model
                 self.opponent.update(observation)
 
-                self.opponent
-
                 # Update agent velocity
                 self.env.opponent.dx = self.env.opponent.x - self.env.opponent.last_x
                 self.env.opponent.dy = self.env.opponent.y - self.env.opponent.last_y
@@ -274,9 +314,9 @@ class Train:
                     hasattr(self.opponent, "save_model")
                     and self.iterations % self.iterations_on_save == 0
                 ):
-                    if config["training"]["opponent"]["save"]:
+                    if self.config["training"]["opponent"]["save"]:
                         self.opponent.save_path = get_model_path(
-                            config["training"]["opponent"]["save"]
+                            self.config["training"]["opponent"]["save"]
                         )
                         self.opponent.save_model(self.epoch - 1)
                     else:

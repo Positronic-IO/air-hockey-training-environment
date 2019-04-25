@@ -6,9 +6,9 @@ import pygame
 from keras.models import load_model
 from redis import Redis
 
-from environment import AirHockey
+from environment import AirHockey, States
 from rl import Strategy
-from utils import State, config, get_model_path
+from utils import State, get_config, get_model_path
 
 # Initialize the game engine
 pygame.init()
@@ -31,6 +31,9 @@ class AirHockeyGui:
 
     def __init__(self):
 
+        # Load config
+        self.config = get_config()
+
         # Initiate game environment
         self.env = AirHockey()
 
@@ -39,35 +42,60 @@ class AirHockeyGui:
 
         self.init, self.init_opponent = True, True
 
-        if config["robot"] and not config["observe"]:
+        if self.config["robot"] and not self.config["observe"]:
             # If user is a robot, set learning style for agent
             self.main_agent = Strategy().make(
-                config["live"]["agent"]["strategy"], self.env, agent_name="main"
+                self.config["live"]["agent"]["strategy"], self.env, agent_name="main"
             )
 
             # If we pass a weights file, load it.
             if (
                 hasattr(self.main_agent, "load_model")
-                and config["live"]["agent"]["strategy"]
+                and self.config["live"]["agent"]["strategy"]
             ):
                 self.main_agent.load_path = get_model_path(
-                    config["live"]["agent"]["load"]
+                    self.config["live"]["agent"]["load"]
                 )
                 self.main_agent.load_model()
 
             self.opponent_agent = Strategy().make(
-                config["live"]["opponent"]["strategy"], self.env, agent_name="opponent"
+                self.config["live"]["opponent"]["strategy"],
+                self.env,
+                agent_name="opponent",
             )
 
             # If we pass a weights file, load it.
             if (
                 hasattr(self.opponent_agent, "load_model")
-                and config["live"]["opponent"]["load"]
+                and self.config["live"]["opponent"]["load"]
             ):
                 self.opponent_agent.load_path = get_model_path(
-                    config["live"]["opponent"]["load"]
+                    self.config["live"]["opponent"]["load"]
                 )
                 self.opponent_agent.load_model()
+
+        # Set up buffers for agent position, puck position, opponent position
+        self.agent_location_buffer = States(self.config["capacity"])
+        self.puck_location_buffer = States(self.config["capacity"])
+        self.opponent_location_buffer = States(self.config["capacity"])
+
+        # Update buffers
+        self._update_buffers()
+
+    def _update_buffers(self) -> None:
+        """ Update redis buffers """
+
+        self.puck_location = json.loads(self.env.redis.get("puck"))["location"]
+        self.agent_location = json.loads(self.env.redis.get("agent_mallet"))["location"]
+        self.opponent_location = json.loads(self.env.redis.get("opponent_mallet"))[
+            "location"
+        ]
+
+        self.agent_location_buffer.append(self.agent_location)
+        self.puck_location_buffer.append(self.puck_location)
+        self.opponent_location_buffer.append(self.opponent_location)
+
+        return None
 
     def draw_table(self) -> None:
         """ Re-renders table """
@@ -122,9 +150,7 @@ class AirHockeyGui:
     def rerender_environment(self) -> None:
         """" Re-render environment """
 
-        puck = json.loads(self.redis.get("puck"))
-        agent = json.loads(self.redis.get("agent"))
-        opponent = json.loads(self.redis.get("opponent"))
+        self._update_buffers()
 
         # Make screen
         screen = pygame.display.set_mode(self.env.table_size)
@@ -133,14 +159,14 @@ class AirHockeyGui:
         self.draw_table()
 
         # Draw left mallet
-        pygame.draw.circle(screen, self.white, agent["position"], 20, 0)
-        pygame.draw.circle(screen, self.black, agent["position"], 20, 1)
-        pygame.draw.circle(screen, self.black, agent["position"], 5, 0)
+        pygame.draw.circle(screen, self.white, self.agent_location, 20, 0)
+        pygame.draw.circle(screen, self.black, self.agent_location, 20, 1)
+        pygame.draw.circle(screen, self.black, self.agent_location, 5, 0)
 
         # Draw right mallet
-        pygame.draw.circle(screen, self.white, opponent["position"], 20, 0)
-        pygame.draw.circle(screen, self.black, opponent["position"], 20, 1)
-        pygame.draw.circle(screen, self.black, opponent["position"], 5, 0)
+        pygame.draw.circle(screen, self.white, self.opponent_location, 20, 0)
+        pygame.draw.circle(screen, self.black, self.opponent_location, 20, 1)
+        pygame.draw.circle(screen, self.black, self.opponent_location, 5, 0)
 
         # Draw left goal
         pygame.draw.rect(
@@ -170,7 +196,7 @@ class AirHockeyGui:
 
         # Draw puck
         pygame.draw.circle(
-            screen, self.black, puck["position"], self.env.puck_radius, 0
+            screen, self.black, self.puck_location, self.env.puck_radius, 0
         )
         pygame.display.flip()
 
@@ -257,18 +283,18 @@ class AirHockeyGui:
 
         # Set game clock
         clock = pygame.time.Clock()
-        fps = config["fps"]
+        fps = self.config["fps"]
 
         # Game loop
         while True:
 
             # Human agent
-            if not config["robot"]:
+            if not self.config["robot"]:
                 # Grab and set user position
                 pos = pygame.mouse.get_pos()
                 self.env.update_state(action=pos)
 
-            if config["robot"] and not config["observe"]:
+            if self.config["robot"] and not self.config["observe"]:
 
                 self.main_player_move()
                 self.opponent_player_move()
@@ -284,7 +310,7 @@ class AirHockeyGui:
                 print(f"Computer {scores['cpu_score']}, agent {scores['agent_score']}")
                 print("Agent wins!")
 
-            if not config["robot"]:
+            if not self.config["robot"]:
                 self.env.reset(total=True)
 
             self.rerender_environment()

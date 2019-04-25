@@ -48,14 +48,8 @@ class Mallet:
 
         # Redis
         self.redis.set(
-            self.name,
-            json.dumps(
-                {
-                    "position": self.location(),
-                    "velocity": self.velocity(),
-                    "prev_position": self.prev_location(),
-                }
-            ),
+            f"{self.name}_{self.__class__.__name__.lower()}",
+            json.dumps({"location": self.location()}),
         )
 
     def update_mallet(self) -> None:

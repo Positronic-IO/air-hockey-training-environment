@@ -13,7 +13,7 @@ class Puck:
     def __init__(self, x: int, y: int, dx: int = -5, dy: int = 3):
         """ Create a goal """
 
-        self.name = "puck"
+        self.name = self.__class__.__name__.lower()
 
         # Puck position
         self.x = x
@@ -41,16 +41,7 @@ class Puck:
         """ Put into Redis """
 
         # Redis
-        self.redis.set(
-            self.name,
-            json.dumps(
-                {
-                    "position": self.location(),
-                    "velocity": self.velocity(),
-                    "prev_position": self.prev_location(),
-                }
-            ),
-        )
+        self.redis.set(self.name, json.dumps({"location": self.location()}))
 
     def update_puck(self) -> None:
         """ Update puck position """
@@ -128,7 +119,7 @@ class Puck:
         return None
 
     def reset(self) -> None:
-        """ Rest puck to initial position """
+        """ Rest puck to a ranfom initial position, makes sure AI does learn a fast start """
         self.x = self.puck_start_x
         self.y = self.puck_start_y
         self.dx = random.randint(-3, 3)

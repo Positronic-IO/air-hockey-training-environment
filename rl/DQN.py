@@ -26,7 +26,7 @@ class DQN(Agent):
         super().__init__(env, agent_name)
 
         # get size of state and action
-        self.state_size = (7, 2)
+        self.state_size = (3, 4, 2)
         self.action_size = len(self.env.actions)
 
         # Hyperparameters
@@ -49,7 +49,7 @@ class DQN(Agent):
         """ Apply an espilon-greedy policy to pick next action """
 
         # Compute rewards for any posible action
-        rewards = self.model.predict([np.array([state])], batch_size=1)
+        rewards = self.model.predict(np.array([state]), batch_size=1)
         # Helps over fitting, encourages to exploration
         if np.random.uniform(0, 1) < self.epsilon:
             # We use the action which corresponds to the highest reward
@@ -75,7 +75,6 @@ class DQN(Agent):
         for i in range(len(self.env.actions)):
             if self.last_action == self.env.actions[i]:
                 self.last_target[0][i] = reward
-        
 
         # Update model
         self.model.fit(

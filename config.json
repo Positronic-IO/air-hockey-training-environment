@@ -1,7 +1,7 @@
 {
     "training": {
         "agent": {
-            "strategy": "dueling",
+            "strategy": "c51",
             "load_": "models/test/dueling/v5_1.h5",
             "load": "",
             "save": "models/test/dueling/v6.h5"
@@ -12,7 +12,7 @@
             "load": "",
             "save": "models/test/dqn/v3.h5"
         },
-        "results": "results/showdown_c51_dueling_v1.csv"
+        "results": ""
     },
     "live": {
         "agent": {
@@ -32,7 +32,8 @@
         "hit": 0,
         "miss": 0
     },
-    "observe": false,
+    "observe": true,
     "fps": -1,
-    "robot": true
+    "robot": true,
+    "capacity": 4
 }

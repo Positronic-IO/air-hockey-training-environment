@@ -16,7 +16,7 @@ class Networks:
 
     @staticmethod
     def dueling_ddqn(
-        state_size: Tuple[int, int], action_size: int, learning_rate: float
+        state_size: Tuple[int, int, int], action_size: int, learning_rate: float
     ) -> Model:
         """ Duelling DDQN Neural Net """
 
@@ -64,7 +64,7 @@ class Networks:
         return model
 
     @staticmethod
-    def dqn(state_size: Tuple[int, int]) -> Model:
+    def dqn(state_size: Tuple[int, int, int]) -> Model:
         """ Deep Q Neural Network """
 
         model = Sequential()
@@ -88,7 +88,7 @@ class Networks:
         return model
 
     @staticmethod
-    def ddqn(state_size: Tuple[int, int], learning_rate: float) -> Model:
+    def ddqn(state_size: Tuple[int, int, int], learning_rate: float) -> Model:
         """ DDQN Neural Network """
 
         model = Sequential()
@@ -113,7 +113,7 @@ class Networks:
 
     @staticmethod
     def c51(
-        state_size: Tuple[int, int], action_size: int, learning_rate: float
+        state_size: Tuple[int, int, int], action_size: int, learning_rate: float
     ) -> Model:
         """ c51 Neural Net """
 
