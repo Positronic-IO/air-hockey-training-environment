@@ -58,9 +58,9 @@ class Train:
         self.agent_cumulative_score, self.opponent_cumulative_score = 0, 0
 
         # Set up buffers for agent position, puck position, opponent position
-        self.agent_location_buffer = MemoryBuffer(self.config["capacity"], [0,0])
-        self.puck_location_buffer = MemoryBuffer(self.config["capacity"], [0,0])
-        self.opponent_location_buffer = MemoryBuffer(self.config["capacity"], [0,0])
+        self.agent_location_buffer = MemoryBuffer(self.config["capacity"], [0, 0])
+        self.puck_location_buffer = MemoryBuffer(self.config["capacity"], [0, 0])
+        self.opponent_location_buffer = MemoryBuffer(self.config["capacity"], [0, 0])
 
         # Update buffers
         self._update_buffers()
