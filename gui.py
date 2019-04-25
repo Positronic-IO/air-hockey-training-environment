@@ -295,11 +295,11 @@ class AirHockeyGui:
 
             # Compute scores
             if scores["cpu_score"] == 10:
-                print(f"Computer {scores['cpu_score']}, agent {scores['agent_score']}")
+                print(f"Agent {scores['agent_score']}, Computer {scores['cpu_score']}")
                 print("Computer wins!")
 
             if scores["agent_score"] == 10:
-                print(f"Computer {scores['cpu_score']}, agent {scores['agent_score']}")
+                print(f"Agent {scores['agent_score']}, Computer {scores['cpu_score']}")
                 print("Agent wins!")
 
             if not self.config["robot"]:

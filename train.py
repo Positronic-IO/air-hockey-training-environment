@@ -336,12 +336,12 @@ class Train:
 
             # Compute scores
             if self.env.cpu_score == 10:
-                print(f"Computer {self.env.cpu_score}, agent {self.env.agent_score}")
+                print(f"Agent {self.env.agent_score}, Computer {self.env.cpu_score}")
                 print("Computer wins!")
                 self.env.reset(total=True)
 
             if self.env.agent_score == 10:
-                print(f"Computer {self.env.cpu_score}, agent {self.env.agent_score}")
+                print(f"Agent {self.env.agent_score}, Computer {self.env.cpu_score} ")
                 print("Agent wins!")
                 self.env.reset(total=True)
 
