@@ -11,6 +11,7 @@ import numpy as np
 from environment import AirHockey
 from rl.Agent import Agent
 from rl.helpers import huber_loss
+from rl.MemoryBuffer import MemoryBuffer
 from rl.Networks import Networks
 from utils import Observation, State, get_model_path
 
@@ -32,10 +33,8 @@ class DDQN(Agent):
         self.action_size = len(self.env.actions)
 
         # create replay memory using deque
-        self.memory = deque()
-        self.max_memory = config["params"][
-            "max_memory"
-        ]  # number of previous transitions to remember
+        self.max_memory = config["params"]["max_memory"]
+        self.memory = MemoryBuffer(self.max_memory)
 
         self.gamma = config["params"]["gamma"]  # discount rate
         self.epsilon = config["params"]["epsilon"]  # exploration rate
@@ -68,15 +67,6 @@ class DDQN(Agent):
         print("Sync target model")
         self.target_model.set_weights(self.model.get_weights())
 
-    def remember(self, data: Observation) -> None:
-        """ Push data into memory for replay later """
-
-        # Push data into observation and remove one from buffer
-        self.memory.append(data)
-
-        if len(self.memory) > self.max_memory:
-            self.memory.popleft()
-
     def get_action(self, state: State) -> int:
         """ Apply an espilon-greedy policy to pick next action """
 
@@ -93,9 +83,7 @@ class DDQN(Agent):
         """ Experience replay """
 
         # Push data into observation and remove one from buffer
-        self.remember(data)
-
-        assert len(self.memory) < self.max_memory + 1, "Max memory exceeded"
+        self.memory.append(data)
 
         # Update model in intervals
         self.batch_counter += 1
@@ -106,7 +94,7 @@ class DDQN(Agent):
 
             print("Updating replay")
             # Sample observations from memory for experience replay
-            minibatch = random.sample(self.memory, self.batch_size)
+            minibatch = self.memory.sample(self.batch_size)
             for observation in minibatch:
                 target = self.model.predict(np.array([observation.new_state]))
                 target_ = target

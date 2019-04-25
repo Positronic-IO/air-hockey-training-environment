@@ -6,8 +6,8 @@ import pygame
 from keras.models import load_model
 from redis import Redis
 
-from environment import AirHockey, States
-from rl import Strategy
+from environment import AirHockey
+from rl import MemoryBuffer, Strategy
 from utils import State, get_config, get_model_path
 
 # Initialize the game engine
@@ -75,9 +75,9 @@ class AirHockeyGui:
                 self.opponent_agent.load_model()
 
         # Set up buffers for agent position, puck position, opponent position
-        self.agent_location_buffer = States(self.config["capacity"])
-        self.puck_location_buffer = States(self.config["capacity"])
-        self.opponent_location_buffer = States(self.config["capacity"])
+        self.agent_location_buffer = MemoryBuffer(self.config["capacity"], [0, 0])
+        self.puck_location_buffer = MemoryBuffer(self.config["capacity"], [0, 0])
+        self.opponent_location_buffer = MemoryBuffer(self.config["capacity"], [0, 0])
 
         # Update buffers
         self._update_buffers()

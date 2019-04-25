@@ -8,8 +8,8 @@ from typing import Dict, Union
 
 import numpy as np
 
-from environment import AirHockey, States
-from rl import Strategy
+from environment import AirHockey
+from rl import Strategy, MemoryBuffer
 from utils import Observation, State, get_config, get_model_path, write_results
 
 try:
@@ -58,9 +58,9 @@ class Train:
         self.agent_cumulative_score, self.opponent_cumulative_score = 0, 0
 
         # Set up buffers for agent position, puck position, opponent position
-        self.agent_location_buffer = States(self.config["capacity"])
-        self.puck_location_buffer = States(self.config["capacity"])
-        self.opponent_location_buffer = States(self.config["capacity"])
+        self.agent_location_buffer = MemoryBuffer(self.config["capacity"], [0,0])
+        self.puck_location_buffer = MemoryBuffer(self.config["capacity"], [0,0])
+        self.opponent_location_buffer = MemoryBuffer(self.config["capacity"], [0,0])
 
         # Update buffers
         self._update_buffers()

@@ -12,6 +12,7 @@ import numpy as np
 from environment import AirHockey
 from rl.Agent import Agent
 from rl.helpers import huber_loss
+from rl.MemoryBuffer import MemoryBuffer
 from rl.Networks import Networks
 from utils import Observation, State, get_model_path
 
@@ -43,24 +44,18 @@ class c51(Agent):
         self.explore = config["params"]["explore"]
         self.frame_per_action = config["params"]["frame_per_action"]
         self.update_target_freq = config["params"]["update_target_freq"]
-        self.timestep_per_train = config["params"][
-            "timestep_per_train"
-        ]  # Number of timesteps between training interval
+        self.timestep_per_train = config["params"]["timestep_per_train"]
 
         # Initialize Atoms
-        self.num_atoms = config["params"]["num_atoms"]  # Defaults to51 for C51
-        self.v_max = config["params"][
-            "v_max"
-        ]  # Max possible score for Defend the center is 26 - 0.1*26 = 23.4
+        self.num_atoms = config["params"]["num_atoms"]  # Defaults to 51 for C51
+        self.v_max = config["params"]["v_max"]  # Max possible score for agents is 10
         self.v_min = config["params"]["v_min"]
         self.delta_z = (self.v_max - self.v_min) / float(self.num_atoms - 1)
         self.z = [self.v_min + i * self.delta_z for i in range(self.num_atoms)]
 
         # create replay memory using deque
-        self.memory = deque()
-        self.max_memory = config["params"][
-            "max_memory"
-        ]  # number of previous transitions to remember
+        self.max_memory = config["params"]["max_memory"]
+        self.memory = MemoryBuffer(self.max_memory)
 
         # Counters
         self.batch_counter, self.sync_counter, self.t = 0, 0, 0
@@ -101,8 +96,8 @@ class c51(Agent):
         idx = np.argmax(q[0])
         return idx
 
-    def remember(self, data: Observation) -> None:
-        """ Push data into memory for replay later """
+    def update(self, data: Observation) -> Union[float, None]:
+        """ Experience replay """
 
         # Push data into observation and remove one from buffer
         self.memory.append(data)
@@ -111,18 +106,6 @@ class c51(Agent):
         if self.epsilon > self.final_epsilon and self.t > self.observe:
             self.epsilon -= (self.initial_epsilon - self.final_epsilon) / self.explore
         self.t += 1
-
-        # Memory management
-        if len(self.memory) > self.max_memory:
-            self.memory.popleft()
-
-        assert len(self.memory) < self.max_memory + 1, "Max memory exceeded"
-
-    def update(self, data: Observation) -> Union[float, None]:
-        """ Experience replay """
-
-        # Push data into observation and remove one from buffer
-        self.remember(data)
 
         self.sync_counter += 1
         if self.sync_counter > self.update_target_freq:
@@ -143,7 +126,7 @@ class c51(Agent):
             num_samples = min(
                 self.batch_size * self.timestep_per_train, len(self.memory)
             )
-            replay_samples = random.sample(self.memory, num_samples)
+            replay_samples = self.memory.sample(num_samples)
 
             # Convert Observations/trajectories into tensors
             action = np.array([sample[1] for sample in replay_samples], dtype=np.int32)

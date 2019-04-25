@@ -11,6 +11,7 @@ import numpy as np
 from environment import AirHockey
 from rl.Agent import Agent
 from rl.helpers import huber_loss
+from rl.MemoryBuffer import MemoryBuffer
 from rl.Networks import Networks
 from utils import Observation, State, get_model_path
 
@@ -42,15 +43,11 @@ class DuelingDDQN(Agent):
         self.explore = config["params"]["explore"]
         self.frame_per_action = config["params"]["frame_per_action"]
         self.update_target_freq = config["params"]["update_target_freq"]
-        self.timestep_per_train = config["params"][
-            "timestep_per_train"
-        ]  # Number of timesteps between training interval
+        self.timestep_per_train = config["params"]["timestep_per_train"]
 
-        # create replay memory using deque
-        self.memory = deque()
-        self.max_memory = config["params"][
-            "max_memory"
-        ]  # number of previous transitions to remember
+        # Initialize replay buffer
+        self.max_memory = config["params"]["max_memory"]
+        self.memory = MemoryBuffer(self.max_memory)
 
         # Model construction
         self.build_model()
@@ -88,8 +85,8 @@ class DuelingDDQN(Agent):
         idx = np.argmax(rewards[0])
         return idx
 
-    def remember(self, data: Observation) -> None:
-        """ Push data into memory for replay later """
+    def update(self, data: Observation) -> None:
+        """ Experience replay """
 
         # Push data into observation and remove one from buffer
         self.memory.append(data)
@@ -98,18 +95,6 @@ class DuelingDDQN(Agent):
         if self.epsilon > self.final_epsilon and self.t > self.observe:
             self.epsilon -= (self.initial_epsilon - self.final_epsilon) / self.explore
         self.t += 1
-
-        # Memory management
-        if len(self.memory) > self.max_memory:
-            self.memory.popleft()
-
-        assert len(self.memory) < self.max_memory + 1, "Max memory exceeded"
-
-    def update(self, data: Observation) -> None:
-        """ Experience replay """
-
-        # Push data into observation and remove one from buffer
-        self.remember(data)
 
         # Update the target model to be same with model
         self.sync_counter += 1
@@ -129,7 +114,7 @@ class DuelingDDQN(Agent):
             num_samples = min(
                 self.batch_size * self.timestep_per_train, len(self.memory)
             )
-            replay_samples = random.sample(self.memory, num_samples)
+            replay_samples = self.memory.sample(num_samples)
 
             # Convert Observations/trajectories into tensors
             action = np.array([sample[1] for sample in replay_samples], dtype=np.int32)
