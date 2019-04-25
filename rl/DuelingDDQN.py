@@ -71,7 +71,17 @@ class DuelingDDQN(Agent):
 
     def update_target_model(self) -> None:
         """ After some time interval update the target model to be same with model """
-        self.target_model.set_weights(self.model.get_weights())
+
+        # Update the target model to be same with model
+        self.sync_counter += 1
+        if self.sync_counter > self.update_target_freq:
+            # Sync Target Model
+            self.sync_counter = 0
+
+            print("Sync target model")
+            self.target_model.set_weights(self.model.get_weights())
+
+        return None
 
     def get_action(self, state: State) -> int:
         """ Apply an espilon-greedy policy to pick next action """
@@ -97,11 +107,7 @@ class DuelingDDQN(Agent):
         self.t += 1
 
         # Update the target model to be same with model
-        self.sync_counter += 1
-        if self.sync_counter > self.update_target_freq:
-            # Sync Target Model
-            self.update_target_model()
-            self.sync_counter = 0
+        self.update_target_model()
 
         # Update model in intervals
         self.batch_counter += 1

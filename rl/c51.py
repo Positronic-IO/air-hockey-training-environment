@@ -78,8 +78,15 @@ class c51(Agent):
     def update_target_model(self) -> None:
         """ Copy weights from model to target_model """
 
-        print("Sync target model")
-        self.target_model.set_weights(self.model.get_weights())
+        self.sync_counter += 1
+        if self.sync_counter > self.update_target_freq:
+            # Sync Target Model
+            self.sync_counter = 0
+
+            print("Sync target model")
+            self.target_model.set_weights(self.model.get_weights())
+
+        return None
 
     def get_action(self, state: State) -> int:
         """ Apply an espilon-greedy policy to pick next action """
@@ -107,11 +114,8 @@ class c51(Agent):
             self.epsilon -= (self.initial_epsilon - self.final_epsilon) / self.explore
         self.t += 1
 
-        self.sync_counter += 1
-        if self.sync_counter > self.update_target_freq:
-            # Sync Target Model
-            self.update_target_model()
-            self.sync_counter = 0
+        # Sync Target Model
+        self.update_target_model()
 
         # Update model in intervals
         self.batch_counter += 1
