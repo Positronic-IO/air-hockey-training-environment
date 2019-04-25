@@ -203,11 +203,11 @@ class AirHockeyGui:
     def main_player_move(self) -> None:
         """ Main player """
 
-        puck = json.loads(self.redis.get("puck"))
-        opponent = json.loads(self.redis.get("opponent"))
-
         # For first move, move in a random direction
         if self.init:
+            # Update buffers
+            self._update_buffers()
+
             action = np.random.randint(0, len(self.env.actions) - 1)
 
             # Update game state
@@ -217,15 +217,14 @@ class AirHockeyGui:
         else:
             # Now, let the model do all the work
 
+            # Update buffers
+            self._update_buffers()
+
             # Current state
             state = State(
-                agent_location=self.main_agent.location(),
-                puck_location=puck["position"],
-                puck_prev_location=puck["prev_position"],
-                puck_velocity=puck["velocity"],
-                opponent_location=opponent["position"],
-                opponent_prev_location=opponent["prev_position"],
-                opponent_velocity=opponent["velocity"],
+                agent_location=self.agent_location_buffer.retreive(),
+                puck_location=self.puck_location_buffer.retreive(),
+                opponent_location=self.opponent_location_buffer.retreive(),
             )
 
             # Determine next action
@@ -239,11 +238,10 @@ class AirHockeyGui:
     def opponent_player_move(self) -> None:
         """ Opponent player """
 
-        puck = json.loads(self.env.redis.get("puck"))
-        agent = json.loads(self.env.redis.get("agent"))
-
         # # For first move, move in a random direction
         if self.init_opponent:
+            # Update buffers
+            self._update_buffers()
 
             action = np.random.randint(0, len(self.env.actions) - 1)
 
@@ -254,15 +252,14 @@ class AirHockeyGui:
         else:
             # Now, let the model do all the work
 
+            # Update buffers
+            self._update_buffers()
+
             # Current state
             state = State(
-                agent_location=self.opponent_agent.location(),
-                puck_location=puck["position"],
-                puck_prev_location=puck["prev_position"],
-                puck_velocity=puck["velocity"],
-                opponent_location=agent["position"],
-                opponent_prev_location=agent["prev_position"],
-                opponent_velocity=agent["velocity"],
+                agent_location=self.agent_location_buffer.retreive(),
+                puck_location=self.puck_location_buffer.retreive(),
+                opponent_location=self.opponent_location_buffer.retreive(),
             )
 
             # Determine next action
@@ -270,11 +267,6 @@ class AirHockeyGui:
 
             # Update game state
             self.opponent_agent.move(action)
-
-            # Update agent velocity
-            self.env.opponent.dx = self.env.opponent.x - self.env.opponent.last_x
-            self.env.opponent.dy = self.env.opponent.y - self.env.opponent.last_y
-            self.env.opponent.update_mallet()
 
         return None
 

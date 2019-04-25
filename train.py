@@ -304,11 +304,6 @@ class Train:
                 # Update model
                 self.opponent.update(observation)
 
-                # Update agent velocity
-                self.env.opponent.dx = self.env.opponent.x - self.env.opponent.last_x
-                self.env.opponent.dy = self.env.opponent.y - self.env.opponent.last_y
-                self.env.opponent.update_mallet()
-
                 # # After so many iterations, save motedel
                 if (
                     hasattr(self.opponent, "save_model")
