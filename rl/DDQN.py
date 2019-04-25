@@ -10,7 +10,7 @@ import numpy as np
 
 from environment import AirHockey
 from rl.Agent import Agent
-from rl.helpers import huber_loss
+from rl.helpers import TensorBoardLogger, huber_loss
 from rl.MemoryBuffer import MemoryBuffer
 from rl.Networks import Networks
 from utils import Observation, State, get_model_path
@@ -24,6 +24,7 @@ class DDQN(Agent):
         self,
         env: AirHockey,
         config: Dict[str, Dict[str, int]],
+        tbl: TensorBoardLogger,
         agent_name: str = "main",
     ):
         super().__init__(env, agent_name)
@@ -47,7 +48,11 @@ class DDQN(Agent):
         # Model construction
         self.build_model()
 
-        self.batch_counter = 0
+        # Counters
+        self.batch_counter, self.t = 0, 0
+
+        # Initiate Tensorboard
+        self.tbl = tbl
 
         self.version = "0.3.0"
 
@@ -67,16 +72,36 @@ class DDQN(Agent):
         print("Sync target model")
         self.target_model.set_weights(self.model.get_weights())
 
+    def _epsilon(self) -> None:
+        """ Update all things epsilon """
+
+        self.tbl.log_scalar(
+            f"{self.__class__.__name__.title()} epsilon", self.epsilon, self.t
+        )
+
+        if self.epsilon > self.epsilon_min:
+            self.epsilon *= self.epsilon_decay
+        self.t += 1
+
     def get_action(self, state: State) -> int:
         """ Apply an espilon-greedy policy to pick next action """
 
         # Helps over fitting, encourages to exploration
         if np.random.uniform(0, 1) < self.epsilon:
-            return np.random.randint(0, self.action_size)
+            idx = np.random.randint(0, self.action_size)
+            self.tbl.log_histogram(
+                f"{self.__class__.__name__.title()} Greedy Actions", idx, self.t
+            )
+            return idx
 
         # Compute rewards for any posible action
-        rewards = self.model.predict([np.array([state])], batch_size=1)
-        idx = np.argmax(rewards[0])
+        rewards = self.model.predict(np.array([state]), batch_size=1)[0]
+        assert len(rewards) == self.action_size
+
+        idx = np.argmax(rewards)
+        self.tbl.log_histogram(
+            f"{self.__class__.__name__.title()} Predict Actions", idx, self.t
+        )
         return idx
 
     def update(self, data: Observation) -> None:
@@ -131,7 +156,7 @@ class DDQN(Agent):
                     np.array([observation.state]), target, epochs=1, verbose=0
                 )
 
-            if self.epsilon > self.epsilon_min:
-                self.epsilon *= self.epsilon_decay
+            # Modify epsilon
+            self._epsilon()
 
         return None

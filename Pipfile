@@ -21,6 +21,7 @@ pandas = "*"
 h5py = "*"
 tensorflow-tensorboard = "*"
 redis = "*"
+tensorboard = "*"
 
 [requires]
 python_version = "3.6"

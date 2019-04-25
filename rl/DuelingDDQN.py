@@ -10,7 +10,7 @@ import numpy as np
 
 from environment import AirHockey
 from rl.Agent import Agent
-from rl.helpers import huber_loss
+from rl.helpers import TensorBoardLogger, huber_loss
 from rl.MemoryBuffer import MemoryBuffer
 from rl.Networks import Networks
 from utils import Observation, State, get_model_path
@@ -24,6 +24,7 @@ class DuelingDDQN(Agent):
         self,
         env: AirHockey,
         config: Dict[str, Dict[str, int]],
+        tbl: TensorBoardLogger,
         agent_name: str = "main",
     ):
         super().__init__(env, agent_name)
@@ -55,6 +56,9 @@ class DuelingDDQN(Agent):
         # Counters
         self.batch_counter, self.sync_counter, self.t = 0, 0, 0
 
+        # Initiate Tensorboard
+        self.tbl = tbl
+
         self.version = "0.1.0"
 
     def build_model(self) -> None:
@@ -83,16 +87,36 @@ class DuelingDDQN(Agent):
 
         return None
 
+    def _epsilon(self) -> None:
+        """ Update all things epsilon """
+
+        self.tbl.log_scalar(
+            f"{self.__class__.__name__.title()} epsilon", self.epsilon, self.t
+        )
+
+        if self.epsilon > self.final_epsilon and self.t > self.observe:
+            self.epsilon -= (self.initial_epsilon - self.final_epsilon) / self.explore
+        self.t += 1
+
     def get_action(self, state: State) -> int:
         """ Apply an espilon-greedy policy to pick next action """
 
         # Helps over fitting, encourages to exploration
         if np.random.uniform(0, 1) < self.epsilon:
-            return np.random.randint(0, self.action_size)
+            idx = np.random.randint(0, self.action_size)
+            self.tbl.log_histogram(
+                f"{self.__class__.__name__.title()} Predict Actions", idx, self.t
+            )
+            return idx
 
         # Compute rewards for any posible action
-        rewards = self.model.predict([np.array([state])], batch_size=1)
-        idx = np.argmax(rewards[0])
+        rewards = self.model.predict(np.array([state]), batch_size=1)[0]
+        assert len(rewards) == self.action_size
+
+        idx = np.argmax(rewards)
+        self.tbl.log_histogram(
+            f"{self.__class__.__name__.title()} Predict Actions", idx, self.t
+        )
         return idx
 
     def update(self, data: Observation) -> None:
@@ -100,11 +124,6 @@ class DuelingDDQN(Agent):
 
         # Push data into observation and remove one from buffer
         self.memory.append(data)
-
-        # Modify epsilon
-        if self.epsilon > self.final_epsilon and self.t > self.observe:
-            self.epsilon -= (self.initial_epsilon - self.final_epsilon) / self.explore
-        self.t += 1
 
         # Update the target model to be same with model
         self.update_target_model()
@@ -160,4 +179,7 @@ class DuelingDDQN(Agent):
                 update_input, target, batch_size=self.batch_size, epochs=1, verbose=0
             )
 
-            return None
+            # Modify epsilon
+            self._epsilon()
+
+        return None

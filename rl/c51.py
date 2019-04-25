@@ -3,15 +3,15 @@
 import math
 import os
 import random
-import time
 from collections import deque
+from time import time
 from typing import Dict, Tuple, Union
 
 import numpy as np
 
 from environment import AirHockey
 from rl.Agent import Agent
-from rl.helpers import huber_loss
+from rl.helpers import TensorBoardLogger, huber_loss
 from rl.MemoryBuffer import MemoryBuffer
 from rl.Networks import Networks
 from utils import Observation, State, get_model_path
@@ -25,9 +25,12 @@ class c51(Agent):
         self,
         env: AirHockey,
         config: Dict[str, Dict[str, int]],
+        tbl: TensorBoardLogger,
         agent_name: str = "main",
     ):
         super().__init__(env, agent_name)
+
+        self.env = env
 
         # get size of state and action
         self.state_size = (3, 4, 2)
@@ -63,6 +66,9 @@ class c51(Agent):
         # Model construction
         self.build_model()
 
+        # Initiate Tensorboard
+        self.tbl = tbl
+
         self.version = "0.1.0"
 
     def build_model(self) -> None:
@@ -88,19 +94,38 @@ class c51(Agent):
 
         return None
 
+    def _epsilon(self) -> None:
+        """ Update all things epsilon """
+
+        self.tbl.log_scalar(
+            f"{self.__class__.__name__.title()} epsilon", self.epsilon, self.t
+        )
+
+        if self.epsilon > self.final_epsilon and self.t > self.observe:
+            self.epsilon -= (self.initial_epsilon - self.final_epsilon) / self.explore
+        self.t += 1
+
     def get_action(self, state: State) -> int:
         """ Apply an espilon-greedy policy to pick next action """
 
         # Helps over fitting, encourages to exploration
         if np.random.uniform(0, 1) < self.epsilon:
-            return np.random.randint(0, self.action_size)
+            idx = np.random.randint(0, self.action_size)
+            self.tbl.log_histogram(
+                f"{self.__class__.__name__.title()} Greedy Actions", idx, self.t
+            )
+            return idx
 
         # Compute rewards for any posible action
         z = self.model.predict(np.array([state]), batch_size=1)
         z_concat = np.vstack(z)
         q = np.sum(np.multiply(z_concat, np.array(self.z)), axis=1)
         # Pick action with the biggest Q value
-        idx = np.argmax(q[0])
+
+        idx = np.argmax(q)
+        self.tbl.log_histogram(
+            f"{self.__class__.__name__.title()} Predict Actions", idx, self.t
+        )
         return idx
 
     def update(self, data: Observation) -> Union[float, None]:
@@ -108,11 +133,6 @@ class c51(Agent):
 
         # Push data into observation and remove one from buffer
         self.memory.append(data)
-
-        # Modify epsilon
-        if self.epsilon > self.final_epsilon and self.t > self.observe:
-            self.epsilon -= (self.initial_epsilon - self.final_epsilon) / self.explore
-        self.t += 1
 
         # Sync Target Model
         self.update_target_model()
@@ -187,9 +207,11 @@ class c51(Agent):
                             j
                         ] * (bj - m_l)
 
-            loss = self.model.fit(
+            self.model.fit(
                 state_inputs, m_prob, batch_size=self.batch_size, epochs=1, verbose=0
             )
 
-            return loss.history["loss"]
+            # Modify epsilon
+            self._epsilon()
+
         return None

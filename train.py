@@ -9,7 +9,8 @@ from typing import Dict, Union
 import numpy as np
 
 from environment import AirHockey
-from rl import Strategy, MemoryBuffer
+from rl import MemoryBuffer, Strategy
+from rl.helpers import TensorBoardLogger
 from utils import Observation, State, get_config, get_model_path, write_results
 
 try:
@@ -26,12 +27,15 @@ class Train:
         # Load main config
         self.config = get_config()
 
+        # Initialize Tensorboard Logger
+        self.tbl = TensorBoardLogger(self.config["tensorboard"])
+
         # Set up game environment
         self.env = AirHockey()
 
         # Set up our agent
         self.agent = Strategy().make(
-            self.config["training"]["agent"]["strategy"], self.env
+            self.config["training"]["agent"]["strategy"], self.env, tbl=self.tbl
         )
         self._agent_load_save()
 
@@ -41,6 +45,7 @@ class Train:
                 self.config["training"]["opponent"]["strategy"],
                 self.env,
                 agent_name="opponent",
+                tbl=self.tbl,
             )
 
             self._opponent_load_save()
@@ -57,6 +62,9 @@ class Train:
         # Cumulative scores
         self.agent_cumulative_score, self.opponent_cumulative_score = 0, 0
 
+        # Cumulative wins
+        self.agent_cumulative_win, self.opponent_cumulative_win = 0, 0
+
         # Set up buffers for agent position, puck position, opponent position
         self.agent_location_buffer = MemoryBuffer(self.config["capacity"], [0, 0])
         self.puck_location_buffer = MemoryBuffer(self.config["capacity"], [0, 0])
@@ -64,6 +72,10 @@ class Train:
 
         # Update buffers
         self._update_buffers()
+
+        # Initial time
+        self.time = time.time()
+        self.wait = 60 * 60 * 3  # 3 hours
 
     def _agent_load_save(self) -> None:
         """ Load/Save models for agent """
@@ -132,35 +144,49 @@ class Train:
         results = dict()
 
         if self.env.agent_cumulative_score > self.agent_cumulative_score:
-            results["agent"] = [self.env.agent_cumulative_score]
+            results["agent_goal"] = [self.env.agent_cumulative_score]
             self.agent_cumulative_score = self.env.agent_cumulative_score
             self.new = True
         else:
-            results["agent"] = [self.agent_cumulative_score]
+            results["agent_goal"] = [self.agent_cumulative_score]
 
         if self.env.cpu_cumulative_score > self.opponent_cumulative_score:
-            results["opponent"] = [self.env.cpu_cumulative_score]
+            results["opponent_goal"] = [self.env.cpu_cumulative_score]
             self.opponent_cumulative_score = self.env.cpu_cumulative_score
             self.new = True
         else:
-            results["opponent"] = [self.opponent_cumulative_score]
+            results["opponent_goal"] = [self.opponent_cumulative_score]
 
         if self.env.agent_score == 10:
             results["agent_win"] = [1]
+            self.agent_cumulative_win += 1
         else:
             results["agent_win"] = [0]
 
         if self.env.cpu_score == 10:
-            results["cpu_win"] = [1]
+            results["opponent_win"] = [1]
+            self.opponent_cumulative_win += 1
         else:
-            results["cpu_win"] = [0]
-
-        # results["reward_per_episode"] = [self.env.reward_per_episode]
+            results["opponent_win"] = [0]
 
         if self.new:
             write_results(self.config["training"]["results"], results)
             self.env.reward_per_episode = 0
             self.new = False
+
+            # Push to Tensorboard
+            self.tbl.log_scalar(
+                f"Agent Win", self.agent_cumulative_win, self.iterations
+            )
+            self.tbl.log_scalar(
+                f"Opponent Win", self.opponent_cumulative_win, self.iterations
+            )
+            self.tbl.log_scalar(
+                f"Agent goal", results["agent_goal"][0], self.iterations
+            )
+            self.tbl.log_scalar(
+                f"Opponent goal", results["opponent_goal"][0], self.iterations
+            )
 
         return None
 
@@ -325,25 +351,36 @@ class Train:
         # Game loop
         while True:
 
-            # Our Agent
-            self.main_player()
+            # Train for an alotted amount of time
+            if time.time() - self.time < self.wait:
 
-            # Our opponent
-            self.opponent_player()
+                # Our Agent
+                self.main_player()
 
-            # Update iterator
-            self.iterations += 1
+                # Our opponent
+                self.opponent_player()
 
-            # Compute scores
-            if self.env.cpu_score == 10:
-                print(f"Agent {self.env.agent_score}, Computer {self.env.cpu_score}")
-                print("Computer wins!")
-                self.env.reset(total=True)
+                # Update iterator
+                self.iterations += 1
 
-            if self.env.agent_score == 10:
-                print(f"Agent {self.env.agent_score}, Computer {self.env.cpu_score} ")
-                print("Agent wins!")
-                self.env.reset(total=True)
+                # Compute scores
+                if self.env.cpu_score == 10:
+                    print(
+                        f"Agent {self.env.agent_score}, Computer {self.env.cpu_score}"
+                    )
+                    print("Computer wins!")
+                    self.env.reset(total=True)
+
+                if self.env.agent_score == 10:
+                    print(
+                        f"Agent {self.env.agent_score}, Computer {self.env.cpu_score} "
+                    )
+                    print("Agent wins!")
+                    self.env.reset(total=True)
+
+            else:
+                print("Training time elasped")
+                sys.exit()
 
 
 if __name__ == "__main__":

@@ -11,6 +11,8 @@ from rl.DQN import DQN
 from rl.DuelingDDQN import DuelingDDQN
 from rl.QLearner import QLearner
 
+from rl.helpers import TensorBoardLogger
+
 
 class Strategy:
 
@@ -25,12 +27,18 @@ class Strategy:
     def __init__(self):
         pass
 
-    def make(self, name: str, env: AirHockey, agent_name: str = "main"):
+    def make(
+        self,
+        name: str,
+        env: AirHockey,
+        tbl: TensorBoardLogger,
+        agent_name: str = "main",
+    ):
         """ Return instance of learner """
 
         if env is None:
             raise ValueError("Need to pass a gaming environment")
 
         config = get_config_strategy(name)
- 
-        return self.strategies[name](env, config, agent_name)
+
+        return self.strategies[name](env, config, tbl, agent_name)
