@@ -110,7 +110,6 @@ class DDQN(Agent):
                             target_[0][i] = observation.reward
 
                     target[0][observation.action] = observation.reward
-                    assert np.allclose(target, target_)
 
                 else:
                     t = self.target_model.predict(np.array([observation.new_state]))
@@ -126,9 +125,8 @@ class DDQN(Agent):
                     target[0][
                         observation.action
                     ] = observation.reward + self.gamma * np.argmax(t[0])
-                    assert np.allclose(target, target_)
 
-                assert np.allclose(target, target_)
+                assert np.allcloes(target, target_)
                 self.model.fit(
                     np.array([observation.state]), target, epochs=1, verbose=0
                 )

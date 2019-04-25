@@ -72,15 +72,20 @@ class DQN(Agent):
         reward += self.gamma * rewards[0].max()
 
         # Update action we should take, then break out of loop
+        # ! Deprecate
+        last_t_ = self.last_target
         for i in range(len(self.env.actions)):
             if self.last_action == self.env.actions[i]:
-                self.last_target[0][i] = reward
+                last_t_[0][i] = reward
+
+        self.last_target[0][self.last_action] = reward
+        assert np.allclose(self.last_target, last_t_)
 
         # Update model
         self.model.fit(
             np.array([self.last_state]),
             self.last_target,
             batch_size=1,
-            nb_epoch=1,
+            epochs=1,
             verbose=0,
         )
