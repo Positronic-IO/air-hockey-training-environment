@@ -126,7 +126,7 @@ class DDQN(Agent):
                         observation.action
                     ] = observation.reward + self.gamma * np.argmax(t[0])
 
-                assert np.allcloes(target, target_)
+                assert np.allclose(target, target_)
                 self.model.fit(
                     np.array([observation.state]), target, epochs=1, verbose=0
                 )
