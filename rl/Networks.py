@@ -74,7 +74,7 @@ class Networks:
         model.add(Flatten())
 
         model.add(Dense(4, kernel_initializer="random_uniform"))
-        model.add(Activation("linear"))
+        model.add(Activation("sigmoid"))
 
         model.compile(loss=huber_loss, optimizer=RMSprop())
 
@@ -98,7 +98,7 @@ class Networks:
         model.add(Flatten())
 
         model.add(Dense(4, kernel_initializer="random_uniform"))
-        model.add(Activation("linear"))
+        model.add(Activation("sigmoid"))
 
         model.compile(loss=huber_loss, optimizer=Adam(lr=learning_rate))
 
