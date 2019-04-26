@@ -34,7 +34,7 @@ def get_config_strategy(name: str) -> Dict[str, Union[str, int]]:
     strategies = {
         "dqn": os.path.join(os.getcwd(), "rl", "configs", "dqn.json"),
         "ddqn": os.path.join(os.getcwd(), "rl", "configs", "ddqn.json"),
-        "dueling": os.path.join(os.getcwd(), "rl", "configs", "dueling-ddqn.json"),
+        "dueling": os.path.join(os.getcwd(), "rl", "configs", "dueling.json"),
         "c51": os.path.join(os.getcwd(), "rl", "configs", "c51.json"),
     }
 
