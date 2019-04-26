@@ -3,14 +3,14 @@
         "agent": {
             "strategy": "dueling",
             "load": "",
-            "save": "models/dueling/v1.h5"
+            "save": "models/dueling/v3.h5"
         },
         "opponent": {
             "strategy": "c51",
             "load": "",
-            "save": "models/c51/v1.h5"
+            "save": "models/c51/v3.h5"
         },
-        "results": "results/showdown/c51-dueling_v1.csv"
+        "results": "results/c51-dueling_v3.csv"
     },
     "live": {
         "agent": {
@@ -34,5 +34,5 @@
     "fps": -1,
     "robot": true,
     "capacity": 4,
-    "tensorboard": "logs/showdown_v1"
+    "tensorboard": "logs/showdown_v3"
 }
