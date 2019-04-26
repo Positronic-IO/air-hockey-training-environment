@@ -94,7 +94,7 @@ class DuelingDDQN(Agent):
             f"{self.__class__.__name__.title()} epsilon", self.epsilon, self.t
         )
 
-        if self.epsilon > self.final_epsilon and self.t > self.observe:
+        if self.epsilon > self.final_epsilon and self.t % self.observe == 0:
             self.epsilon -= (self.initial_epsilon - self.final_epsilon) / self.explore
         self.t += 1
 
@@ -105,7 +105,7 @@ class DuelingDDQN(Agent):
         if np.random.uniform(0, 1) < self.epsilon:
             idx = np.random.randint(0, self.action_size)
             self.tbl.log_histogram(
-                f"{self.__class__.__name__.title()} Predict Actions", idx, self.t
+                f"{self.__class__.__name__.title()} Greedy Actions", idx, self.t
             )
             return idx
 
@@ -179,7 +179,7 @@ class DuelingDDQN(Agent):
                 update_input, target, batch_size=self.batch_size, epochs=1, verbose=0
             )
 
-            # Modify epsilon
-            self._epsilon()
+        # Modify epsilon
+        self._epsilon()
 
         return None

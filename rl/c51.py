@@ -101,7 +101,7 @@ class c51(Agent):
             f"{self.__class__.__name__.title()} epsilon", self.epsilon, self.t
         )
 
-        if self.epsilon > self.final_epsilon and self.t > self.observe:
+        if self.epsilon > self.final_epsilon and self.t % self.observe == 0:
             self.epsilon -= (self.initial_epsilon - self.final_epsilon) / self.explore
         self.t += 1
 
@@ -211,7 +211,7 @@ class c51(Agent):
                 state_inputs, m_prob, batch_size=self.batch_size, epochs=1, verbose=0
             )
 
-            # Modify epsilon
-            self._epsilon()
+        # Modify epsilon
+        self._epsilon()
 
         return None
