@@ -10,7 +10,7 @@ from environment import AirHockey
 from rl.Agent import Agent
 from rl.helpers import huber_loss
 from rl.Networks import Networks
-from utils import Observation, State, get_model_path
+from utils import Observation, State, get_config, get_model_path
 
 
 class DQN(Agent):
@@ -25,8 +25,12 @@ class DQN(Agent):
     ):
         super().__init__(env, agent_name)
 
-        # get size of state and action
-        self.state_size = (3, 4, 2)
+        # Get main config file
+        main_config = get_config()
+
+        # Get size of state and action
+        # State grows by the amount of frames we want to hold in our memory
+        self.state_size = (3, main_config["capacity"], 2)
         self.action_size = len(self.env.actions)
 
         # Hyperparameters
@@ -42,7 +46,7 @@ class DQN(Agent):
         """ Create our DNN model for Q-value approximation """
 
         self.model = Networks().dqn(self.state_size)
-        print(self.model.summary)
+        print(self.model.summary())
         return None
 
     def get_action(self, state: State) -> int:
@@ -69,20 +73,15 @@ class DQN(Agent):
     def update(self, data: Observation) -> None:
         """ Updates learner with new state/Q values """
 
-        reward = data.reward
         rewards = self.model.predict(np.array([data.new_state]), batch_size=1)
         assert len(rewards[0]) == self.action_size
+
         reward += self.gamma * rewards[0].max()
 
         # Update action we should take, then break out of loop
-        # ! Deprecate
-        last_t_ = self.last_target
-        for i in range(len(self.env.actions)):
-            if self.last_action == self.env.actions[i]:
-                last_t_[0][i] = reward
-
-        self.last_target[0][self.last_action] = reward
-        assert np.allclose(self.last_target, last_t_)
+        self.last_target[0][self.last_action] = (
+            data.reward + self.gamma * rewards[0].max()
+        )
 
         # Update model
         self.model.fit(

@@ -13,7 +13,7 @@ from rl.Agent import Agent
 from rl.helpers import TensorBoardLogger, huber_loss
 from rl.MemoryBuffer import MemoryBuffer
 from rl.Networks import Networks
-from utils import Observation, State, get_model_path
+from utils import Observation, State, get_config, get_model_path
 
 
 class DDQN(Agent):
@@ -29,8 +29,12 @@ class DDQN(Agent):
     ):
         super().__init__(env, agent_name)
 
-        # get size of state and action
-        self.state_size = (3, 4, 2)
+        # Get main config file
+        main_config = get_config()
+
+        # Get size of state and action
+        # State grows by the amount of frames we want to hold in our memory
+        self.state_size = (3, main_config["capacity"], 2)
         self.action_size = len(self.env.actions)
 
         # create replay memory using deque
@@ -45,11 +49,16 @@ class DDQN(Agent):
         self.batch_size = config["params"]["batch_size"]
         self.sync_target_interval = config["params"]["sync_target_interval"]
 
+        # If we are not training, set our epsilon to final_epsilon.
+        # We want to choose our prediction more than a random policy.
+        self.train = main_config["train"]
+        self.epsilon = self.epsilon if self.train else self.epsilon_min
+
         # Model construction
         self.build_model()
 
         # Counters
-        self.batch_counter, self.t = 0, 0
+        self.t = 0
 
         # Initiate Tensorboard
         self.tbl = tbl
@@ -75,13 +84,17 @@ class DDQN(Agent):
     def _epsilon(self) -> None:
         """ Update all things epsilon """
 
+        if not self.train:
+            return None
+
         self.tbl.log_scalar(
             f"{self.__class__.__name__.title()} epsilon", self.epsilon, self.t
         )
 
         if self.epsilon > self.epsilon_min:
             self.epsilon *= self.epsilon_decay
-        self.t += 1
+
+        return None
 
     def get_action(self, state: State) -> int:
         """ Apply an espilon-greedy policy to pick next action """
@@ -110,19 +123,18 @@ class DDQN(Agent):
         # Push data into observation and remove one from buffer
         self.memory.append(data)
 
-        # Update model in intervals
-        self.batch_counter += 1
-        if self.batch_counter > self.sync_target_interval:
+        # Modify epsilon
+        self._epsilon()
 
-            # Reset Batch counter
-            self.batch_counter = 0
+        # Update model in intervals
+        if self.t > self.sync_target_interval:
 
             print("Updating replay")
+
             # Sample observations from memory for experience replay
             minibatch = self.memory.sample(self.batch_size)
             for observation in minibatch:
                 target = self.model.predict(np.array([observation.new_state]))
-                target_ = target
 
                 if observation.done:
                     # Sync Target Model
@@ -139,24 +151,15 @@ class DDQN(Agent):
                 else:
                     t = self.target_model.predict(np.array([observation.new_state]))
 
-                    # Update action we should take, then break out of loop
-                    # ! Deprecate
-                    for i in range(len(self.env.actions)):
-                        if observation.action == self.env.actions[i]:
-                            target_[0][i] = observation.reward + self.gamma * np.amax(
-                                t[0]
-                            )
-
+                    # Update action we should take
                     target[0][
                         observation.action
                     ] = observation.reward + self.gamma * np.argmax(t[0])
 
-                assert np.allclose(target, target_)
                 self.model.fit(
                     np.array([observation.state]), target, epochs=1, verbose=0
                 )
 
-            # Modify epsilon
-            self._epsilon()
+           self.t += 1 
 
         return None

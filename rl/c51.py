@@ -14,7 +14,7 @@ from rl.Agent import Agent
 from rl.helpers import TensorBoardLogger, huber_loss
 from rl.MemoryBuffer import MemoryBuffer
 from rl.Networks import Networks
-from utils import Observation, State, get_model_path
+from utils import Observation, State, get_config, get_model_path
 
 
 class c51(Agent):
@@ -30,13 +30,15 @@ class c51(Agent):
     ):
         super().__init__(env, agent_name)
 
-        self.env = env
+        # Get main config file
+        main_config = get_config()
 
-        # get size of state and action
-        self.state_size = (3, 4, 2)
+        # Get size of state and action
+        # State grows by the amount of frames we want to hold in our memory
+        self.state_size = (3, main_config["capacity"], 2)
         self.action_size = len(self.env.actions)
 
-        # these is hyper parameters for the DQN
+        # These are the hyper parameters for the c51
         self.gamma = config["params"]["gamma"]
         self.learning_rate = config["params"]["learning_rate"]
         self.epsilon = config["params"]["epsilon"]
@@ -60,8 +62,13 @@ class c51(Agent):
         self.max_memory = config["params"]["max_memory"]
         self.memory = MemoryBuffer(self.max_memory)
 
-        # Counters
-        self.batch_counter, self.sync_counter, self.t = 0, 0, 0
+        # If we are not training, set our epsilon to final_epsilon.
+        # We want to choose our prediction more than a random policy.
+        self.train = main_config["train"]
+        self.epsilon = self.epsilon if self.train else self.final_epsilon
+
+        # Keep up with the iterations
+        self.t = 0
 
         # Model construction
         self.build_model()
@@ -82,12 +89,10 @@ class c51(Agent):
         return model
 
     def update_target_model(self) -> None:
-        """ Copy weights from model to target_model """
+        """ After some time interval update the target model to be same with model """
 
-        self.sync_counter += 1
-        if self.sync_counter > self.update_target_freq:
-            # Sync Target Model
-            self.sync_counter = 0
+        # Update the target model to be same with model
+        if self.t % self.update_target_freq == 0:
 
             print("Sync target model")
             self.target_model.set_weights(self.model.get_weights())
@@ -97,13 +102,18 @@ class c51(Agent):
     def _epsilon(self) -> None:
         """ Update all things epsilon """
 
+        # If we are not in training mode, then break.
+        if not self.train:
+            return None
+
         self.tbl.log_scalar(
             f"{self.__class__.__name__.title()} epsilon", self.epsilon, self.t
         )
 
         if self.epsilon > self.final_epsilon and self.t % self.observe == 0:
             self.epsilon -= (self.initial_epsilon - self.final_epsilon) / self.explore
-        self.t += 1
+
+        return None
 
     def get_action(self, state: State) -> int:
         """ Apply an espilon-greedy policy to pick next action """
@@ -128,18 +138,20 @@ class c51(Agent):
         )
         return idx
 
-    def update(self, data: Observation) -> Union[float, None]:
+    def update(self, data: Observation) -> None:
         """ Experience replay """
 
         # Push data into observation and remove one from buffer
         self.memory.append(data)
 
+        # Modify epsilon
+        self._epsilon()
+
         # Sync Target Model
         self.update_target_model()
 
         # Update model in intervals
-        self.batch_counter += 1
-        if self.batch_counter > self.timestep_per_train:
+        if self.t > self.observe and self.t % self.timestep_per_train == 0:
 
             print("Update Model")
 
@@ -211,7 +223,6 @@ class c51(Agent):
                 state_inputs, m_prob, batch_size=self.batch_size, epochs=1, verbose=0
             )
 
-        # Modify epsilon
-        self._epsilon()
+        self.t += 1
 
         return None
