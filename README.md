@@ -65,8 +65,8 @@ This project uses Python type hints. You can use [Mypy](https://mypy.readthedocs
 ## References
 
 Reinforment learning information:
-[https://medium.com/@jonathan_hui/rl-dqn-deep-q-network-e207751f7ae4](https://medium.com/@jonathan_hui/rl-dqn-deep-q-network-e207751f7ae4)
-[https://keon.io/deep-q-learning/](https://keon.io/deep-q-learning/)
++ [https://medium.com/@jonathan_hui/rl-dqn-deep-q-network-e207751f7ae4](https://medium.com/@jonathan_hui/rl-dqn-deep-q-network-e207751f7ae4)
++ [https://keon.io/deep-q-learning/](https://keon.io/deep-q-learning/)
 
 The guts of the air hockey gui:
 [https://github.com/edwardyu236/airHockey](https://github.com/edwardyu236/airHockey)
