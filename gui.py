@@ -42,7 +42,7 @@ class AirHockeyGui:
 
         self.init, self.init_opponent = True, True
 
-        if self.config["robot"] and not self.config["observe"]:
+        if self.config["robot"] and not self.config["train"]:
             # If user is a robot, set learning style for agent
             self.main_agent = Strategy().make(
                 self.config["live"]["agent"]["strategy"], self.env, agent_name="main"
@@ -286,7 +286,7 @@ class AirHockeyGui:
                 pos = pygame.mouse.get_pos()
                 self.env.update_state(action=pos)
 
-            if self.config["robot"] and not self.config["observe"]:
+            if self.config["robot"] and not self.config["train"]:
 
                 self.main_player_move()
                 self.opponent_player_move()

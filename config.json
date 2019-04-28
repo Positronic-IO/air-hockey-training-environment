@@ -30,7 +30,7 @@
         "hit": 0,
         "miss": 0
     },
-    "observe": true,
+    "train": true,
     "fps": -1,
     "robot": true,
     "capacity": 4,
