@@ -78,7 +78,7 @@ class DDQN(Agent):
     def update_target_model(self) -> None:
         """ Copy weights from model to target_model """
 
-        print("Sync target model")
+        print("Sync target model for DDQN")
         self.target_model.set_weights(self.model.get_weights())
 
     def _epsilon(self) -> None:
@@ -87,9 +87,7 @@ class DDQN(Agent):
         if not self.train:
             return None
 
-        self.tbl.log_scalar(
-            f"{self.__class__.__name__.title()} epsilon", self.epsilon, self.t
-        )
+        self.tbl.log_scalar("DDQN epsilon", self.epsilon, self.t)
 
         if self.epsilon > self.epsilon_min:
             self.epsilon *= self.epsilon_decay
@@ -102,9 +100,7 @@ class DDQN(Agent):
         # Helps over fitting, encourages to exploration
         if np.random.uniform(0, 1) < self.epsilon:
             idx = np.random.randint(0, self.action_size)
-            self.tbl.log_histogram(
-                f"{self.__class__.__name__.title()} Greedy Actions", idx, self.t
-            )
+            self.tbl.log_histogram("DDQN Greedy Actions", idx, self.t)
             return idx
 
         # Compute rewards for any posible action
@@ -112,13 +108,11 @@ class DDQN(Agent):
         assert len(rewards) == self.action_size
 
         idx = np.argmax(rewards)
-        self.tbl.log_histogram(
-            f"{self.__class__.__name__.title()} Predict Actions", idx, self.t
-        )
+        self.tbl.log_histogram("DDQN Predict Actions", idx, self.t)
         return idx
 
     def update(self, data: Observation) -> None:
-        """ Experience replay """
+        """ Update our model using relay """
 
         # Push data into observation and remove one from buffer
         self.memory.append(data)
@@ -127,9 +121,9 @@ class DDQN(Agent):
         self._epsilon()
 
         # Update model in intervals
-        if self.t > self.sync_target_interval:
+        if self.t > 0 and self.t % self.sync_target_interval == 0:
 
-            print("Updating replay")
+            print(f"Updating DDQN model")
 
             # Sample observations from memory for experience replay
             minibatch = self.memory.sample(self.batch_size)
@@ -141,13 +135,7 @@ class DDQN(Agent):
                     self.update_target_model()
 
                     # Update action we should take, then break out of loop
-                    # ! Deprecate
-                    for i in range(len(self.env.actions)):
-                        if observation.action == self.env.actions[i]:
-                            target_[0][i] = observation.reward
-
                     target[0][observation.action] = observation.reward
-
                 else:
                     t = self.target_model.predict(np.array([observation.new_state]))
 
@@ -160,6 +148,6 @@ class DDQN(Agent):
                     np.array([observation.state]), target, epochs=1, verbose=0
                 )
 
-           self.t += 1 
+        self.t += 1
 
         return None

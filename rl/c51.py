@@ -92,9 +92,9 @@ class c51(Agent):
         """ After some time interval update the target model to be same with model """
 
         # Update the target model to be same with model
-        if self.t % self.update_target_freq == 0:
+        if self.t > 0 and self.t % self.update_target_freq == 0:
 
-            print("Sync target model")
+            print("Sync target model for c51")
             self.target_model.set_weights(self.model.get_weights())
 
         return None
@@ -106,9 +106,7 @@ class c51(Agent):
         if not self.train:
             return None
 
-        self.tbl.log_scalar(
-            f"{self.__class__.__name__.title()} epsilon", self.epsilon, self.t
-        )
+        self.tbl.log_scalar("c51 epsilon", self.epsilon, self.t)
 
         if self.epsilon > self.final_epsilon and self.t % self.observe == 0:
             self.epsilon -= (self.initial_epsilon - self.final_epsilon) / self.explore
@@ -121,9 +119,7 @@ class c51(Agent):
         # Helps over fitting, encourages to exploration
         if np.random.uniform(0, 1) < self.epsilon:
             idx = np.random.randint(0, self.action_size)
-            self.tbl.log_histogram(
-                f"{self.__class__.__name__.title()} Greedy Actions", idx, self.t
-            )
+            self.tbl.log_histogram("c51 Greedy Actions", idx, self.t)
             return idx
 
         # Compute rewards for any posible action
@@ -133,9 +129,7 @@ class c51(Agent):
         # Pick action with the biggest Q value
 
         idx = np.argmax(q)
-        self.tbl.log_histogram(
-            f"{self.__class__.__name__.title()} Predict Actions", idx, self.t
-        )
+        self.tbl.log_histogram("c51 Predict Actions", idx, self.t)
         return idx
 
     def update(self, data: Observation) -> None:
@@ -153,10 +147,7 @@ class c51(Agent):
         # Update model in intervals
         if self.t > self.observe and self.t % self.timestep_per_train == 0:
 
-            print("Update Model")
-
-            # Reset Batch counter
-            self.batch_counter = 0
+            print(f"Updating c51 model")
 
             # Get samples from replay
             num_samples = min(

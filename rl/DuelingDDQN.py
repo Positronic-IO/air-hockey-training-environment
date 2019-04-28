@@ -88,7 +88,7 @@ class DuelingDDQN(Agent):
         # Update the target model to be same with model
         if self.t % self.update_target_freq == 0:
 
-            print("Sync target model")
+            print("Sync target model for Dueling DDQN")
             self.target_model.set_weights(self.model.get_weights())
 
         return None
@@ -100,9 +100,7 @@ class DuelingDDQN(Agent):
         if not self.train:
             return None
 
-        self.tbl.log_scalar(
-            f"{self.__class__.__name__.title()} epsilon", self.epsilon, self.t
-        )
+        self.tbl.log_scalar("Dueling DDQN epsilon", self.epsilon, self.t)
 
         if self.epsilon > self.final_epsilon and self.t % self.observe == 0:
             self.epsilon -= (self.initial_epsilon - self.final_epsilon) / self.explore
@@ -115,9 +113,7 @@ class DuelingDDQN(Agent):
         # Helps over fitting, encourages to exploration
         if np.random.uniform(0, 1) < self.epsilon:
             idx = np.random.randint(0, self.action_size)
-            self.tbl.log_histogram(
-                f"{self.__class__.__name__.title()} Greedy Actions", idx, self.t
-            )
+            self.tbl.log_histogram("Dueling DDQN Greedy Actions", idx, self.t)
             return idx
 
         # Compute rewards for any posible action
@@ -125,9 +121,7 @@ class DuelingDDQN(Agent):
         assert len(rewards) == self.action_size
 
         idx = np.argmax(rewards)
-        self.tbl.log_histogram(
-            f"{self.__class__.__name__.title()} Predict Actions", idx, self.t
-        )
+        self.tbl.log_histogram("Dueling DDQN Predict Actions", idx, self.t)
         return idx
 
     def update(self, data: Observation) -> None:
@@ -143,9 +137,9 @@ class DuelingDDQN(Agent):
         self.update_target_model()
 
         # Update model in intervals
-        if self.t > self.observe and self.t % self.timestep_per_train == 0:
+        if self.t > 0 and self.t % self.timestep_per_train == 0:
 
-            print("Update Model")
+            print(f"Updating Dueling DDQN model")
 
             # Get samples from replay
             num_samples = min(
