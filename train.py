@@ -75,7 +75,7 @@ class Train:
 
         # Initial time
         self.time = time.time()
-        self.wait = 60 * 60 * 3  # 3 hours
+        self.wait = (60 ** 2) * 12  # 12 hours
 
     def _agent_load_save(self) -> None:
         """ Load/Save models for agent """
