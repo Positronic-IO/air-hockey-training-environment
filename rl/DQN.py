@@ -76,8 +76,6 @@ class DQN(Agent):
         rewards = self.model.predict(np.array([data.new_state]), batch_size=1)
         assert len(rewards[0]) == self.action_size
 
-        reward += self.gamma * rewards[0].max()
-
         # Update action we should take, then break out of loop
         self.last_target[0][self.last_action] = (
             data.reward + self.gamma * rewards[0].max()
