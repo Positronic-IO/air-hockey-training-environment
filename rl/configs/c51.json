@@ -10,8 +10,8 @@
         "observe": 2000,
         "explore": 50000,
         "frame_per_action": 4,
-        "update_target_freq": 3000,
-        "timestep_per_train": 100,
+        "update_target_freq": 30000,
+        "timestep_per_train": 10000,
         "num_atoms": 51,
         "v_max": 10,
         "v_min": -10
