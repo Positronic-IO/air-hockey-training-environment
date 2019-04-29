@@ -25,12 +25,12 @@ class Networks:
 
         x = Dense(30, kernel_initializer="normal", activation="relu")(x)
 
-        x = Dense(20, kernel_initializer="normal", activation="relu")(x)
+        x = Dense(12, kernel_initializer="normal", activation="relu")(x)
 
         x = Flatten()(x)
 
         # state value tower - V
-        state_value = Dense(256, kernel_initializer="normal", activation="relu")(x)
+        state_value = Dense(64, kernel_initializer="normal", activation="relu")(x)
 
         state_value = Dense(1, kernel_initializer="random_uniform")(state_value)
 
@@ -39,7 +39,7 @@ class Networks:
         )
 
         # action advantage tower - A
-        action_advantage = Dense(256, kernel_initializer="normal", activation="relu")(x)
+        action_advantage = Dense(64, kernel_initializer="normal", activation="relu")(x)
 
         action_advantage = Dense(action_size)(action_advantage)
 
@@ -113,9 +113,9 @@ class Networks:
         state_input = Input(shape=state_size)
         x = Dense(12, kernel_initializer="normal", activation="relu")(state_input)
 
-        x = Dense(30, kernel_initializer="normal", activation="relu")(x)
+        # x = Dense(30, kernel_initializer="normal", activation="relu")(x)
 
-        x = Dense(20, kernel_initializer="normal", activation="relu")(x)
+        x = Dense(12, kernel_initializer="normal", activation="relu")(x)
 
         x = Flatten()(x)
 
