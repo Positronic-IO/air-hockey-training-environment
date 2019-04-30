@@ -59,32 +59,22 @@ class AirHockeyGui:
         self.main_agent.load_model(str(self.main_agent))
 
         # Create human agent, overwritten if the opponent strategy is something
-        if self.config["live"]["opponent"]["strategy"] == "human":
-            self.opponent_agent = Agent(self.env, "human")
-        elif self.config["live"]["opponent"]["strategy"] == "q-learner":
-            self.opponent_agent = Strategy().make(
-                self.config["live"]["opponent"]["strategy"],
-                self.env,
-                self.tbl,
-                agent_name="opponent",
-            )
-        else:
-            self.opponent_agent = Strategy().make(
-                self.config["live"]["opponent"]["strategy"],
-                self.env,
-                self.tbl,
-                agent_name="opponent",
-            )
+        self.opponent_agent = Strategy().make(
+            self.config["live"]["opponent"]["strategy"],
+            self.env,
+            self.tbl,
+            agent_name="opponent",
+        )
 
-            # If we pass a weights file, load it.
-            if (
-                hasattr(self.opponent_agent, "load_model")
-                and self.config["live"]["opponent"]["load"]
-            ):
-                self.opponent_agent.load_path = get_model_path(
-                    self.config["live"]["opponent"]["load"]
-                )
-                self.opponent_agent.load_model(str(self.opponent_agent))
+        # If we pass a weights file, load it.
+        if (
+            hasattr(self.opponent_agent, "load_model")
+            and self.config["live"]["opponent"]["load"]
+        ):
+            self.opponent_agent.load_path = get_model_path(
+                self.config["live"]["opponent"]["load"]
+            )
+            self.opponent_agent.load_model(str(self.opponent_agent))
 
         # Set up buffers for agent position, puck position, opponent position
         self.agent_location_buffer = MemoryBuffer(self.config["capacity"], (0, 0))

@@ -35,17 +35,20 @@ class Train:
 
         # Set up our agent
         self.agent = Strategy().make(
-            self.config["training"]["agent"]["strategy"], self.env, tbl=self.tbl
+            name=self.config["training"]["agent"]["strategy"],
+            env=self.env,
+            tbl=self.tbl,
+            agent_name="main",
         )
         self._agent_load_save()
 
         # Set up opponent (if not the "basic" ai)
         if self.config["training"]["opponent"]["strategy"] != "basic":
             self.opponent = Strategy().make(
-                self.config["training"]["opponent"]["strategy"],
-                self.env,
-                agent_name="opponent",
+                name=self.config["training"]["opponent"]["strategy"],
+                env=self.env,
                 tbl=self.tbl,
+                agent_name="opponent",
             )
 
             self._opponent_load_save()
@@ -66,9 +69,9 @@ class Train:
         self.agent_cumulative_win, self.opponent_cumulative_win = 0, 0
 
         # Set up buffers for agent position, puck position, opponent position
-        self.agent_location_buffer = MemoryBuffer(self.config["capacity"], [0, 0])
-        self.puck_location_buffer = MemoryBuffer(self.config["capacity"], [0, 0])
-        self.opponent_location_buffer = MemoryBuffer(self.config["capacity"], [0, 0])
+        self.agent_location_buffer = MemoryBuffer(self.config["capacity"], (0, 0))
+        self.puck_location_buffer = MemoryBuffer(self.config["capacity"], (0, 0))
+        self.opponent_location_buffer = MemoryBuffer(self.config["capacity"], (0, 0))
 
         # Update buffers
         self._update_buffers()
@@ -88,7 +91,7 @@ class Train:
             self.agent.load_path = get_model_path(
                 self.config["training"]["agent"]["load"]
             )
-            self.agent.load_model()
+            self.agent.load_model(str(self.agent))
 
         if (
             hasattr(self.agent, "save_model")
@@ -111,7 +114,7 @@ class Train:
             self.opponent.load_path = get_model_path(
                 self.config["training"]["opponent"]["load"]
             )
-            self.opponent.load_model()
+            self.opponent.load_model(str(self.opponent))
 
         if (
             hasattr(self.opponent, "save_model")
@@ -132,9 +135,9 @@ class Train:
             "location"
         ]
 
-        self.agent_location_buffer.append(self.agent_location)
-        self.puck_location_buffer.append(self.puck_location)
-        self.opponent_location_buffer.append(self.opponent_location)
+        self.agent_location_buffer.append(tuple(self.agent_location))
+        self.puck_location_buffer.append(tuple(self.puck_location))
+        self.opponent_location_buffer.append(tuple(self.opponent_location))
 
         return None
 
@@ -258,9 +261,9 @@ class Train:
                 self.agent.save_path = get_model_path(
                     self.config["training"]["agent"]["save"]
                 )
-                self.agent.save_model(self.epoch)
+                self.agent.save_model(str(self.agent), self.epoch)
             else:
-                self.agent.save_model(epoch=self.epoch)
+                self.agent.save_model(str(self.agent), epoch=self.epoch)
             self.epoch += 1
 
         return None
@@ -339,9 +342,11 @@ class Train:
                         self.opponent.save_path = get_model_path(
                             self.config["training"]["opponent"]["save"]
                         )
-                        self.opponent.save_model(self.epoch - 1)
+                        self.opponent.save_model(str(self.opponent), self.epoch - 1)
                     else:
-                        self.opponent.save_model(epoch=self.epoch - 1)
+                        self.opponent.save_model(
+                            str(self.opponent), epoch=self.epoch - 1
+                        )
 
         return None
 

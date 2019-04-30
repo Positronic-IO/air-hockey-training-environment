@@ -31,7 +31,7 @@ class MemoryBuffer:
     def retreive(self) -> List[Union[State, Observation]]:
         """ Retrieve last n states """
 
-        return list(self.buffer)
+        return tuple(self.buffer)
 
     def sample(self, batch_size: int) -> List[Union[State, Observation]]:
         """ Choose a random sample from memory """
