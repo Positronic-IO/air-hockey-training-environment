@@ -56,12 +56,19 @@ class AirHockeyGui:
 
         # If we pass a weights file, load it.
         self.main_agent.load_path = get_model_path(self.config["live"]["agent"]["load"])
-        self.main_agent.load_model()
+        self.main_agent.load_model(str(self.main_agent))
 
         # Create human agent, overwritten if the opponent strategy is something
-        self.opponent_agent = Agent(self.env, "human")
-
-        if self.config["live"]["opponent"]["strategy"] != "human":
+        if self.config["live"]["opponent"]["strategy"] == "human":
+            self.opponent_agent = Agent(self.env, "human")
+        elif self.config["live"]["opponent"]["strategy"] == "q-learner":
+            self.opponent_agent = Strategy().make(
+                self.config["live"]["opponent"]["strategy"],
+                self.env,
+                self.tbl,
+                agent_name="opponent",
+            )
+        else:
             self.opponent_agent = Strategy().make(
                 self.config["live"]["opponent"]["strategy"],
                 self.env,
@@ -77,12 +84,12 @@ class AirHockeyGui:
                 self.opponent_agent.load_path = get_model_path(
                     self.config["live"]["opponent"]["load"]
                 )
-                self.opponent_agent.load_model()
+                self.opponent_agent.load_model(str(self.opponent_agent))
 
         # Set up buffers for agent position, puck position, opponent position
-        self.agent_location_buffer = MemoryBuffer(self.config["capacity"], [0, 0])
-        self.puck_location_buffer = MemoryBuffer(self.config["capacity"], [0, 0])
-        self.opponent_location_buffer = MemoryBuffer(self.config["capacity"], [0, 0])
+        self.agent_location_buffer = MemoryBuffer(self.config["capacity"], (0, 0))
+        self.puck_location_buffer = MemoryBuffer(self.config["capacity"], (0, 0))
+        self.opponent_location_buffer = MemoryBuffer(self.config["capacity"], (0, 0))
 
         # Update buffers
         self._update_buffers()
@@ -96,9 +103,9 @@ class AirHockeyGui:
             "location"
         ]
 
-        self.agent_location_buffer.append(self.agent_location)
-        self.puck_location_buffer.append(self.puck_location)
-        self.opponent_location_buffer.append(self.opponent_location)
+        self.agent_location_buffer.append(tuple(self.agent_location))
+        self.puck_location_buffer.append(tuple(self.puck_location))
+        self.opponent_location_buffer.append(tuple(self.opponent_location))
 
         return None
 
@@ -285,22 +292,23 @@ class AirHockeyGui:
         # Game loop
         while True:
 
-            # Air Hockey robot
-            self.main_player_move()
+            if not self.config["train"]:
+                # Air Hockey robot
+                self.main_player_move()
 
-            # Human agent
-            if self.config["live"]["opponent"]["strategy"] == "human":
-                # Grab and set user position
-                action = pygame.mouse.get_pos()
+                # Human agent
+                if self.config["live"]["opponent"]["strategy"] == "human":
+                    # Grab and set user position
+                    action = pygame.mouse.get_pos()
 
-                # Update buffers
-                self._update_buffers()
+                    # Update buffers
+                    self._update_buffers()
 
-                # Update game state
-                self.opponent_agent.move(action)
+                    # Update game state
+                    self.opponent_agent.move(action)
 
-            if self.config["live"]["opponent"]["strategy"] != "human":
-                self.opponent_player_move()
+                if self.config["live"]["opponent"]["strategy"] != "human":
+                    self.opponent_player_move()
 
             scores = json.loads(self.redis.get("scores"))
 
