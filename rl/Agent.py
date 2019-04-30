@@ -31,23 +31,24 @@ class Agent:
         if self.agent_name == "main":
             return self.env.agent.location()
         elif self.agent_name == "opponent":
-            print(self.env.opponent.location())
             return self.env.opponent.location()
         else:
             raise ValueError("Invalid agent name")
 
-    def load_model(self) -> None:
+    def load_model(self, name: str) -> None:
         """ Load a model"""
 
-        print("Loading model")
+        print(f"Loading {name} model")
 
         self.model_path = self._load_path
         self.model = load_model(
             self._load_path, custom_objects={"huber_loss": huber_loss}
         )
 
-    def save_model(self, epoch: int = 0) -> None:
+    def save_model(self, name: str, epoch: int = 0) -> None:
         """ Save a model """
+
+        print(f"Saving {name} model")
 
         # If we are not given a path, use the same path as the one we loaded the model
         if not self._save_path:
