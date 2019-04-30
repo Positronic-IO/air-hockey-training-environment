@@ -7,7 +7,8 @@ from keras.models import load_model
 from redis import Redis
 
 from environment import AirHockey
-from rl import MemoryBuffer, Strategy
+from rl import Agent, MemoryBuffer, Strategy
+from rl.helpers import TensorBoardLogger
 from utils import State, get_config, get_model_path
 
 # Initialize the game engine
@@ -34,6 +35,9 @@ class AirHockeyGui:
         # Load config
         self.config = get_config()
 
+        # Load tensorboard
+        self.tbl = TensorBoardLogger(f"{self.config['tensorboard']}_results")
+
         # Initiate game environment
         self.env = AirHockey()
 
@@ -42,25 +46,26 @@ class AirHockeyGui:
 
         self.init, self.init_opponent = True, True
 
-        if self.config["robot"] and not self.config["train"]:
-            # If user is a robot, set learning style for agent
-            self.main_agent = Strategy().make(
-                self.config["live"]["agent"]["strategy"], self.env, agent_name="main"
-            )
+        # If user is a robot, set learning style for agent
+        self.main_agent = Strategy().make(
+            self.config["live"]["agent"]["strategy"],
+            self.env,
+            self.tbl,
+            agent_name="main",
+        )
 
-            # If we pass a weights file, load it.
-            if (
-                hasattr(self.main_agent, "load_model")
-                and self.config["live"]["agent"]["strategy"]
-            ):
-                self.main_agent.load_path = get_model_path(
-                    self.config["live"]["agent"]["load"]
-                )
-                self.main_agent.load_model()
+        # If we pass a weights file, load it.
+        self.main_agent.load_path = get_model_path(self.config["live"]["agent"]["load"])
+        self.main_agent.load_model()
 
+        # Create human agent, overwritten if the opponent strategy is something
+        self.opponent_agent = Agent(self.env, "human")
+
+        if self.config["live"]["opponent"]["strategy"] != "human":
             self.opponent_agent = Strategy().make(
                 self.config["live"]["opponent"]["strategy"],
                 self.env,
+                self.tbl,
                 agent_name="opponent",
             )
 
