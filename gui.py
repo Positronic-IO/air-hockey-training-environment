@@ -305,20 +305,20 @@ class AirHockeyGui:
                 if self.config["live"]["opponent"]["strategy"] != "human":
                     self.opponent_player_move()
 
-            scores = json.loads(self.redis.get("scores"))
+                scores = json.loads(self.redis.get("scores"))
 
-            # Compute scores
-            if scores["cpu_score"] == 10:
-                print(f"Agent {scores['agent_score']}, Computer {scores['cpu_score']}")
-                print("Computer wins!")
+                # Compute scores
+                if scores["cpu_score"] == 10:
+                    print(f"Agent {scores['agent_score']}, Computer {scores['cpu_score']}")
+                    print("Computer wins!")
 
-                self.env.reset(total=True)
+                    self.env.reset(total=True)
 
-            if scores["agent_score"] == 10:
-                print(f"Agent {scores['agent_score']}, Computer {scores['cpu_score']}")
-                print("Agent wins!")
+                if scores["agent_score"] == 10:
+                    print(f"Agent {scores['agent_score']}, Computer {scores['cpu_score']}")
+                    print("Agent wins!")
 
-                self.env.reset(total=True)
+                    self.env.reset(total=True)
 
             self.rerender_environment()
 
