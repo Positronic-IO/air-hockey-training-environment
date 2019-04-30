@@ -2,11 +2,11 @@
     "training": {
         "agent": {
             "strategy": "dueling",
-            "load": "models/agent/dueling/v1.h5",
-            "save": "models/agent/dueling/v2.h5"
+            "load": "models/robot/dueling/v1.h5",
+            "save_": "models/robot/dueling/v2.h5"
         },
         "opponent": {
-            "strategy": "dueling",
+            "strategy": "dqn",
             "load": "",
             "save": "models/opponent/dueling/v1.h5"
         },
@@ -15,12 +15,12 @@
     "live": {
         "agent": {
             "strategy": "dueling",
-            "load": "models/dueling/v1.h5",
+            "load": "models/robot/dueling/v1.h5",
             "load_": ""
         },
         "opponent": {
-            "strategy": "human",
-            "load": "models/51/v1_1727.h5",
+            "strategy": "dueling",
+            "load": "models/opponent/dueling/v1.h5",
             "load_": ""
         }
     },
