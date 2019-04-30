@@ -2,25 +2,25 @@
     "training": {
         "agent": {
             "strategy": "dueling",
-            "load": "",
-            "save": "models/dueling/v3.h5"
+            "load": "models/agent/dueling/v1.h5",
+            "save": "models/agent/dueling/v2.h5"
         },
         "opponent": {
-            "strategy": "c51",
+            "strategy": "dueling",
             "load": "",
-            "save": "models/c51/v3.h5"
+            "save": "models/opponent/dueling/v1.h5"
         },
-        "results": "results/c51-dueling_v3.csv"
+        "results": ""
     },
     "live": {
         "agent": {
-            "strategy": "c51",
-            "load": "models/c51/v1_3.h5",
+            "strategy": "dueling",
+            "load": "models/dueling/v1.h5",
             "load_": ""
         },
         "opponent": {
-            "strategy": "c51",
-            "load": "models/c51/v1_3.h5",
+            "strategy": "human",
+            "load": "models/51/v1_1727.h5",
             "load_": ""
         }
     },
@@ -31,8 +31,8 @@
         "miss": 0
     },
     "train": true,
-    "fps": -1,
+    "fps": 60,
     "robot": true,
     "capacity": 4,
-    "tensorboard": "logs/showdown_v3"
+    "tensorboard": "logs/showdown_v2"
 }
