@@ -40,5 +40,6 @@ class Strategy:
             raise ValueError("Need to pass a gaming environment")
 
         config = get_config_strategy(name)
-
+        if name in ["dqn", "q-learner"]:
+            return self.strategies[name](env, config, agent_name)
         return self.strategies[name](env, config, tbl, agent_name)
