@@ -163,7 +163,7 @@ class AirHockey:
 
         # Update action
         if isinstance(action, tuple):  # Cartesian Coordinates
-            agent.x, self.agent.y = action[0], action[1]
+            agent.x, agent.y = action[0], action[1]
 
         # Strings
         if isinstance(action, str) and action == self.actions[0]:
