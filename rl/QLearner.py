@@ -13,7 +13,12 @@ from utils import Action, Observation, State
 class QLearner:
     """ Uses Q-learning to update/maximize rewards """
 
-    def __init__(self, env: AirHockey, config: Dict[str, Dict[str, int]]):
+    def __init__(
+        self,
+        env: AirHockey,
+        config: Dict[str, Dict[str, int]],
+        agent_name: str = "main",
+    ):
         self.env = env
         self.Q = {}
         self.last_state = None
@@ -21,18 +26,31 @@ class QLearner:
         self.learning_rate = config["params"]["learning_rate"]
         self.gamma = config["params"]["gamma"]
         self.epsilon = config["params"]["epsilon"]
+        self.agent_name = agent_name
 
         self.version = "0.1.0"
+
+    def __repr__(self) -> str:
+        return f"{self.__str__()} {self.version}"
+
+    def __str__(self) -> str:
+        return "Q-Leaner"
 
     def move(self, action: Action) -> None:
         """ Move agent """
 
-        self.env.update_state(action)
+        self.env.update_state(action, self.agent_name)
         return None
 
-    def location(self) -> Tuple[int, int]:
+    def location(self) -> Union[None, Tuple[int, int]]:
         """ Return agent's location """
-        return self.env.agent.location()
+
+        if self.agent_name == "main":
+            return self.env.agent.location()
+        elif self.agent_name == "opponent":
+            return self.env.opponent.location()
+        else:
+            raise ValueError("Invalid agent name")
 
     def get_action(self, state: State) -> int:
         """ Give current state, predict next action which maximizes reward """

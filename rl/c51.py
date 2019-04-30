@@ -78,6 +78,12 @@ class c51(Agent):
 
         self.version = "0.1.0"
 
+    def __repr__(self) -> str:
+        return f"{self.__str__()} {self.version}"
+
+    def __str__(self) -> str:
+        return "c51 DDQN"
+
     def build_model(self) -> None:
         """ Create our DNN model for Q-value approximation """
 
