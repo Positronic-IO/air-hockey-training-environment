@@ -209,6 +209,11 @@ class AirHockey:
             self._move(self.agent, action)
         elif agent_name == "opponent":
             self._move(self.opponent, action)
+        elif agent_name == "human":
+            # Update action
+            if isinstance(action, tuple):  # Cartesian Coordinates
+                self.opponent.x, self.opponent.y = action[0], action[1]
+                self.opponent.update_mallet()
         else:
             raise ValueError("Invalid agent name")
 
