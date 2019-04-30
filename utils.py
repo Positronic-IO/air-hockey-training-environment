@@ -32,6 +32,7 @@ def get_config_strategy(name: str) -> Dict[str, Union[str, int]]:
     """ Grab config for different strategies """
 
     strategies = {
+        "q-learner": os.path.join(os.getcwd(), "rl", "configs", "q-learner.json"),
         "dqn": os.path.join(os.getcwd(), "rl", "configs", "dqn.json"),
         "ddqn": os.path.join(os.getcwd(), "rl", "configs", "ddqn.json"),
         "dueling": os.path.join(os.getcwd(), "rl", "configs", "dueling.json"),
