@@ -6,6 +6,7 @@ from keras.models import Model, load_model
 
 from rl.helpers import huber_loss
 from utils import Action, get_model_path
+import numpy as np
 
 
 class Agent:
@@ -20,8 +21,9 @@ class Agent:
     def move(self, action: Action) -> None:
         """ Move agent """
 
+        action = int(action) if isinstance(action, np.int64) else action
+
         self.env.update_state(agent_name=self.agent_name, action=action)
-        return None
 
     def location(self) -> Union[None, Tuple[int, int]]:
         """ Return agent's location """
