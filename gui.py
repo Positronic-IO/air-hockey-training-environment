@@ -46,35 +46,38 @@ class AirHockeyGui:
 
         self.init, self.init_opponent = True, True
 
-        # If user is a robot, set learning style for agent
-        self.main_agent = Strategy().make(
-            self.config["live"]["agent"]["strategy"],
-            self.env,
-            self.tbl,
-            agent_name="main",
-        )
-
-        # If we pass a weights file, load it.
-        self.main_agent.load_path = get_model_path(self.config["live"]["agent"]["load"])
-        self.main_agent.load_model(str(self.main_agent))
-
-        # Create human agent, overwritten if the opponent strategy is something
-        self.opponent_agent = Strategy().make(
-            self.config["live"]["opponent"]["strategy"],
-            self.env,
-            self.tbl,
-            agent_name="opponent",
-        )
-
-        # If we pass a weights file, load it.
-        if (
-            hasattr(self.opponent_agent, "load_model")
-            and self.config["live"]["opponent"]["load"]
-        ):
-            self.opponent_agent.load_path = get_model_path(
-                self.config["live"]["opponent"]["load"]
+        # If we are in training mode, then observe.
+        # If not, let's play a game.
+        if not self.config["train"]:
+            # If user is a robot, set learning style for agent
+            self.main_agent = Strategy().make(
+                self.config["live"]["agent"]["strategy"],
+                self.env,
+                self.tbl,
+                agent_name="main",
             )
-            self.opponent_agent.load_model(str(self.opponent_agent))
+
+            # If we pass a weights file, load it.
+            self.main_agent.load_path = get_model_path(self.config["live"]["agent"]["load"])
+            self.main_agent.load_model(str(self.main_agent))
+
+            # Create human agent, overwritten if the opponent strategy is something
+            self.opponent_agent = Strategy().make(
+                self.config["live"]["opponent"]["strategy"],
+                self.env,
+                self.tbl,
+                agent_name="opponent",
+            )
+
+            # If we pass a weights file, load it.
+            if (
+                hasattr(self.opponent_agent, "load_model")
+                and self.config["live"]["opponent"]["load"]
+            ):
+                self.opponent_agent.load_path = get_model_path(
+                    self.config["live"]["opponent"]["load"]
+                )
+                self.opponent_agent.load_model(str(self.opponent_agent))
 
         # Set up buffers for agent position, puck position, opponent position
         self.agent_location_buffer = MemoryBuffer(self.config["capacity"], (0, 0))
