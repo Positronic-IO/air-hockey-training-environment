@@ -127,7 +127,6 @@ class c51(Agent):
         z_concat = np.vstack(z)
         q = np.sum(np.multiply(z_concat, np.array(self.z)), axis=1)
         # Pick action with the biggest Q value
-
         idx = np.argmax(q)
         self.tbl.log_histogram("c51 Predict Actions", idx, self.t)
         return idx
