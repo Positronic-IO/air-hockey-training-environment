@@ -243,7 +243,7 @@ class AirHockeyGui:
     def opponent_player_move(self) -> None:
         """ Opponent player """
 
-        # # For first move, move in a random direction
+        # For first move, move in a random direction
         if self.init_opponent:
             # Update buffers
             self._update_buffers()
@@ -285,15 +285,21 @@ class AirHockeyGui:
         # Game loop
         while True:
 
+            # Air Hockey robot
+            self.main_player_move()
+
             # Human agent
-            if not self.config["robot"]:
+            if self.config["live"]["opponent"]["strategy"] == "human":
                 # Grab and set user position
-                pos = pygame.mouse.get_pos()
-                self.env.update_state(action=pos)
+                action = pygame.mouse.get_pos()
 
-            if self.config["robot"] and not self.config["train"]:
+                # Update buffers
+                self._update_buffers()
 
-                self.main_player_move()
+                # Update game state
+                self.opponent_agent.move(action)
+
+            if self.config["live"]["opponent"]["strategy"] != "human":
                 self.opponent_player_move()
 
             scores = json.loads(self.redis.get("scores"))
@@ -303,11 +309,12 @@ class AirHockeyGui:
                 print(f"Agent {scores['agent_score']}, Computer {scores['cpu_score']}")
                 print("Computer wins!")
 
+                self.env.reset(total=True)
+
             if scores["agent_score"] == 10:
                 print(f"Agent {scores['agent_score']}, Computer {scores['cpu_score']}")
                 print("Agent wins!")
 
-            if not self.config["robot"]:
                 self.env.reset(total=True)
 
             self.rerender_environment()
