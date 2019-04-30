@@ -249,7 +249,7 @@ class Train:
             if self.config["training"]["results"]:
                 self.stats()
 
-        # After so many iterations, save motedel
+        # After so many iterations, save model
         if (
             hasattr(self.agent, "save_model")
             and self.iterations % self.iterations_on_save == 0
@@ -268,17 +268,17 @@ class Train:
     def opponent_player(self) -> None:
         """ Opponent player """
 
-        # Update buffers
-        self._update_buffers()
-
         if self.config["training"]["opponent"]["strategy"] == "basic":
+            # Update buffers
+            self._update_buffers()
+
             while self.env.ticks_to_ai == 0:
                 self.env.mallet_ai()
                 self.env.ticks_to_ai = 10
             self.env.opponent.update_mallet()
         else:
 
-            # # For first move, move in a random direction
+            # For first move, move in a random direction
             if self.init_opponent:
 
                 action = np.random.randint(0, len(self.env.actions) - 1)
