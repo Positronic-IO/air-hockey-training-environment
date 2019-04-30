@@ -28,7 +28,7 @@ class MemoryBuffer:
 
         assert len(self.buffer) < self.capacity + 1, "Max memory exceeded"
 
-    def retreive(self) -> List[Union[State, Observation]]:
+    def retreive(self) -> Tuple[Union[State, Observation]]:
         """ Retrieve last n states """
 
         return tuple(self.buffer)
