@@ -212,9 +212,9 @@ class Train:
 
             # Current state
             state = State(
-                agent_location=self.agent_location_buffer.retreive(),
+                # agent_location=self.agent_location_buffer.retreive(),
                 puck_location=self.puck_location_buffer.retreive(),
-                opponent_location=self.opponent_location_buffer.retreive(),
+                # opponent_location=self.opponent_location_buffer.retreive(),
             )
 
             # Determine next action
@@ -228,13 +228,10 @@ class Train:
 
             # New state
             new_state = State(
-                agent_location=self.agent_location_buffer.retreive(),
+                # agent_location=self.agent_location_buffer.retreive(),
                 puck_location=self.puck_location_buffer.retreive(),
-                opponent_location=self.opponent_location_buffer.retreive(),
+                # opponent_location=self.opponent_location_buffer.retreive(),
             )
-
-            # Record reward
-            self.env.reward_per_episode += self.env.reward
 
             # Observation of the game at the moment
             observation = Observation(
@@ -298,9 +295,9 @@ class Train:
 
                 # Current state
                 state = State(
-                    agent_location=self.opponent_location_buffer.retreive(),
+                    # agent_location=self.opponent_location_buffer.retreive(),
                     puck_location=self.puck_location_buffer.retreive(),
-                    opponent_location=self.agent_location_buffer.retreive(),
+                    # opponent_location=self.agent_location_buffer.retreive(),
                 )
 
                 # Determine next action
@@ -314,18 +311,16 @@ class Train:
 
                 # New state
                 new_state = State(
-                    agent_location=self.opponent_location_buffer.retreive(),
+                    # agent_location=self.opponent_location_buffer.retreive(),
                     puck_location=self.puck_location_buffer.retreive(),
-                    opponent_location=self.agent_location_buffer.retreive(),
+                    # opponent_location=self.agent_location_buffer.retreive(),
                 )
 
                 # Observation of the game at the moment
                 observation = Observation(
                     state=state,
                     action=action,
-                    reward=(
-                        -1 * self.env.reward
-                    ),  # Opposite reward of our agent, only works for current reward settings
+                    reward=self.env.reward,  # Opposite reward of our agent, only works for current reward settings
                     done=self.env.done,
                     new_state=new_state,
                 )
