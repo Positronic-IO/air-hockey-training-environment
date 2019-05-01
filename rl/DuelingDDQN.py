@@ -34,7 +34,7 @@ class DuelingDDQN(Agent):
 
         # Get size of state and action
         # State grows by the amount of frames we want to hold in our memory
-        self.state_size = (3, main_config["capacity"], 2)
+        self.state_size = (1, main_config["capacity"], 2)
         self.action_size = len(self.env.actions)
 
         # These is hyper parameters for the Dueling DQN
@@ -68,7 +68,7 @@ class DuelingDDQN(Agent):
         # Initiate Tensorboard
         self.tbl = tbl
 
-        self.version = "0.1.0"
+        self.version = "0.2.0"
 
     def __repr__(self) -> str:
         return f"{self.__str__()} {self.version}"
