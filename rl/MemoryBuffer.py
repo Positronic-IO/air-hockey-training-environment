@@ -1,7 +1,7 @@
 """ Memory buffer """
 import random
 from collections import deque
-from typing import Any, Deque, List, Union
+from typing import Any, Deque, List, Union, Tuple
 
 from utils import Observation, State
 
