@@ -87,7 +87,9 @@ class AirHockey:
 
         # Reward
         self.reward = 0
-        self.cumulative_reward = 0
+        self.agent_cumulative_reward = 0
+        self.cpu_cumulative_reward = 0
+
 
         # If episode is done
         self.done = False
@@ -95,9 +97,6 @@ class AirHockey:
         # Cumulative scores
         self.agent_cumulative_score = 0
         self.cpu_cumulative_score = 0
-
-        # Reward per episode
-        self.reward_per_episode = 0
 
     def check_stall(self) -> None:
         """ Check to see if the game has stalled """
@@ -276,8 +275,9 @@ class AirHockey:
         ):
             self.agent_score += 1
             self.agent_cumulative_score += 1
-            self.reward = self.rewards["point"]
-            self.cumulative_reward += self.reward
+            self.reward = self.rewards["point"] if self.agent_score == 10 else 0
+            self.agent_cumulative_reward += self.rewards["point"] if self.agent_score == 10 else 0
+            self.cpu_cumulative_reward += self.rewards["loss"] if self.agent_score == 10 else 0
 
             # Push to redis
             self._update_score_redis()
@@ -294,8 +294,9 @@ class AirHockey:
         ):
             self.cpu_score += 1
             self.cpu_cumulative_score += 1
-            self.reward = self.rewards["loss"]
-            self.cumulative_reward += self.reward
+            self.reward = self.rewards["loss"] if self.cpu_score == 10 else 0
+            self.agent_cumulative_reward += self.rewards["loss"] if self.cpu_score == 10 else 0
+            self.cpu_cumulative_reward += self.rewards["point"] if self.cpu_score == 10 else 0
 
             # Push to redis
             self._update_score_redis()
@@ -306,18 +307,18 @@ class AirHockey:
             return None
 
         # # We hit the puck
-        if (
-            abs(self.agent.x - self.puck.x) <= 35
-            and abs(self.agent.y - self.puck.y) <= 35
-        ):
-            self.reward = self.rewards["hit"]
-            self.cumulative_reward += self.reward
-            self.done = False
-            return None
+        # if (
+        #     abs(self.agent.x - self.puck.x) <= 35
+        #     and abs(self.agent.y - self.puck.y) <= 35
+        # ):
+        #     self.reward = self.rewards["hit"]
+        #     self.cumulative_reward += self.reward
+        #     self.done = False
+        #     return None
 
-        self.reward = self.rewards["miss"]
-        self.cumulative_reward += self.reward
-        self.done = False
+        # self.reward = self.rewards["miss"]
+        # self.cumulative_reward += self.reward
+        # self.done = False
         return None
 
     def reset(self, total: bool = False) -> None:
