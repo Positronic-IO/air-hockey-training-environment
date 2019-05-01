@@ -174,7 +174,6 @@ class Train:
 
         if self.new:
             write_results(self.config["training"]["results"], results)
-            self.env.reward_per_episode = 0
             self.new = False
 
             # Push to Tensorboard
@@ -189,6 +188,19 @@ class Train:
             )
             self.tbl.log_scalar(
                 f"Opponent goal", results["opponent_goal"][0], self.iterations
+            )
+            self.tbl.log_scalar(
+                f"Agent Win", self.agent_cumulative_win, self.iterations
+            )
+            self.tbl.log_scalar(
+                f"Agent Cumulative Reward",
+                self.env.agent_cumulative_reward,
+                self.iterations,
+            )
+            self.tbl.log_scalar(
+                f"Opponent Cumulative Reward",
+                self.env.cpu_cumulative_reward,
+                self.iterations,
             )
 
         return None
