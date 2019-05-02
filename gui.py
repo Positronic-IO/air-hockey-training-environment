@@ -229,9 +229,7 @@ class AirHockeyGui:
 
             # Current state
             state = State(
-                agent_location=self.agent_location_buffer.retreive(),
                 puck_location=self.puck_location_buffer.retreive(),
-                opponent_location=self.opponent_location_buffer.retreive(),
             )
 
             # Determine next action
@@ -264,9 +262,7 @@ class AirHockeyGui:
 
             # Current state
             state = State(
-                agent_location=self.agent_location_buffer.retreive(),
                 puck_location=self.puck_location_buffer.retreive(),
-                opponent_location=self.opponent_location_buffer.retreive(),
             )
 
             # Determine next action
