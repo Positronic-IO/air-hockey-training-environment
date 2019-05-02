@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "46fa3fe0c61249c26600b776a601f55c3230f4ddc05878c38a26e137c3f3def5"
+            "sha256": "0d107c1519703147acbbbd6c5137aa6852711855e45e6ddccf075b961962c189"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -45,10 +45,10 @@
         },
         "bleach": {
             "hashes": [
-                "sha256:978e758599b54cd3caa2e160d74102879b230ea8dc93871d0783721eef58bc65",
-                "sha256:e67f46adcec78dbc3c04462f3aba3213a673d5652eba2609ed1ef15492a44b8d"
+                "sha256:213336e49e102af26d9cde77dd2d0397afabc5a6bf2fed985dc35b5d1e285a16",
+                "sha256:3fdf7f77adcf649c9911387df51254b813185e32b2c6619f690b593a617e19fa"
             ],
-            "version": "==1.5.0"
+            "version": "==3.1.0"
         },
         "cycler": {
             "hashes": [
@@ -154,12 +154,6 @@
             ],
             "index": "pypi",
             "version": "==2.9.0"
-        },
-        "html5lib": {
-            "hashes": [
-                "sha256:2612a191a8d5842bfa057e41ba50bbb9dcb722419d2408c78cff4758d0754868"
-            ],
-            "version": "==0.9999999"
         },
         "ipykernel": {
             "hashes": [
@@ -752,14 +746,6 @@
             "index": "pypi",
             "version": "==1.12.0"
         },
-        "tensorflow-tensorboard": {
-            "hashes": [
-                "sha256:47f985cdcaeae697d978dcaca5441ff22533cbcc9ebc4f50b606e7485b931436",
-                "sha256:749845a950009cc2a95b9ba7cd915eff01b363e3e2a71d3eee056890f37ecdb3"
-            ],
-            "index": "pypi",
-            "version": "==1.5.1"
-        },
         "termcolor": {
             "hashes": [
                 "sha256:1d6d69ce66211143803fbc56652b41d73b4a400a2891d7bf7a1cdf4c02de613b"
@@ -830,6 +816,13 @@
             ],
             "version": "==0.1.7"
         },
+        "webencodings": {
+            "hashes": [
+                "sha256:a0af1213f3c2226497a97e2b3aa01a7e4bee4f403f95be16fc9acd2947514a78",
+                "sha256:b36a1c245f2d304965eb4e0a82848379241dc04b865afcc4aab16748587e1923"
+            ],
+            "version": "==0.5.1"
+        },
         "werkzeug": {
             "hashes": [
                 "sha256:0a73e8bb2ff2feecfc5d56e6f458f5b99290ef34f565ffb2665801ff7de6af7a",
@@ -853,14 +846,6 @@
                 "sha256:b26104d6835d1f5e49452a26eb2ff87fe7090b89dfcaee5ea2212697e1e1d7ae"
             ],
             "version": "==2019.3.9"
-        },
-        "pysnooper": {
-            "hashes": [
-                "sha256:abcddf56a5ba5df30bdf558ca3455108a6007a32508c2643e37cca56bf797e6b",
-                "sha256:b311dedb70b172d911d8ac58c40717718dce73d16b9b20028aada5cacb0458db"
-            ],
-            "index": "pypi",
-            "version": "==0.0.24"
         },
         "sentry-sdk": {
             "hashes": [
