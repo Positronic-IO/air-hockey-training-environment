@@ -266,14 +266,10 @@ class Train:
             hasattr(self.agent, "save_model")
             and self.iterations % self.iterations_on_save == 0
         ):
-            if self.config["training"]["agent"]["save"]:
-                self.agent.save_path = get_model_path(
-                    self.config["training"]["agent"]["save"]
-                )
-                self.agent.save_model(str(self.agent), self.epoch)
-            else:
-                self.agent.save_model(str(self.agent), epoch=self.epoch)
-            self.epoch += 1
+            self.agent.save_path = get_model_path(
+                self.config["training"]["agent"]["save"]
+            )
+            self.agent.save_model(str(self.agent))
 
         return None
 
@@ -345,15 +341,10 @@ class Train:
                     hasattr(self.opponent, "save_model")
                     and self.iterations % self.iterations_on_save == 0
                 ):
-                    if self.config["training"]["opponent"]["save"]:
-                        self.opponent.save_path = get_model_path(
-                            self.config["training"]["opponent"]["save"]
-                        )
-                        self.opponent.save_model(str(self.opponent), self.epoch - 1)
-                    else:
-                        self.opponent.save_model(
-                            str(self.opponent), epoch=self.epoch - 1
-                        )
+                    self.opponent.save_path = get_model_path(
+                        self.config["training"]["opponent"]["save"]
+                    )
+                    self.opponent.save_model(str(self.opponent))
 
         return None
 

@@ -45,7 +45,7 @@ class Agent:
             self._load_path, custom_objects={"huber_loss": huber_loss}
         )
 
-    def save_model(self, name: str, epoch: int = 0) -> None:
+    def save_model(self, name: str) -> None:
         """ Save a model """
 
         print(f"Saving {name} model")
@@ -56,8 +56,8 @@ class Agent:
 
         # Create path with epoch number
         head, ext = os.path.splitext(self._save_path)
-        path = get_model_path(f"{head}_{epoch}" + ext)
-        self.model.save(path)
+        path = get_model_path(self._save_path)
+        self.model.save(path, overwrite=True)
 
     @property
     def save_path(self) -> None:
