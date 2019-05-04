@@ -20,6 +20,7 @@ h5py = "*"
 redis = "*"
 tensorboard = "*"
 tensorflow-gpu = "==1.12.0"
+requests = "*"
 
 [requires]
 python_version = "3.6"
