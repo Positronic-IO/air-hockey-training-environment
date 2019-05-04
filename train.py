@@ -14,9 +14,9 @@ from rl.helpers import TensorBoardLogger
 from utils import Observation, State, get_config, get_model_path, write_results
 
 try:
-    import sentry_sdk
-
-    # sentry_sdk.init(os.getenv("sentry"))
+    if os.getenv("debug"):
+        import sentry_sdk
+        sentry_sdk.init(os.getenv("sentry"))
 except ImportError:
     pass
 
