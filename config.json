@@ -3,13 +3,13 @@
         "agent": {
             "strategy": "c51",
             "load": "",
-            "load_": "models/robot/dueling/v1.h5",
-            "save": "models/robot/c51/v1.h5"
+            "load": "models/robot/c51/v1.h5",
+            "save": "models/robot/c51/v2.h5"
         },
         "opponent": {
-            "strategy": "ddqn",
+            "strategy": "dueling",
             "load": "",
-            "save": "models/opponent/ddqn/v1.h5"
+            "save": "models/opponent/dueling/v1.h5"
         },
         "results": ""
     },
