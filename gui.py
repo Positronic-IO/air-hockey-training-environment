@@ -10,6 +10,7 @@ from environment import AirHockey
 from rl import Agent, MemoryBuffer, Strategy
 from rl.helpers import TensorBoardLogger
 from utils import State, get_config, get_model_path
+from connect import Connection
 
 # Initialize the game engine
 pygame.init()
@@ -18,7 +19,8 @@ pygame.init()
 class AirHockeyGui:
 
     # Set up redis
-    redis = Redis()
+    # redis = Redis()
+    conn = Connection().make("server")
 
     # Define some colors
     black = (0, 0, 0)
@@ -82,7 +84,7 @@ class AirHockeyGui:
                 self.opponent_agent.load_model(str(self.opponent_agent))
 
         # Set up buffers for agent position, puck position, opponent position
-        self.agent_location_buffer = MemoryBuffer(self.config["capacity"], (0, 0))
+        self.robot_location_buffer = MemoryBuffer(self.config["capacity"], (0, 0))
         self.puck_location_buffer = MemoryBuffer(self.config["capacity"], (0, 0))
         self.opponent_location_buffer = MemoryBuffer(self.config["capacity"], (0, 0))
 
@@ -92,13 +94,11 @@ class AirHockeyGui:
     def _update_buffers(self) -> None:
         """ Update redis buffers """
 
-        self.puck_location = json.loads(self.env.redis.get("puck"))["location"]
-        self.agent_location = json.loads(self.env.redis.get("agent_mallet"))["location"]
-        self.opponent_location = json.loads(self.env.redis.get("opponent_mallet"))[
-            "location"
-        ]
+        self.puck_location = self.conn.get("puck")
+        self.robot_location = self.conn.get("robot")
+        self.opponent_location = self.conn.get("opponent")
 
-        self.agent_location_buffer.append(tuple(self.agent_location))
+        self.robot_location_buffer.append(tuple(self.robot_location))
         self.puck_location_buffer.append(tuple(self.puck_location))
         self.opponent_location_buffer.append(tuple(self.opponent_location))
 
@@ -166,9 +166,9 @@ class AirHockeyGui:
         self.draw_table()
 
         # Draw left mallet
-        pygame.draw.circle(screen, self.white, self.agent_location, 20, 0)
-        pygame.draw.circle(screen, self.black, self.agent_location, 20, 1)
-        pygame.draw.circle(screen, self.black, self.agent_location, 5, 0)
+        pygame.draw.circle(screen, self.white, self.robot_location, 20, 0)
+        pygame.draw.circle(screen, self.black, self.robot_location, 20, 1)
+        pygame.draw.circle(screen, self.black, self.robot_location, 5, 0)
 
         # Draw right mallet
         pygame.draw.circle(screen, self.white, self.opponent_location, 20, 0)

@@ -126,8 +126,9 @@ dmypy.json
 .vscode/
 
 # testing
+*.h5
 *.csv
-# *.ipynb
+#*.ipynb
 todo
 
 # Tensorboard
