@@ -18,6 +18,17 @@ Observation = namedtuple(
     "observation", ["state", "action", "reward", "done", "new_state"]
 )
 
+def cli() -> Dict[str, Any]:
+
+    parser = argparse.ArgumentParser(description='Process stuff for training.')
+
+    parser.add_argument('-r, --robot', help='Robot configuration')
+    parser.add_argument('-o, --opponent', help='Opponent configuration')
+    
+    args = var(parser.parse_args())
+
+    return args
+
 
 #  Load configuration
 def get_config() -> Dict[str, Any]:
