@@ -1,0 +1,9 @@
+{
+    "params": {
+        "gamma": 0.1,
+        "epsilon": 0.9
+    },
+    "load": "models/robot/dueling/v1.h5",
+    "save_": "models/robot/dueling/v2.h5",
+    "capacity": 4
+}

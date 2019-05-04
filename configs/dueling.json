@@ -12,5 +12,8 @@
         "frame_per_action": 4,
         "update_target_freq": 30000,
         "timestep_per_train": 10000
-    }
+    },
+    "load": "models/robot/dueling/v1.h5",
+    "save_": "models/robot/dueling/v2.h5",
+    "capacity": 4
 }

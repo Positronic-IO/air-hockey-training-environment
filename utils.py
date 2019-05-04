@@ -42,12 +42,15 @@ def get_config() -> Dict[str, Any]:
 def get_config_strategy(name: str) -> Dict[str, Union[str, int]]:
     """ Grab config for different strategies """
 
+    if name == "human":
+        return name
+
     strategies = {
-        "q-learner": os.path.join(os.getcwd(), "rl", "configs", "q-learner.json"),
-        "dqn": os.path.join(os.getcwd(), "rl", "configs", "dqn.json"),
-        "ddqn": os.path.join(os.getcwd(), "rl", "configs", "ddqn.json"),
-        "dueling": os.path.join(os.getcwd(), "rl", "configs", "dueling.json"),
-        "c51": os.path.join(os.getcwd(), "rl", "configs", "c51.json"),
+        "q-learner": os.path.join(os.getcwd(), "configs", "q-learner.json"),
+        "dqn": os.path.join(os.getcwd(), "configs", "dqn.json"),
+        "ddqn": os.path.join(os.getcwd(), "configs", "ddqn.json"),
+        "dueling": os.path.join(os.getcwd(), "configs", "dueling.json"),
+        "c51": os.path.join(os.getcwd(), "configs", "c51.json"),
     }
 
     try:
