@@ -1,14 +1,15 @@
 {
     "training": {
         "agent": {
-            "strategy": "dueling",
-            "load": "models/robot/dueling/v1.h5",
-            "save_": "models/robot/dueling/v2.h5"
+            "strategy": "c51",
+            "load": "",
+            "load_": "models/robot/dueling/v1.h5",
+            "save": "models/robot/c51/v1.h5"
         },
         "opponent": {
-            "strategy": "dqn",
+            "strategy": "ddqn",
             "load": "",
-            "save": "models/opponent/dueling/v1.h5"
+            "save": "models/opponent/ddqn/v1.h5"
         },
         "results": ""
     },
