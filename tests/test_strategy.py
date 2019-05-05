@@ -6,57 +6,68 @@ from rl.c51 import c51
 from rl.DDQN import DDQN
 from rl.DQN import DQN
 from rl.DuelingDDQN import DuelingDDQN
+from rl.helpers import TensorBoardLogger
 from rl.QLearner import QLearner
 from rl.Strategy import Strategy
-from rl.helpers import TensorBoardLogger
-
-env = AirHockey()
-tbl = TensorBoardLogger(log_dir="logs/test")
-
-def test_human_agent():
-    """ Test to see if created agent is human """
-
-    strategy = Strategy().make(name="human",env=env, tbl=tbl, agent_name="agent")
-    assert isinstance(strategy, Agent)
 
 
-def test_ddqn_agent():
-    """ Test to see if created agent is ddqn """
+class TestStrategy:
+    def setup(self):
+        self.env = AirHockey()
+        self.tbl = TensorBoardLogger(log_dir="logs/test")
 
-    strategy = Strategy().make(name="ddqn",env=env, tbl=tbl, agent_name="agent")
-    assert isinstance(strategy, DDQN)
+    def test_human_agent(self):
+        """ Test to see if created agent is human """
 
+        strategy = Strategy().make(
+            name="human", env=self.env, tbl=self.tbl, agent_name="agent"
+        )
+        assert isinstance(strategy, Agent)
 
-def test_dqn_agent():
-    """ Test to see if created agent is dqn """
+    def test_ddqn_agent(self):
+        """ Test to see if created agent is ddqn """
 
-    strategy = Strategy().make(name="dqn",env=env, tbl=tbl, agent_name="agent")
-    assert isinstance(strategy, DQN)
+        strategy = Strategy().make(
+            name="ddqn", env=self.env, tbl=self.tbl, agent_name="agent"
+        )
+        assert isinstance(strategy, DDQN)
 
+    def test_dqn_agent(self):
+        """ Test to see if created agent is dqn """
 
-def test_dueling_agent():
-    """ Test to see if created agent is dueling """
+        strategy = Strategy().make(
+            name="dqn", env=self.env, tbl=self.tbl, agent_name="agent"
+        )
+        assert isinstance(strategy, DQN)
 
-    strategy = Strategy().make(name="dueling",env=env, tbl=tbl, agent_name="agent")
-    assert isinstance(strategy, DuelingDDQN)
+    def test_dueling_agent(self):
+        """ Test to see if created agent is dueling """
 
+        strategy = Strategy().make(
+            name="dueling", env=self.env, tbl=self.tbl, agent_name="agent"
+        )
+        assert isinstance(strategy, DuelingDDQN)
 
-def test_c51_agent():
-    """ Test to see if created agent is c51 """
+    def test_c51_agent(self):
+        """ Test to see if created agent is c51 """
 
-    strategy = Strategy().make(name="c51",env=env, tbl=tbl, agent_name="agent")
-    assert isinstance(strategy, c51)
+        strategy = Strategy().make(
+            name="c51", env=self.env, tbl=self.tbl, agent_name="agent"
+        )
+        assert isinstance(strategy, c51)
 
+    def test_q_learner_agent(self):
+        """ Test to see if created agent is q-learner """
 
-def test_q_learner_agent():
-    """ Test to see if created agent is q-learner """
+        strategy = Strategy().make(
+            name="q-learner", env=self.env, tbl=self.tbl, agent_name="agent"
+        )
+        assert isinstance(strategy, QLearner)
 
-    strategy = Strategy().make(name="q-learner", env=env, tbl=tbl, agent_name="agent")
-    assert isinstance(strategy, QLearner)
+    def test_env(self):
+        """ Test to see if environment is loaded """
 
-
-def test_env():
-    """ Test to see if environment is loaded """
-
-    with pytest.raises(TypeError):
-        strategy = Strategy().make(name="q-learner", tbl=tbl, agent_name="agent")
+        with pytest.raises(TypeError):
+            strategy = Strategy().make(
+                name="q-learner", tbl=self.tbl, agent_name="agent"
+            )
