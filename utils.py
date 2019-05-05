@@ -41,10 +41,14 @@ def get_config() -> Dict[str, Any]:
 
 def get_config_strategy(name: str) -> Dict[str, Union[str, int]]:
     """ Grab config for different strategies """
+<<<<<<< HEAD
 
     if name == "human":
         return name
 
+=======
+    
+>>>>>>> develop
     strategies = {
         "q-learner": os.path.join(os.getcwd(), "configs", "q-learner.json"),
         "dqn": os.path.join(os.getcwd(), "configs", "dqn.json"),

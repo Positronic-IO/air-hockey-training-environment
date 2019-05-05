@@ -5,6 +5,7 @@ from typing import Any, Deque, List, Union, Tuple
 
 from utils import Observation, State
 
+random.seed(0)
 
 class MemoryBuffer:
     """ Hold last n states in memory """
