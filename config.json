@@ -2,16 +2,16 @@
     "training": {
         "agent": {
             "strategy": "c51",
-            "load": "",
-            "load": "models/robot/c51/v1.h5",
-            "save": "models/robot/c51/v2.h5"
+            "load_": "",
+            "load": "models/robot/c51/v3.h5",
+            "save": "models/robot/c51/v4.h5"
         },
         "opponent": {
             "strategy": "dueling",
             "load": "",
-            "save": "models/opponent/dueling/v1.h5"
+            "save": "models/opponent/dueling/v1_1.h5"
         },
-        "results": ""
+        "results": "results/c51_4_dueling_1.csv"
     },
     "live": {
         "agent": {
@@ -27,7 +27,7 @@
     },
     "rewards": {
         "point": 1,
-        "loss": -1,
+        "loss": -5,
         "hit": 0,
         "miss": 0
     },
