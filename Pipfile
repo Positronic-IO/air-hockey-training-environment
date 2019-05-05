@@ -20,10 +20,7 @@ h5py = "*"
 redis = "*"
 tensorboard = "*"
 tensorflow-gpu = "==1.12.0"
-<<<<<<< HEAD
 requests = "*"
-=======
->>>>>>> develop
 pytest = "*"
 
 [requires]
