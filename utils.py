@@ -30,7 +30,7 @@ def get_config() -> Dict[str, Any]:
 
 def get_config_strategy(name: str) -> Dict[str, Union[str, int]]:
     """ Grab config for different strategies """
-
+    
     strategies = {
         "q-learner": os.path.join(os.getcwd(), "rl", "configs", "q-learner.json"),
         "dqn": os.path.join(os.getcwd(), "rl", "configs", "dqn.json"),

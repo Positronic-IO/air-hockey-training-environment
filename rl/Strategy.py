@@ -35,9 +35,6 @@ class Strategy:
     ):
         """ Return instance of learner """
 
-        if env is None:
-            raise ValueError("Need to pass a gaming environment")
-
         if name == "human":
             return Agent(env, "human")
 

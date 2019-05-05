@@ -2,15 +2,16 @@
 import os
 from typing import Tuple, Union
 
+import numpy as np
 from keras.models import Model, load_model
 
+from environment import AirHockey
 from rl.helpers import huber_loss
 from utils import Action, get_model_path
-import numpy as np
 
 
 class Agent:
-    def __init__(self, env=None, agent_name="main"):
+    def __init__(self, env: AirHockey, agent_name: str = "main"):
 
         self.env = env
         self.agent_name = agent_name
