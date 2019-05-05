@@ -224,9 +224,9 @@ class Train:
 
             # Current state
             state = State(
-                # agent_location=self.agent_location_buffer.retreive(),
+                robot_location=self.agent_location_buffer.retreive(),
                 puck_location=self.puck_location_buffer.retreive(),
-                # opponent_location=self.opponent_location_buffer.retreive(),
+                opponent_location=self.opponent_location_buffer.retreive(),
             )
 
             # Determine next action
@@ -240,9 +240,9 @@ class Train:
 
             # New state
             new_state = State(
-                # agent_location=self.agent_location_buffer.retreive(),
+                robot_location=self.agent_location_buffer.retreive(),
                 puck_location=self.puck_location_buffer.retreive(),
-                # opponent_location=self.opponent_location_buffer.retreive(),
+                opponent_location=self.opponent_location_buffer.retreive(),
             )
 
             # Observation of the game at the moment
@@ -303,9 +303,9 @@ class Train:
 
                 # Current state
                 state = State(
-                    # agent_location=self.opponent_location_buffer.retreive(),
+                    robot_location=self.opponent_location_buffer.retreive(),
                     puck_location=self.puck_location_buffer.retreive(),
-                    # opponent_location=self.agent_location_buffer.retreive(),
+                    opponent_location=self.agent_location_buffer.retreive(),
                 )
 
                 # Determine next action
@@ -319,9 +319,9 @@ class Train:
 
                 # New state
                 new_state = State(
-                    # agent_location=self.opponent_location_buffer.retreive(),
+                    robot_location=self.opponent_location_buffer.retreive(),
                     puck_location=self.puck_location_buffer.retreive(),
-                    # opponent_location=self.agent_location_buffer.retreive(),
+                    opponent_location=self.agent_location_buffer.retreive(),
                 )
 
                 # Observation of the game at the moment
