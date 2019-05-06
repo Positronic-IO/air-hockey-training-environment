@@ -249,7 +249,7 @@ class AirHockey:
                 }
             )
 
-            print(f"Agent {self.robot_score}, Computer {self.opponent_score}")
+            print(f"Robot {self.robot_score}, Computer {self.opponent_score}")
             self.done = True
             self.reset()
             return None
