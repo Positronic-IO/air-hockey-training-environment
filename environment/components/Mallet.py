@@ -3,15 +3,17 @@ import json
 import random
 from typing import Tuple
 
-from redis import Redis
+from connect import RedisConnection
 
 
 class Mallet:
-
-    redis = Redis()
-
-    def __init__(self, name: str, x: int, y: int, **kwargs):
+    def __init__(
+        self, name: str, x: int, y: int, redis: RedisConnection = None, **kwargs
+    ):
         """ Create a mallet """
+
+        # Set up Redis connection
+        self.redis = redis
 
         # Set current position (default to initial position
         self.x, self.y = x, y
@@ -41,16 +43,7 @@ class Mallet:
         self.mallet_start_y = self.y
 
         # Update Redis
-        self.update_redis()
-
-    def update_redis(self) -> None:
-        """ Put into Redis """
-
-        # Redis
-        self.redis.set(
-            f"{self.name}_{self.__class__.__name__.lower()}",
-            json.dumps({"location": self.location()}),
-        )
+        self.redis.post({self.name: {"location": self.location()}})
 
     def update_mallet(self) -> None:
         """ Update mallet position """
@@ -79,7 +72,7 @@ class Mallet:
             self.y = self.b_lim
 
         # Update Redis
-        self.update_redis()
+        self.redis.post({self.name: {"location": self.location()}})
 
         return None
 
@@ -93,7 +86,7 @@ class Mallet:
         self.dy = 0
 
         # Update Redis
-        self.update_redis()
+        self.redis.post({self.name: {"location": self.location()}})
 
     def location(self) -> Tuple[int, int]:
         """ Current Cartesian coordinates """

@@ -1,19 +1,20 @@
+""" Puck object """
 import json
 import random
 from typing import Tuple
-
-from redis import Redis
-
+from connect import RedisConnection
 
 class Puck:
     """ Puck object """
 
-    redis = Redis()
 
-    def __init__(self, x: int, y: int, dx: int = -5, dy: int = 3):
+    def __init__(self, x: int, y: int, dx: int = -5, dy: int = 3, redis: RedisConnection=None):
         """ Create a goal """
 
-        self.name = self.__class__.__name__.lower()
+        self.name = "puck"
+
+        # Set up Redis connection
+        self.redis = redis
 
         # Puck position
         self.x = x
@@ -35,13 +36,7 @@ class Puck:
         self.puck_speed = 10
 
         # Update Redis
-        self.update_redis()
-
-    def update_redis(self) -> None:
-        """ Put into Redis """
-
-        # Redis
-        self.redis.set(self.name, json.dumps({"location": self.location()}))
+        self.redis.post({"puck": {"location": self.location()}})
 
     def update_puck(self) -> None:
         """ Update puck position """
@@ -70,7 +65,7 @@ class Puck:
         self.y += self.dy
 
         # Update Redis
-        self.update_redis()
+        self.redis.post({"puck": {"location": self.location()}})
 
         return None
 
@@ -90,7 +85,7 @@ class Puck:
             self.dy += 1
 
         # Update Redis
-        self.update_redis()
+        self.redis.post({"puck": {"location": self.location()}})
 
         return None
 
@@ -114,7 +109,7 @@ class Puck:
         self.last_y = self.y
 
         # Update Redis
-        self.update_redis()
+        self.redis.post({"puck": {"location": self.location()}})
 
         return None
 
@@ -126,7 +121,7 @@ class Puck:
         self.dy = random.randint(-3, 3)
 
         # Update Redis
-        self.update_redis()
+        self.redis.post({"puck": {"location": self.location()}})
 
         return None
 

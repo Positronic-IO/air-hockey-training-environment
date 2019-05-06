@@ -9,22 +9,18 @@ from redis import Redis
 
 from environment.components import Goal, Mallet, Puck
 from utils import Action, State, Observation
+from connect import RedisConnection
 
 
 class AirHockey:
 
-    redis = Redis()
-
     # Default rewwards
-    rewards = {
-        "point": 1,
-        "loss": -5,
-        "hit": 0,
-        "miss": 0
-    }
+    rewards = {"point": 1, "loss": -5, "hit": 0, "miss": 0}
 
     def __init__(self, **kwargs) -> None:
         """ Initiate an air hockey game """
+
+        self.redis = RedisConnection()
 
         # Define table and rink sizes
         self.table_size = kwargs.get("table_size", [900, 480])
@@ -39,7 +35,16 @@ class AirHockey:
         # Default scores
         self.opponent_score = 0
         self.robot_score = 0
-        self._update_score_redis()
+
+        # Push to redis
+        self.redis.post(
+            {
+                "scores": {
+                    "robot_score": self.robot_score,
+                    "opponent_score": self.opponent_score,
+                }
+            }
+        )
 
         self.ticks_to_friction = 60
         self.ticks_to_ai = 10
@@ -72,6 +77,7 @@ class AirHockey:
             default_left_position[1],
             right_lim=self.table_midpoints[0] - self.puck_radius,
             table_size=self.table_size,
+            redis=self.redis,
         )
 
         # Makes Computer Mallet
@@ -81,6 +87,7 @@ class AirHockey:
             default_right_position[1],
             left_lim=self.table_midpoints[0] + self.puck_radius,
             table_size=self.table_size,
+            redis=self.redis,
         )
 
         # Define step size of mallet
@@ -243,15 +250,6 @@ class AirHockey:
 
         return None
 
-    def _update_score_redis(self) -> None:
-        """ Push current score to redis """
-
-        self.redis.set(
-            "scores",
-            json.dumps({"robot_score": self.robot_score,
-                        "opponent_score": self.opponent_score}),
-        )
-
     def update_score(self) -> Union[int, None]:
         """ Get current score """
 
@@ -262,11 +260,22 @@ class AirHockey:
         ):
             self.robot_score += 1
             self.reward = self.rewards["point"] if self.robot_score == 10 else 0
-            self.robot_cumulative_reward += self.rewards["point"] if self.robot_score == 10 else 0
-            self.opponent_cumulative_reward += self.rewards["loss"] if self.robot_score == 10 else 0
+            self.robot_cumulative_reward += (
+                self.rewards["point"] if self.robot_score == 10 else 0
+            )
+            self.opponent_cumulative_reward += (
+                self.rewards["loss"] if self.robot_score == 10 else 0
+            )
 
             # Push to redis
-            self._update_score_redis()
+            self.redis.post(
+                {
+                    "scores": {
+                        "robot_score": self.robot_score,
+                        "opponent_score": self.opponent_score,
+                    }
+                }
+            )
 
             print(f"Robot {self.robot_score}, Computer {self.opponent_score}")
             self.done = True
@@ -280,11 +289,22 @@ class AirHockey:
         ):
             self.opponent_score += 1
             self.reward = self.rewards["loss"] if self.opponent_score == 10 else 0
-            self.robot_cumulative_reward += self.rewards["loss"] if self.opponent_score == 10 else 0
-            self.opponent_cumulative_reward += self.rewards["point"] if self.opponent_score == 10 else 0
+            self.robot_cumulative_reward += (
+                self.rewards["loss"] if self.opponent_score == 10 else 0
+            )
+            self.opponent_cumulative_reward += (
+                self.rewards["point"] if self.opponent_score == 10 else 0
+            )
 
             # Push to redis
-            self._update_score_redis()
+            self.redis.post(
+                {
+                    "scores": {
+                        "robot_score": self.robot_score,
+                        "opponent_score": self.opponent_score,
+                    }
+                }
+            )
 
             print(f"Agent {self.robot_score}, Computer {self.opponent_score}")
             self.done = True
@@ -314,7 +334,14 @@ class AirHockey:
             self.robot_score = 0
 
             # Push to redis
-            self._update_score_redis()
+            self.redis.post(
+                {
+                    "scores": {
+                        "robot_score": self.robot_score,
+                        "opponent_score": self.opponent_score,
+                    }
+                }
+            )
 
         self.puck.reset()
         self.robot.reset_mallet()
