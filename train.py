@@ -5,6 +5,7 @@ import random
 import sys
 import time
 from typing import Dict, Union
+import argparse
 
 import numpy as np
 
@@ -19,56 +20,30 @@ from utils import Observation, State, get_config, get_model_path, write_results
 # except ImportError:
 #     pass
 
-from connect import Connection
-
-def parse_args() -> Dict[str, Union[str, int]]:
-
-    parser = argparse.ArgumentParser(description="Process stuff for training.")
-
-    parser.add_argument("-r", "--robot", help="Robot strategy")
-    parser.add_argument("-o", "--opponent", help="Opponent strategy")
-    parser.add_argument(
-        "-c", "--capacity", default=5, help="Number of past expierences to store"
-    )
-    parser.add_argument(
-        "-t", "--time", default=3, help="Time per train. Units in hours. (Default to 3 hours)"
-    )
-    parser.add_argument(
-        "--tensorboard",
-        help="Tensorbaord log location. If none is specified, then Tensorboard will not be used."
-    )
-    args = vars(parser.parse_args())
-    print(args)
-
-    # Validation
-    if not args.get("robot"):
-        print("Robot strategy Undefined")
-        sys.exit()
-    
-    if not args.get("opponent"):
-        print("Opponent strategy Undefined")
-        sys.exit()
-
-    return args
+from connect import RedisConnection
 
 
 class Train:
 
-    conn = Connection().make("server", test=True)
+    redis = RedisConnection()
 
-    def __init__(self):
-        
+    def __init__(self, args: Dict[str, Union[str, int]]):
+
         # Parse cli args
-        self.args = parse_args()
+        self.args = args
 
         # Load Environment
         self.env = AirHockey()
 
         # Set up our robot
-        self.robot = Strategy().make(strategy=self.args["robot"], capacity=self.args["capacity"])
+        self.robot = Strategy().make(
+            env=self.env, strategy=self.args["robot"], capacity=self.args["capacity"]
+        )
         self.robot.agent_name = "robot"
 
-        self.opponent = Strategy().make(strategy=self.args["robot"], capacity=self.args["capacity"])
+        self.opponent = Strategy().make(
+            env=self.env, strategy=self.args["robot"], capacity=self.args["capacity"]
+        )
         self.opponent.agent_name = "opponent"
 
         # Interesting and important constants
@@ -91,7 +66,6 @@ class Train:
         self.puck_location_buffer = MemoryBuffer(self.args["capacity"], (0, 0))
         self.opponent_location_buffer = MemoryBuffer(self.args["capacity"], (0, 0))
 
-        self.data = dict()
         # Update buffers
         self._update_buffers()
 
@@ -99,15 +73,13 @@ class Train:
         self.time = time.time()
         self.wait = (60 ** 2) * int(self.args["time"])  # Defaults to 3 hours
 
-    
-
     def _update_buffers(self) -> None:
         """ Update redis buffers """
 
-        self.data = self.conn.get("all")
-        self.puck_location = self.data["puck"]
-        self.robot_location = self.data["robot"]
-        self.opponent_location = self.data["opponent"]
+        data = self.redis.get()
+        self.puck_location = data["puck"]["location"]
+        self.robot_location = data["robot"]["location"]
+        self.opponent_location = data["opponent"]["location"]
 
         self.robot_location_buffer.append(tuple(self.robot_location))
         self.puck_location_buffer.append(tuple(self.puck_location))
@@ -164,7 +136,7 @@ class Train:
     #             f"Opponent goal", results["opponent_goal"][0], self.iterations
     #         )
     #         self.tbl.log_scalar(
-    #             f"Agent Win", self.agent_cumulative_win, self.iterations
+    #             f"Agent Win", self.agent_cumulative_win, self.itqerations
     #         )
     #         self.tbl.log_scalar(
     #             f"Agent Cumulative Reward",
@@ -179,7 +151,7 @@ class Train:
 
     #     return None
 
-    def main_player(self) -> None:
+    def robot_player(self) -> None:
         """ Main player """
 
         # For first move, move in a random direction
@@ -200,7 +172,7 @@ class Train:
             state = State(
                 robot_location=self.robot_location_buffer.retreive(),
                 puck_location=self.puck_location_buffer.retreive(),
-                opponent_location=self.opponent_location_buffer.retreive(),
+                # opponent_location=self.opponent_location_buffer.retreive(),
             )
 
             # Determine next action
@@ -216,7 +188,7 @@ class Train:
             new_state = State(
                 robot_location=self.robot_location_buffer.retreive(),
                 puck_location=self.puck_location_buffer.retreive(),
-                opponent_location=self.opponent_location_buffer.retreive(),
+                # opponent_location=self.opponent_location_buffer.retreive(),
             )
 
             # Get updated stats
@@ -225,8 +197,8 @@ class Train:
             observation = Observation(
                 state=state,
                 action=action,
-                reward=self.data["reward"],
-                done=self.data["done"],
+                reward=self.env.reward,
+                done=self.env.done,
                 new_state=new_state,
             )
 
@@ -265,7 +237,7 @@ class Train:
             state = State(
                 robot_location=self.opponent_location_buffer.retreive(),
                 puck_location=self.puck_location_buffer.retreive(),
-                opponent_location=self.robot_location_buffer.retreive(),
+                # opponent_location=self.robot_location_buffer.retreive(),
             )
 
             # Determine next action
@@ -281,7 +253,7 @@ class Train:
             new_state = State(
                 robot_location=self.opponent_location_buffer.retreive(),
                 puck_location=self.puck_location_buffer.retreive(),
-                opponent_location=self.robot_location_buffer.retreive(),
+                # opponent_location=self.robot_location_buffer.retreive(),
             )
 
             # Get updated stats
@@ -291,8 +263,8 @@ class Train:
             observation = Observation(
                 state=state,
                 action=action,
-                reward=self.data["reward"],  # Opposite reward of our agent, only works for current reward settings
-                done=self.data["done"],
+                reward=self.env.reward,  # Opposite reward of our agent, only works for current reward settings
+                done=self.env.done,
                 new_state=new_state,
             )
 
@@ -315,7 +287,7 @@ class Train:
             if time.time() - self.time < self.wait:
 
                 # Our Agent
-                self.main_player()
+                self.robot_player()
 
                 # Our opponent
                 self.opponent_player()
@@ -327,19 +299,19 @@ class Train:
                 # self.scores = self.conn.get("scores")
 
                 # Compute scores
-                if self.data["opponent_score"] == 10:
+                if self.env.opponent_score == 10:
                     print(
-                        f"Agent {self.data['robot_score']}, Computer {self.data['opponent_score']}"
+                        f"Agent {self.env.robot_score}, Computer {self.env.opponent_score}"
                     )
                     print("Computer wins!")
-                    self.conn.post({"reset": {"total": True}})
+                    self.env.reset(total=True)
 
-                if self.data["robot_score"] == 10:
+                if self.env.robot_score == 10:
                     print(
-                        f"Agent {self.data['robot_score']}, Computer {self.data['opponent_score']} "
+                        f"Agent {self.env.robot_score}, Computer {self.env.opponent_score} "
                     )
                     print("Agent wins!")
-                    self.conn.post({"reset": {"total": True}})
+                    self.env.reset(total=True)
 
             else:
                 print("Training time elasped")
@@ -347,6 +319,35 @@ class Train:
 
 
 if __name__ == "__main__":
+    """ Start Training """
+    parser = argparse.ArgumentParser(description="Process stuff for training.")
+
+    parser.add_argument("-r", "--robot", help="Robot strategy")
+    parser.add_argument("-o", "--opponent", help="Opponent strategy")
+    parser.add_argument(
+        "-c", "--capacity", default=5, help="Number of past expierences to store"
+    )
+    parser.add_argument(
+        "-t",
+        "--time",
+        default=3,
+        help="Time per train. Units in hours. (Default to 3 hours)",
+    )
+    parser.add_argument(
+        "--tensorboard",
+        help="Tensorbaord log location. If none is specified, then Tensorboard will not be used.",
+    )
+    args = vars(parser.parse_args())
+
+    # Validation
+    if not args.get("robot"):
+        print("Robot strategy Undefined")
+        sys.exit()
+
+    if not args.get("opponent"):
+        print("Opponent strategy Undefined")
+        sys.exit()
+
     # Run program
-    train = Train()
+    train = Train(args)
     train.run()
