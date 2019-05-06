@@ -53,16 +53,14 @@ class AirHockey:
         self.table_midpoints = list(map(lambda x: int(x / 2), self.table_size))
 
         # Define left and right mallet positions
-        default_left_position = self.table_midpoints[0] - \
-            100, self.table_midpoints[1]
-        default_right_position = self.table_midpoints[0] + \
-            100, self.table_midpoints[1]
+        default_left_position = self.table_midpoints[0] - 100, self.table_midpoints[1]
+        default_right_position = self.table_midpoints[0] + 100, self.table_midpoints[1]
 
         # Set puck initial position
         puck_start_x, puck_start_y = self.table_midpoints[0], self.table_midpoints[1]
 
         # Create puck
-        self.puck = Puck(puck_start_x, puck_start_y)
+        self.puck = Puck(x=puck_start_x, y=puck_start_y, redis=self.redis)
 
         # Make goals
         self.left_goal = Goal(0, self.table_midpoints[1] - 50, w=27)
@@ -146,7 +144,9 @@ class AirHockey:
             self._move(self.opponent, action)
         elif agent_name == "human":
             # Update action
-            if isinstance(action, tuple) or isinstance(action, list):  # Cartesian Coordinates
+            if isinstance(action, tuple) or isinstance(
+                action, list
+            ):  # Cartesian Coordinates
                 self.opponent.x, self.opponent.y = action[0], action[1]
                 self.opponent.update_mallet()
         else:
