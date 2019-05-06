@@ -1,7 +1,5 @@
 """ Q-Learner """
-
-import random
-from typing import Dict, Tuple, Union
+from typing import Dict, Tuple, Union, Any
 
 import numpy as np
 
@@ -13,20 +11,15 @@ from utils import Action, Observation, State
 class QLearner:
     """ Uses Q-learning to update/maximize rewards """
 
-    def __init__(
-        self,
-        env: AirHockey,
-        config: Dict[str, Dict[str, int]],
-        agent_name: str = "main",
-    ):
+    def __init__(self, env: AirHockey, config: Dict[str, Any]):
         self.env = env
-        self.Q = {}
+        self.Q = dict
         self.last_state = None
         self.last_action = None
         self.learning_rate = config["params"]["learning_rate"]
         self.gamma = config["params"]["gamma"]
         self.epsilon = config["params"]["epsilon"]
-        self.agent_name = agent_name
+        self._agent_name = ""
 
         self.version = "0.1.0"
 
@@ -39,7 +32,7 @@ class QLearner:
     def move(self, action: Action) -> None:
         """ Move agent """
 
-        self.env.update_state(action, self.agent_name)
+        self.env.update_state(action, self._agent_name)
         return None
 
     def location(self) -> Union[None, Tuple[int, int]]:
@@ -98,3 +91,11 @@ class QLearner:
         ) * old + self.learning_rate * (data.reward + new)
 
         return None
+
+    @property
+    def agent_name(self) -> None:
+        return self._agent_name
+
+    @agent_name.setter
+    def agent_name(self, name: str) -> None:
+        self._agent_name = name
