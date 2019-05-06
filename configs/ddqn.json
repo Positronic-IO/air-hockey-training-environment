@@ -10,7 +10,7 @@
         "sync_target_interval": 10000
     },
     "load": "models/robot/dueling/v1.h5",
-    "save_": "models/robot/dueling/v2.h5",
+    "save": "models/robot/dueling/v2.h5",
     "train": true
 
 }
