@@ -15,9 +15,6 @@ class AirHockey:
 
     redis = Redis()
 
-    # Possible actions
-    actions = ["U", "D", "L", "R"]
-
     # Default rewwards
     rewards = {
         "point": 1,
@@ -174,10 +171,10 @@ class AirHockey:
             agent.y += -self.step_size
 
         if isinstance(action, int) and action == 2:
-            agent.x += self.step_size
+            agent.x += -self.step_size
 
         if isinstance(action, int) and action == 3:
-            agent.x += -self.step_size
+            agent.x += self.step_size
 
         # Set agent position
         agent.update_mallet()
