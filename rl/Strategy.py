@@ -26,21 +26,12 @@ class Strategy:
     def __init__(self):
         pass
 
-    def make(
-        self,
-        name: str,
-        env: AirHockey,
-        tbl: TensorBoardLogger,
-        agent_name: str = "main",
-    ):
+    def make(self, strategy: str, capacity: int):
         """ Return instance of learner """
 
-        if name == "human":
-            return Agent(env, "human")
+        if strategy == "human":
+            return Agent()
 
-        config = get_config_strategy(name)
+        config = get_config_strategy(strategy)
 
-        if name in ["dqn", "q-learner"]:
-            return self.strategies[name](env, config, agent_name)
-
-        return self.strategies[name](env, config, tbl, agent_name)
+        return self.strategies[strategy](capacity, config)

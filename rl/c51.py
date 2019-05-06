@@ -5,11 +5,10 @@ import os
 import random
 from collections import deque
 from time import time
-from typing import Dict, Tuple, Union
+from typing import Dict, Tuple, Union, Any
 
 import numpy as np
 
-from environment import AirHockey
 from rl.Agent import Agent
 from rl.helpers import TensorBoardLogger, huber_loss
 from rl.MemoryBuffer import MemoryBuffer
@@ -21,22 +20,19 @@ class c51(Agent):
 
     """ Reference: https://github.com/flyyufelix/C51-DDQN-Keras """
 
+
     def __init__(
         self,
-        env: AirHockey,
-        config: Dict[str, Dict[str, int]],
-        tbl: TensorBoardLogger,
-        agent_name: str = "main",
+        capacity: int,
+        config: Dict[str, Any]
+        # tbl: TensorBoardLogger,
     ):
-        super().__init__(env, agent_name)
-
-        # Get main config file
-        main_config = get_config()
+        super().__init__()
 
         # Get size of state and action
         # State grows by the amount of frames we want to hold in our memory
-        self.state_size = (3, main_config["capacity"], 2)
-        self.action_size = len(self.env.actions)
+        self.state_size = (3, capacity, 2)
+        self.action_size = 4
 
         # These are the hyper parameters for the c51
         self.gamma = config["params"]["gamma"]
@@ -64,17 +60,21 @@ class c51(Agent):
 
         # If we are not training, set our epsilon to final_epsilon.
         # We want to choose our prediction more than a random policy.
-        self.train = main_config["train"]
+        self.train = config["train"]
         self.epsilon = self.epsilon if self.train else self.final_epsilon
 
         # Keep up with the iterations
         self.t = 0
 
+        # Model load and save paths
+        self.load_path = config["load"]
+        self.save_path = config["save"]
+
         # Model construction
         self.build_model()
 
         # Initiate Tensorboard
-        self.tbl = tbl
+        # self.tbl = tbl
 
         self.version = "0.2.0"
 
@@ -91,6 +91,10 @@ class c51(Agent):
 
         self.model = model
         self.target_model = model
+
+        if self.load_path:
+            self.load_model()
+
         print(self.model.summary())
         return model
 
@@ -112,7 +116,7 @@ class c51(Agent):
         if not self.train:
             return None
 
-        self.tbl.log_scalar("c51 epsilon", self.epsilon, self.t)
+        # self.tbl.log_scalar("c51 epsilon", self.epsilon, self.t)
 
         if self.epsilon > self.final_epsilon and self.t % self.observe == 0:
             self.epsilon -= (self.initial_epsilon - self.final_epsilon) / self.explore
@@ -125,7 +129,7 @@ class c51(Agent):
         # Helps over fitting, encourages to exploration
         if np.random.uniform(0, 1) < self.epsilon:
             idx = np.random.randint(0, self.action_size)
-            self.tbl.log_histogram("c51 Greedy Actions", idx, self.t)
+            # self.tbl.log_histogram("c51 Greedy Actions", idx, self.t)
             return idx
 
         # Compute rewards for any posible action
@@ -134,7 +138,7 @@ class c51(Agent):
         q = np.sum(np.multiply(z_concat, np.array(self.z)), axis=1)
         # Pick action with the biggest Q value
         idx = np.argmax(q)
-        self.tbl.log_histogram("c51 Predict Actions", idx, self.t)
+        # self.tbl.log_histogram("c51 Predict Actions", idx, self.t)
         return idx
 
     def update(self, data: Observation) -> None:
@@ -222,3 +226,4 @@ class c51(Agent):
         self.t += 1
 
         return None
+

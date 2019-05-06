@@ -18,14 +18,34 @@ Observation = namedtuple(
     "observation", ["state", "action", "reward", "done", "new_state"]
 )
 
-def cli() -> Dict[str, Any]:
 
-    parser = argparse.ArgumentParser(description='Process stuff for training.')
+def parse_args() -> Dict[str, Union[str, int]]:
 
-    parser.add_argument('-r, --robot', help='Robot configuration')
-    parser.add_argument('-o, --opponent', help='Opponent configuration')
+    parser = argparse.ArgumentParser(description="Process stuff for training.")
+
+    parser.add_argument("-r", "--robot", help="Robot strategy")
+    parser.add_argument("-o", "--opponent", help="Opponent strategy")
+    parser.add_argument(
+        "-c", "--capacity", default=5, help="Number of past expierences to store"
+    )
+    parser.add_argument(
+        "-t", "--time", default=3, help="Time per train. Units in hours. (Default to 3 hours)"
+    )
+    parser.add_argument(
+        "--tensorboard",
+        help="Tensorbaord log location. If none is specified, then Tensorboard will not be used."
+    )
+    args = vars(parser.parse_args())
+    print(args)
+
+    # Validation
+    if not args.get("robot"):
+        print("Robot strategy Undefined")
+        sys.exit()
     
-    args = var(parser.parse_args())
+    if not args.get("opponent"):
+        print("Opponent strategy Undefined")
+        sys.exit()
 
     return args
 
@@ -39,9 +59,9 @@ def get_config() -> Dict[str, Any]:
         return config
 
 
-def get_config_strategy(name: str) -> Dict[str, Union[str, int]]:
+def get_config_strategy(strategy: str) -> Dict[str, Union[str, int]]:
     """ Grab config for different strategies """
-    
+
     strategies = {
         "q-learner": os.path.join(os.getcwd(), "configs", "q-learner.json"),
         "dqn": os.path.join(os.getcwd(), "configs", "dqn.json"),
@@ -49,13 +69,18 @@ def get_config_strategy(name: str) -> Dict[str, Union[str, int]]:
         "dueling": os.path.join(os.getcwd(), "configs", "dueling.json"),
         "c51": os.path.join(os.getcwd(), "configs", "c51.json"),
     }
-
+    
     try:
-        with open(strategies[name], "r") as f:
-            config = json.load(f)
+        filename = strategies[strategy]
     except KeyError:
         raise KeyError("Strategy not defined")
 
+    with open(filename, "r") as f:
+        config = json.load(f)
+
+        if strategy != "q-learner" and not config.get("save"):
+            raise KeyError("Please specify a path to save model.")
+            
     return config
 
 

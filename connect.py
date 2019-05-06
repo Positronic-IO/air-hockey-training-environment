@@ -109,8 +109,8 @@ class RedisConnection(BaseConnection):
 class ServerConnection(BaseConnection):
     def __init__(self, test: bool = False):
 
-        url = "http://localhost:8000/api/location"
-        test_url = "http://localhost:8000/api/test/location"
+        url = "http://localhost:8000/api/environment"
+        test_url = "http://localhost:8000/api/test/environment"
 
         if not test:
             self.endpoint = url
@@ -150,7 +150,6 @@ class ServerConnection(BaseConnection):
 
     def post(self, data: Dict[str, Union[str, int, List[Any]]]):
         """ Save data to Server """
-
         r = requests.post(self.endpoint, data=data)
         if r.status_code >= 400:
             print(f"Error")

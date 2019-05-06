@@ -5,5 +5,5 @@
     },
     "load": "models/robot/dueling/v1.h5",
     "save_": "models/robot/dueling/v2.h5",
-    "capacity": 4
+    "train": true
 }

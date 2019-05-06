@@ -20,7 +20,7 @@ class AirHockeyGui:
 
     # Set up redis
     # redis = Redis()
-    conn = Connection().make("server")
+    conn = Connection().make("server", test=True)
 
     # Define some colors
     black = (0, 0, 0)
@@ -88,15 +88,18 @@ class AirHockeyGui:
         self.puck_location_buffer = MemoryBuffer(self.config["capacity"], (0, 0))
         self.opponent_location_buffer = MemoryBuffer(self.config["capacity"], (0, 0))
 
+        self.data = dict()
+
         # Update buffers
         self._update_buffers()
 
     def _update_buffers(self) -> None:
         """ Update redis buffers """
 
-        self.puck_location = self.conn.get("puck")
-        self.robot_location = self.conn.get("robot")
-        self.opponent_location = self.conn.get("opponent")
+        self.data = self.conn.get("all")
+        self.puck_location = self.data["puck"]
+        self.robot_location = self.data["robot"]
+        self.opponent_location = self.data["opponent"]
 
         self.robot_location_buffer.append(tuple(self.robot_location))
         self.puck_location_buffer.append(tuple(self.puck_location))
@@ -283,38 +286,38 @@ class AirHockeyGui:
         # Game loop
         while True:
 
-            if not self.config["train"]:
-                # Air Hockey robot
-                self.main_player_move()
+            # if not self.config["train"]:
+            #     # Air Hockey robot
+            #     self.main_player_move()
 
-                # Human agent
-                if self.config["live"]["opponent"]["strategy"] == "human":
-                    # Grab and set user position
-                    action = pygame.mouse.get_pos()
+            #     # Human agent
+            #     if self.config["live"]["opponent"]["strategy"] == "human":
+            #         # Grab and set user position
+            #         action = pygame.mouse.get_pos()
 
-                    # Update buffers
-                    self._update_buffers()
+            #         # Update buffers
+            #         self._update_buffers()
 
-                    # Update game state
-                    self.opponent_agent.move(action)
+            #         # Update game state
+            #         self.opponent_agent.move(action)
 
-                if self.config["live"]["opponent"]["strategy"] != "human":
-                    self.opponent_player_move()
+            #     if self.config["live"]["opponent"]["strategy"] != "human":
+            #         self.opponent_player_move()
 
-                scores = json.loads(self.redis.get("scores"))
+            #     scores = json.loads(self.redis.get("scores"))
 
-                # Compute scores
-                if scores["cpu_score"] == 10:
-                    print(f"Agent {scores['agent_score']}, Computer {scores['cpu_score']}")
-                    print("Computer wins!")
+            #     # Compute scores
+            #     if scores["cpu_score"] == 10:
+            #         print(f"Agent {scores['agent_score']}, Computer {scores['cpu_score']}")
+            #         print("Computer wins!")
 
-                    self.env.reset(total=True)
+            #         self.env.reset(total=True)
 
-                if scores["agent_score"] == 10:
-                    print(f"Agent {scores['agent_score']}, Computer {scores['cpu_score']}")
-                    print("Agent wins!")
+            #     if scores["agent_score"] == 10:
+            #         print(f"Agent {scores['agent_score']}, Computer {scores['cpu_score']}")
+            #         print("Agent wins!")
 
-                    self.env.reset(total=True)
+            #         self.env.reset(total=True)
 
             self.rerender_environment()
 
