@@ -1,16 +1,11 @@
 """ Air Hockey Simulator Gui """
-import json
+import argparse
+from typing import Dict
 
-import numpy as np
 import pygame
-from keras.models import load_model
-from redis import Redis
 
+from connect import RedisConnection
 from environment import AirHockey
-from rl import Agent, MemoryBuffer, Strategy
-from rl.helpers import TensorBoardLogger
-from utils import State, get_config, get_model_path
-from connect import Connection
 
 # Initialize the game engine
 pygame.init()
@@ -19,8 +14,7 @@ pygame.init()
 class AirHockeyGui:
 
     # Set up redis
-    # redis = Redis()
-    conn = Connection().make("server", test=True)
+    redis = RedisConnection()
 
     # Define some colors
     black = (0, 0, 0)
@@ -32,13 +26,10 @@ class AirHockeyGui:
     # Offest for drawing the center line of table
     middle_line_offset = 4.5
 
-    def __init__(self):
+    def __init__(self, args: Dict[str, int]):
 
-        # Load config
-        self.config = get_config()
-
-        # Load tensorboard
-        self.tbl = TensorBoardLogger(f"{self.config['tensorboard']}_results")
+        # Set frames per second
+        self.fps = args["fps"]
 
         # Initiate game environment
         self.env = AirHockey()
@@ -46,65 +37,16 @@ class AirHockeyGui:
         # Make gui
         self.draw_screen()
 
-        self.init, self.init_opponent = True, True
+        # Update locations
+        self.update_locations()
 
-        # If we are in training mode, then observe.
-        # If not, let's play a game.
-        if not self.config["train"]:
-            # If user is a robot, set learning style for agent
-            self.main_agent = Strategy().make(
-                self.config["live"]["agent"]["strategy"],
-                self.env,
-                self.tbl,
-                agent_name="main",
-            )
+    def update_locations(self) -> None:
+        """ Update locations of puck, robot, and the opponent"""
 
-            # If we pass a weights file, load it.
-            self.main_agent.load_path = get_model_path(
-                self.config["live"]["agent"]["load"]
-            )
-            self.main_agent.load_model(str(self.main_agent))
-
-            # Create human agent, overwritten if the opponent strategy is something
-            self.opponent_agent = Strategy().make(
-                self.config["live"]["opponent"]["strategy"],
-                self.env,
-                self.tbl,
-                agent_name="opponent",
-            )
-
-            # If we pass a weights file, load it.
-            if (
-                hasattr(self.opponent_agent, "load_model")
-                and self.config["live"]["opponent"]["load"]
-            ):
-                self.opponent_agent.load_path = get_model_path(
-                    self.config["live"]["opponent"]["load"]
-                )
-                self.opponent_agent.load_model(str(self.opponent_agent))
-
-        # Set up buffers for agent position, puck position, opponent position
-        self.robot_location_buffer = MemoryBuffer(self.config["capacity"], (0, 0))
-        self.puck_location_buffer = MemoryBuffer(self.config["capacity"], (0, 0))
-        self.opponent_location_buffer = MemoryBuffer(self.config["capacity"], (0, 0))
-
-        self.data = dict()
-
-        # Update buffers
-        self._update_buffers()
-
-    def _update_buffers(self) -> None:
-        """ Update redis buffers """
-
-        self.data = self.conn.get("all")
-        self.puck_location = self.data["puck"]
-        self.robot_location = self.data["robot"]
-        self.opponent_location = self.data["opponent"]
-
-        self.robot_location_buffer.append(tuple(self.robot_location))
-        self.puck_location_buffer.append(tuple(self.puck_location))
-        self.opponent_location_buffer.append(tuple(self.opponent_location))
-
+        data = self.redis.get()
+        self.puck_location = data["puck"]["location"]
+        self.robot_location = data["robot"]["location"]
+        self.opponent_location = data["opponent"]["location"]
         return None
 
     def draw_table(self) -> None:
@@ -160,7 +102,7 @@ class AirHockeyGui:
     def rerender_environment(self) -> None:
         """" Re-render environment """
 
-        self._update_buffers()
+        self.update_locations()
 
         # Make screen
         screen = pygame.display.set_mode(self.env.table_size)
@@ -210,125 +152,32 @@ class AirHockeyGui:
         )
         pygame.display.flip()
 
-    def main_player_move(self) -> None:
-        """ Main player """
-
-        # For first move, move in a random direction
-        if self.init:
-            # Update buffers
-            self._update_buffers()
-
-            action = np.random.randint(0, len(self.env.actions) - 1)
-
-            # Update game state
-            self.main_agent.move(action)
-
-            self.init = False
-        else:
-            # Now, let the model do all the work
-
-            # Update buffers
-            self._update_buffers()
-
-            # Current state
-            state = State(
-                puck_location=self.puck_location_buffer.retreive(),
-            )
-
-            # Determine next action
-            action = self.main_agent.get_action(state)
-
-            # Update game state
-            self.main_agent.move(action)
-
-        return None
-
-    def opponent_player_move(self) -> None:
-        """ Opponent player """
-
-        # For first move, move in a random direction
-        if self.init_opponent:
-            # Update buffers
-            self._update_buffers()
-
-            action = np.random.randint(0, len(self.env.actions) - 1)
-
-            # Update game state
-            self.opponent_agent.move(action)
-
-            self.init_opponent = False
-        else:
-            # Now, let the model do all the work
-
-            # Update buffers
-            self._update_buffers()
-
-            # Current state
-            state = State(
-                puck_location=self.puck_location_buffer.retreive(),
-            )
-
-            # Determine next action
-            action = self.opponent_agent.get_action(state)
-
-            # Update game state
-            self.opponent_agent.move(action)
-
-        return None
-
     def run(self) -> None:
         """ Main guts of game """
 
         # Set game clock
         clock = pygame.time.Clock()
-        fps = self.config["fps"]
 
         # Game loop
         while True:
 
-            if not self.config["train"]:
-                # Air Hockey robot
-                self.main_player_move()
-
-                # Human agent
-                if self.config["live"]["opponent"]["strategy"] == "human":
-                    # Grab and set user position
-                    action = pygame.mouse.get_pos()
-
-                    # Update buffers
-                    self._update_buffers()
-
-                    # Update game state
-                    self.opponent_agent.move(action)
-
-                if self.config["live"]["opponent"]["strategy"] != "human":
-                    self.opponent_player_move()
-
-                scores = json.loads(self.redis.get("scores"))
-
-                # Compute scores
-                if scores["cpu_score"] == 10:
-                    print(f"Agent {scores['agent_score']}, Computer {scores['cpu_score']}")
-                    print("Computer wins!")
-
-                    self.env.reset(total=True)
-
-                if scores["agent_score"] == 10:
-                    print(f"Agent {scores['agent_score']}, Computer {scores['cpu_score']}")
-                    print("Agent wins!")
-
-                    self.env.reset(total=True)
-
             self.rerender_environment()
 
             # frames per second
-            if fps > -1:
-                clock.tick(fps)
+            clock.tick(self.fps)
 
         pygame.quit()
 
 
 if __name__ == "__main__":
-    # Run program
-    gui = AirHockeyGui()
+    """ Start Gui """
+    parser = argparse.ArgumentParser(description="Pygame gui")
+
+    parser.add_argument(
+        "--fps", default=60, help="Frames per second. Default is 60 fps"
+    )
+    args = vars(parser.parse_args())
+
+    # Initialize gui program
+    gui = AirHockeyGui(args)
     gui.run()
