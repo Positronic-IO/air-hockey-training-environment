@@ -1,26 +1,22 @@
 """ Air Hockey Simulator """
+import argparse
 import json
+import logging
 import os
 import random
 import sys
 import time
 from typing import Dict, Union
-import argparse
 
 import numpy as np
-
-from environment import AirHockey
-from rl import MemoryBuffer, Strategy
-from utils import Observation, State, get_config, get_model_path, write_results
-
-# try:
-#     if os.getenv("debug"):
-#         import sentry_sdk
-#         sentry_sdk.init(os.getenv("sentry"))
-# except ImportError:
-#     pass
+from redis import ConnectionError
 
 from connect import RedisConnection
+from environment import AirHockey
+from rl import MemoryBuffer, Strategy
+from utils import Observation, State, write_results
+
+logging.basicConfig(level=os.environ.get("LOGLEVEL", "INFO"))
 
 
 class Train:
@@ -40,11 +36,13 @@ class Train:
             env=self.env, strategy=self.args["robot"], capacity=self.args["capacity"]
         )
         self.robot.agent_name = "robot"
+        logging.info(f"Strategy {self.args['robot']} loaded")
 
         self.opponent = Strategy().make(
-            env=self.env, strategy=self.args["robot"], capacity=self.args["capacity"]
+            env=self.env, strategy=self.args["opponent"], capacity=self.args["capacity"]
         )
         self.opponent.agent_name = "opponent"
+        logging.info(f"Strategy {self.args['opponent']} loaded")
 
         # Interesting and important constants
         self.epoch = 0
@@ -68,10 +66,12 @@ class Train:
 
         # Update buffers
         self._update_buffers()
+        logging.info("Connected to Redis")
 
         # Initial time
         self.time = time.time()
         self.wait = (60 ** 2) * int(self.args["time"])  # Defaults to 3 hours
+        logging.info(f"Training time: {self.args['time']} hours")
 
     def _update_buffers(self) -> None:
         """ Update redis buffers """
@@ -172,7 +172,6 @@ class Train:
             state = State(
                 robot_location=self.robot_location_buffer.retreive(),
                 puck_location=self.puck_location_buffer.retreive(),
-                # opponent_location=self.opponent_location_buffer.retreive(),
             )
 
             # Determine next action
@@ -188,7 +187,6 @@ class Train:
             new_state = State(
                 robot_location=self.robot_location_buffer.retreive(),
                 puck_location=self.puck_location_buffer.retreive(),
-                # opponent_location=self.opponent_location_buffer.retreive(),
             )
 
             # Get updated stats
@@ -237,7 +235,6 @@ class Train:
             state = State(
                 robot_location=self.opponent_location_buffer.retreive(),
                 puck_location=self.puck_location_buffer.retreive(),
-                # opponent_location=self.robot_location_buffer.retreive(),
             )
 
             # Determine next action
@@ -253,7 +250,6 @@ class Train:
             new_state = State(
                 robot_location=self.opponent_location_buffer.retreive(),
                 puck_location=self.puck_location_buffer.retreive(),
-                # opponent_location=self.robot_location_buffer.retreive(),
             )
 
             # Get updated stats
@@ -349,5 +345,12 @@ if __name__ == "__main__":
         sys.exit()
 
     # Run program
-    train = Train(args)
+    try:
+        train = Train(args)
+    except ConnectionError:
+        logging.error(
+            "Cannot connect to Redis. Please make sure Redis is up and active."
+        )
+        sys.exit()
+
     train.run()
