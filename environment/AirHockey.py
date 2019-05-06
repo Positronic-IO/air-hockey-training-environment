@@ -104,70 +104,13 @@ class AirHockey:
         # If episode is done
         self.done = False
 
-    def check_stall(self) -> None:
-        """ Check to see if the game has stalled """
-
-        if self.puck.x < self.table_midpoints[0]:
-            self.timer = time()
-            return None
-
-        delta = time() - self.timer
-
-        if (delta > 3) and (self.puck.x > self.table_midpoints[0]):
-            self.reset()
-            self.timer = time()
-            print("Stalled")
-
-        return None
-
-    def mallet_ai(self) -> None:
-        """ The 'AI' of the computer """
-
-        self.check_stall()
-
-        if self.puck.x < self.opponent.x:
-            if self.puck.x < self.opponent.left_lim:
-                self.opponent.dx = 1
-            else:
-                self.opponent.dx = -2
-
-        if self.puck.x > self.opponent.x:
-            if self.puck.x > self.opponent.right_lim:
-                self.opponent.dx = -1
-            else:
-                self.opponent.dx = 2
-
-        if self.puck.y < self.opponent.y:
-            if self.puck.y < self.opponent.u_lim:
-                self.opponent.dy = 1
-            else:
-                self.opponent.dy = -6
-
-        if self.puck.y > self.opponent.y:
-            if self.puck.y <= 360:  # was 250
-                self.opponent.dy = 6
-
-            else:
-                if self.opponent.y > 200:
-                    self.opponent.dy = -2
-                else:
-                    self.opponent.dy = 0
-            # Addresses situation when the puck and the computer are on top of each other.
-            # Breaks loop
-            if (
-                abs(self.puck.y - self.opponent.y) < 40
-                and abs(self.puck.x - self.opponent.x) < 40
-            ):
-                self.puck.dx += 2
-                self.puck.dy += 2
-
-        return None
-
     def _move(self, agent: Mallet, action: Action) -> None:
         """ Move agent's mallet """
 
         # Update action
-        if isinstance(action, tuple) or isinstance(action, list):  # Cartesian Coordinates
+        if isinstance(action, tuple) or isinstance(
+            action, list
+        ):  # Cartesian Coordinates
             agent.x, agent.y = action[0], action[1]
 
         # Integers
