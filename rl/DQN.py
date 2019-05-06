@@ -47,6 +47,10 @@ class DQN(Agent):
         """ Create our DNN model for Q-value approximation """
 
         self.model = Networks().dqn(self.state_size)
+
+        if self.load_path:
+            self.load_model()
+
         print(self.model.summary())
         return None
 

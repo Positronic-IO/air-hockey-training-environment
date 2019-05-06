@@ -58,7 +58,7 @@ class DDQN(Agent):
         self.t = 0
 
         # Initiate Tensorboard
-        self.tbl = tbl
+        # self.tbl = tbl
 
         self.version = "0.3.0"
 
@@ -74,7 +74,12 @@ class DDQN(Agent):
         model = Networks().ddqn(self.state_size, self.learning_rate)
 
         self.model = model
-        self.target_model = model
+
+        if self.load_path:
+            self.load_model()
+
+        self.target_model = self.model
+
         print(self.model.summary())
         return None
 
@@ -90,7 +95,7 @@ class DDQN(Agent):
         if not self.train:
             return None
 
-        self.tbl.log_scalar("DDQN epsilon", self.epsilon, self.t)
+        # self.tbl.log_scalar("DDQN epsilon", self.epsilon, self.t)
 
         if self.epsilon > self.epsilon_min:
             self.epsilon *= self.epsilon_decay
@@ -103,7 +108,7 @@ class DDQN(Agent):
         # Helps over fitting, encourages to exploration
         if np.random.uniform(0, 1) < self.epsilon:
             idx = np.random.randint(0, self.action_size)
-            self.tbl.log_histogram("DDQN Greedy Actions", idx, self.t)
+            # self.tbl.log_histogram("DDQN Greedy Actions", idx, self.t)
             return idx
 
         # Compute rewards for any posible action
@@ -111,7 +116,7 @@ class DDQN(Agent):
         assert len(rewards) == self.action_size
 
         idx = np.argmax(rewards)
-        self.tbl.log_histogram("DDQN Predict Actions", idx, self.t)
+        # self.tbl.log_histogram("DDQN Predict Actions", idx, self.t)
         return idx
 
     def update(self, data: Observation) -> None:

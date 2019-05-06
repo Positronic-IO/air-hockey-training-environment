@@ -223,4 +223,3 @@ class c51(Agent):
         self.t += 1
 
         return None
-
