@@ -16,21 +16,14 @@ class DuelingDDQN(Agent):
     """ Reference: https://github.com/flyyufelix/VizDoom-Keras-RL/blob/master/dueling_ddqn.py """
 
     def __init__(
-        self,
-        env: AirHockey,
-        config: Dict[str, Dict[str, int]],
-        tbl: TensorBoardLogger,
-        agent_name: str = "main",
+        self, env: AirHockey, capacity: int, train: bool, config: Dict[str, Any]
     ):
-        super().__init__(env, agent_name)
-
-        # Load main config files
-        main_config = get_config()
+        super().__init__(env)
 
         # Get size of state and action
         # State grows by the amount of frames we want to hold in our memory
-        self.state_size = (3, main_config["capacity"], 2)
-        self.action_size = len(self.env.actions)
+        self.state_size = (3, capacity, 2)
+        self.action_size = 4
 
         # These is hyper parameters for the Dueling DQN
         self.gamma = config["params"]["gamma"]
@@ -47,12 +40,16 @@ class DuelingDDQN(Agent):
 
         # If we are not training, set our epsilon to final_epsilon.
         # We want to choose our prediction more than a random policy.
-        self.train = main_config["train"]
+        self.train = train
         self.epsilon = self.epsilon if self.train else self.final_epsilon
 
         # Initialize replay buffer
         self.max_memory = config["params"]["max_memory"]
         self.memory = MemoryBuffer(self.max_memory)
+
+        # Model load and save paths
+        self.load_path = config["load"]
+        self.save_path = config["save"]
 
         # Model construction
         self.build_model()

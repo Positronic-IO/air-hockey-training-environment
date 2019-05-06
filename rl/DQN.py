@@ -15,24 +15,22 @@ class DQN(Agent):
     """ Reference: https://keon.io/deep-q-learning/ """
 
     def __init__(
-        self,
-        env: AirHockey,
-        config: Dict[str, Dict[str, int]],
-        agent_name: str = "main",
+        self, env: AirHockey, capacity: int, train: bool, config: Dict[str, Any]
     ):
-        super().__init__(env, agent_name)
-
-        # Get main config file
-        main_config = get_config()
+        super().__init__(env)
 
         # Get size of state and action
         # State grows by the amount of frames we want to hold in our memory
-        self.state_size = (1, main_config["capacity"], 2)
-        self.action_size = len(self.env.actions)
+        self.state_size = (1, capacity, 2)
+        self.action_size = 4
 
         # Hyperparameters
         self.gamma = config["params"]["gamma"]
         self.epsilon = config["params"]["epsilon"]
+
+        # Model load and save paths
+        self.load_path = config["load"]
+        self.save_path = config["save"]
 
         # Model construction
         self.build_model()

@@ -8,7 +8,7 @@ from rl.Agent import Agent
 from rl.helpers import TensorBoardLogger, huber_loss
 from rl.MemoryBuffer import MemoryBuffer
 from rl.Networks import Networks
-from utils import Observation, State, get_config, get_model_path
+from utils import Observation, State
 
 
 class DDQN(Agent):
@@ -18,19 +18,17 @@ class DDQN(Agent):
     def __init__(
         self,
         env: AirHockey,
-        config: Dict[str, Dict[str, int]],
-        tbl: TensorBoardLogger,
-        agent_name: str = "main",
+        capacity: int,
+        train: bool,
+        config: Dict[str, Any]
+        # tbl: TensorBoardLogger,
     ):
-        super().__init__(env, agent_name)
-
-        # Get main config file
-        main_config = get_config()
+        super().__init__(env)
 
         # Get size of state and action
         # State grows by the amount of frames we want to hold in our memory
-        self.state_size = (1, main_config["capacity"], 2)
-        self.action_size = len(self.env.actions)
+        self.state_size = (1, capacity, 2)
+        self.action_size = 4
 
         # create replay memory using deque
         self.max_memory = config["params"]["max_memory"]
@@ -46,8 +44,12 @@ class DDQN(Agent):
 
         # If we are not training, set our epsilon to final_epsilon.
         # We want to choose our prediction more than a random policy.
-        self.train = main_config["train"]
+        self.train = train
         self.epsilon = self.epsilon if self.train else self.epsilon_min
+
+        # Model load and save paths
+        self.load_path = config["load"]
+        self.save_path = config["save"]
 
         # Model construction
         self.build_model()
