@@ -286,38 +286,38 @@ class AirHockeyGui:
         # Game loop
         while True:
 
-            # if not self.config["train"]:
-            #     # Air Hockey robot
-            #     self.main_player_move()
+            if not self.config["train"]:
+                # Air Hockey robot
+                self.main_player_move()
 
-            #     # Human agent
-            #     if self.config["live"]["opponent"]["strategy"] == "human":
-            #         # Grab and set user position
-            #         action = pygame.mouse.get_pos()
+                # Human agent
+                if self.config["live"]["opponent"]["strategy"] == "human":
+                    # Grab and set user position
+                    action = pygame.mouse.get_pos()
 
-            #         # Update buffers
-            #         self._update_buffers()
+                    # Update buffers
+                    self._update_buffers()
 
-            #         # Update game state
-            #         self.opponent_agent.move(action)
+                    # Update game state
+                    self.opponent_agent.move(action)
 
-            #     if self.config["live"]["opponent"]["strategy"] != "human":
-            #         self.opponent_player_move()
+                if self.config["live"]["opponent"]["strategy"] != "human":
+                    self.opponent_player_move()
 
-            #     scores = json.loads(self.redis.get("scores"))
+                scores = json.loads(self.redis.get("scores"))
 
-            #     # Compute scores
-            #     if scores["cpu_score"] == 10:
-            #         print(f"Agent {scores['agent_score']}, Computer {scores['cpu_score']}")
-            #         print("Computer wins!")
+                # Compute scores
+                if scores["cpu_score"] == 10:
+                    print(f"Agent {scores['agent_score']}, Computer {scores['cpu_score']}")
+                    print("Computer wins!")
 
-            #         self.env.reset(total=True)
+                    self.env.reset(total=True)
 
-            #     if scores["agent_score"] == 10:
-            #         print(f"Agent {scores['agent_score']}, Computer {scores['cpu_score']}")
-            #         print("Agent wins!")
+                if scores["agent_score"] == 10:
+                    print(f"Agent {scores['agent_score']}, Computer {scores['cpu_score']}")
+                    print("Agent wins!")
 
-            #         self.env.reset(total=True)
+                    self.env.reset(total=True)
 
             self.rerender_environment()
 
