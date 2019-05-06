@@ -166,19 +166,6 @@ class AirHockey:
         if isinstance(action, tuple) or isinstance(action, list):  # Cartesian Coordinates
             agent.x, agent.y = action[0], action[1]
 
-        # Strings
-        if isinstance(action, str) and action == self.actions[0]:
-            agent.y += self.step_size
-
-        if isinstance(action, str) and action == self.actions[1]:
-            agent.y += -self.step_size
-
-        if isinstance(action, str) and action == self.actions[2]:
-            agent.x += self.step_size
-
-        if isinstance(action, str) and action == self.actions[3]:
-            agent.x += -self.step_size
-
         # Integers
         if isinstance(action, int) and action == 0:
             agent.y += self.step_size
