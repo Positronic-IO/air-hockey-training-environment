@@ -1,10 +1,5 @@
 """ Dueling DDQN """
-
-import os
-import random
-import time
-from collections import deque
-from typing import Dict, Tuple, Union
+from typing import Any, Dict, Tuple, Union
 
 import numpy as np
 
@@ -13,7 +8,7 @@ from rl.Agent import Agent
 from rl.helpers import TensorBoardLogger, huber_loss
 from rl.MemoryBuffer import MemoryBuffer
 from rl.Networks import Networks
-from utils import Observation, State, get_model_path, get_config
+from utils import Observation, State
 
 
 class DuelingDDQN(Agent):

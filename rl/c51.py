@@ -1,33 +1,30 @@
 """ C51 DDQN """
-
 import math
-import os
-import random
-from collections import deque
-from time import time
-from typing import Dict, Tuple, Union, Any
+from typing import Any, Dict, Tuple, Union
 
 import numpy as np
 
+from environment import AirHockey
 from rl.Agent import Agent
 from rl.helpers import TensorBoardLogger, huber_loss
 from rl.MemoryBuffer import MemoryBuffer
 from rl.Networks import Networks
-from utils import Observation, State, get_config, get_model_path
+from utils import Observation, State
 
 
 class c51(Agent):
 
     """ Reference: https://github.com/flyyufelix/C51-DDQN-Keras """
 
-
     def __init__(
         self,
+        env: AirHockey,
         capacity: int,
+        train: bool,
         config: Dict[str, Any]
         # tbl: TensorBoardLogger,
     ):
-        super().__init__()
+        super().__init__(env)
 
         # Get size of state and action
         # State grows by the amount of frames we want to hold in our memory

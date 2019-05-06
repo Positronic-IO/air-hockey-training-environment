@@ -1,8 +1,5 @@
 """ DQN """
-
-import os
-import random
-from typing import Dict, Tuple, Union
+from typing import Any, Dict, Tuple, Union
 
 import numpy as np
 
@@ -10,7 +7,7 @@ from environment import AirHockey
 from rl.Agent import Agent
 from rl.helpers import huber_loss
 from rl.Networks import Networks
-from utils import Observation, State, get_config, get_model_path
+from utils import Observation, State
 
 
 class DQN(Agent):
