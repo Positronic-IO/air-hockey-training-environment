@@ -14,14 +14,14 @@ class TestEnvironment:
         env.update_state((380, 234), "opponent")
         assert env.puck.location() == (430, 252)
 
-    def test_agent_score(self):
+    def test_robot_score(self):
         env = AirHockey()
         env.puck.x, env.puck.y = 867, 225
         env.update_score()
-        assert env.agent_score == 1
+        assert env.robot_score == 1
 
-    def test_cpu_score(self):
+    def test_opponent_score(self):
         env = AirHockey()
         env.puck.x, env.puck.y = 29, 225
         env.update_score()
-        assert env.cpu_score == 1
+        assert env.opponent_score == 1
