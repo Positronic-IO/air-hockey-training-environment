@@ -1,11 +1,17 @@
 """ Air Hockey Simulator Gui """
 import argparse
+import logging
+import os
+import sys
 from typing import Dict
 
 import pygame
+from redis import ConnectionError
 
 from connect import RedisConnection
 from environment import AirHockey
+
+logging.basicConfig(level=os.environ.get("LOGLEVEL", "INFO"))
 
 # Initialize the game engine
 pygame.init()
@@ -39,6 +45,7 @@ class AirHockeyGui:
 
         # Update locations
         self.update_locations()
+        logging.info("Connected to Redis")
 
     def update_locations(self) -> None:
         """ Update locations of puck, robot, and the opponent"""
@@ -157,6 +164,7 @@ class AirHockeyGui:
 
         # Set game clock
         clock = pygame.time.Clock()
+        logging.info(f"Rendering game at {self.fps} frames per second")
 
         # Game loop
         while True:
@@ -179,5 +187,10 @@ if __name__ == "__main__":
     args = vars(parser.parse_args())
 
     # Initialize gui program
-    gui = AirHockeyGui(args)
+    try:
+        gui = AirHockeyGui(args)
+    except ConnectionError:
+        logging.error("Cannot connect to Redis. Please make sure Redis is up and active.")
+        sys.exit()
+
     gui.run()
