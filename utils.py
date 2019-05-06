@@ -19,37 +19,6 @@ Observation = namedtuple(
 )
 
 
-def parse_args() -> Dict[str, Union[str, int]]:
-
-    parser = argparse.ArgumentParser(description="Process stuff for training.")
-
-    parser.add_argument("-r", "--robot", help="Robot strategy")
-    parser.add_argument("-o", "--opponent", help="Opponent strategy")
-    parser.add_argument(
-        "-c", "--capacity", default=5, help="Number of past expierences to store"
-    )
-    parser.add_argument(
-        "-t", "--time", default=3, help="Time per train. Units in hours. (Default to 3 hours)"
-    )
-    parser.add_argument(
-        "--tensorboard",
-        help="Tensorbaord log location. If none is specified, then Tensorboard will not be used."
-    )
-    args = vars(parser.parse_args())
-    print(args)
-
-    # Validation
-    if not args.get("robot"):
-        print("Robot strategy Undefined")
-        sys.exit()
-    
-    if not args.get("opponent"):
-        print("Opponent strategy Undefined")
-        sys.exit()
-
-    return args
-
-
 #  Load configuration
 def get_config() -> Dict[str, Any]:
     """ Load main config file """
