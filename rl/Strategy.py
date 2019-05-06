@@ -26,12 +26,15 @@ class Strategy:
     def __init__(self):
         pass
 
-    def make(self, strategy: str, capacity: int):
+    def make(self, env: AirHockey, strategy: str, capacity: int = 0, train: bool = False):
         """ Return instance of learner """
 
         if strategy == "human":
-            return Agent()
+            return Agent(env)
 
         config = get_config_strategy(strategy)
 
-        return self.strategies[strategy](capacity, config)
+        if strategy == "q-learner":
+            return self.strategies[strategy](env, config)
+
+        return self.strategies[strategy](env, capacity, train, config)
