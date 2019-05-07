@@ -1,10 +1,9 @@
 """ Reinforcement Learning Neural Network Models """
 from typing import Tuple
 
-import tensorflow as tf
 from keras import backend as K
-from keras.layers import BatchNormalization, Dense, Dropout, Flatten, Input, Lambda, add
-from keras.layers.core import Activation, Dense
+from keras.layers import Dense, Flatten, Input, Lambda, add
+from keras.layers.core import Activation
 from keras.models import Model, Sequential, load_model
 from keras.optimizers import Adam, RMSprop
 
