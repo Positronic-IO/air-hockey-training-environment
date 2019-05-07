@@ -39,14 +39,15 @@ def get_config_strategy(strategy: str) -> Dict[str, Union[str, int]]:
         filename = strategies[strategy]
     except KeyError:
         logger.error("Strategy not defined")
+        raise KeyError
+    else:
+        with open(filename, "r") as f:
+            config = json.load(f)
 
-    with open(filename, "r") as f:
-        config = json.load(f)
+            if strategy != "q-learner" and not config.get("save"):
+                logger.error("Please specify a path to save model.")
 
-        if strategy != "q-learner" and not config.get("save"):
-            logger.error("Please specify a path to save model.")
-
-    return config
+        return config
 
 
 def get_model_path(file_path: str) -> str:
