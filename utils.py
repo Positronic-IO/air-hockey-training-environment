@@ -1,6 +1,5 @@
 """ Helpful utility functions """
 
-import argparse
 import json
 import os
 import sys
@@ -19,15 +18,6 @@ Observation = namedtuple(
 )
 
 
-#  Load configuration
-def get_config() -> Dict[str, Any]:
-    """ Load main config file """
-
-    with open(os.path.join(os.getcwd(), "config.json"), "r") as f:
-        config = json.load(f)
-        return config
-
-
 def get_config_strategy(strategy: str) -> Dict[str, Union[str, int]]:
     """ Grab config for different strategies """
 
@@ -38,7 +28,7 @@ def get_config_strategy(strategy: str) -> Dict[str, Union[str, int]]:
         "dueling": os.path.join(os.getcwd(), "configs", "dueling.json"),
         "c51": os.path.join(os.getcwd(), "configs", "c51.json"),
     }
-    
+
     try:
         filename = strategies[strategy]
     except KeyError:
@@ -49,7 +39,7 @@ def get_config_strategy(strategy: str) -> Dict[str, Union[str, int]]:
 
         if strategy != "q-learner" and not config.get("save"):
             raise KeyError("Please specify a path to save model.")
-            
+
     return config
 
 
