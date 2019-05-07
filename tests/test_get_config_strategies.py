@@ -1,6 +1,5 @@
 import pytest
 
-
 from utils import get_config_strategy
 
 
@@ -17,4 +16,3 @@ class TestStrategyConfig:
 
         with pytest.raises(KeyError):
             get_config_strategy("hi")
-

@@ -16,4 +16,3 @@ class TestStrategyConfig:
 
         with pytest.raises(KeyError):
             get_config_strategy("hi")
-

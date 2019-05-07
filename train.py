@@ -16,7 +16,6 @@ from environment import AirHockey
 from rl import MemoryBuffer, Strategy
 from utils import Observation, State, write_results
 
-
 # Initiate Logger
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)

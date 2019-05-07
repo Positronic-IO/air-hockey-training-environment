@@ -2,13 +2,16 @@
 import json
 import random
 from typing import Tuple
+
 from connect import RedisConnection
+
 
 class Puck:
     """ Puck object """
 
-
-    def __init__(self, x: int, y: int, dx: int = -5, dy: int = 3, redis: RedisConnection=None):
+    def __init__(
+        self, x: int, y: int, dx: int = -5, dy: int = 3, redis: RedisConnection = None
+    ):
         """ Create a goal """
 
         self.name = "puck"

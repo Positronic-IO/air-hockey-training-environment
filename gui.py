@@ -212,6 +212,5 @@ if __name__ == "__main__":
             "Cannot connect to Redis. Please make sure Redis is up and active."
         )
         sys.exit()
-        
 
     gui.run()

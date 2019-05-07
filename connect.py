@@ -5,7 +5,7 @@ from abc import ABC, abstractmethod, abstractstaticmethod
 from typing import Any, Dict, List, Union
 
 import requests
-from redis import StrictRedis, ConnectionError
+from redis import ConnectionError, StrictRedis
 
 
 class BaseConnection(ABC):

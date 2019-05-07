@@ -1,11 +1,12 @@
 """ Memory buffer """
 import random
 from collections import deque
-from typing import Any, Deque, List, Union, Tuple
+from typing import Any, Deque, List, Tuple, Union
 
 from utils import Observation, State
 
 random.seed(0)
+
 
 class MemoryBuffer:
     """ Hold last n states in memory """

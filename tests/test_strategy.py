@@ -53,4 +53,3 @@ class TestStrategy:
 
         strategy = Strategy().make(self.env, "q-learner", self.capacity, self.train)
         assert isinstance(strategy, QLearner)
-
