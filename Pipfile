@@ -5,6 +5,8 @@ verify_ssl = true
 
 [dev-packages]
 sentry-sdk = "*"
+flake8 = "*"
+v = {editable = true,version = "*"}
 
 [packages]
 pygame = "*"
