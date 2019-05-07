@@ -17,9 +17,6 @@ logger.setLevel(logging.DEBUG)
 
 
 class Agent:
-
-    # Using test server with Environment
-
     def __init__(self, env: AirHockey):
 
         self.env = env
