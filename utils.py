@@ -1,7 +1,7 @@
 """ Helpful utility functions """
 
-import argparse
 import json
+import logging
 import os
 import sys
 from collections import namedtuple
@@ -9,49 +9,45 @@ from typing import Any, Dict, List, Tuple, Union
 
 import pandas as pd
 
+# Initiate logger
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+
 # Define custom types
 Action = Union[int, str, Tuple[int, int]]
 
-State = namedtuple(
-    "state",
-    [
-        "agent_location",
-        "puck_location",
-        "puck_prev_location",
-        "puck_velocity",
-        "opponent_location",
-        "opponent_prev_location",
-        "opponent_velocity",
-    ],
-)
+State = namedtuple("state", ["robot_location", "puck_location"])
 
 Observation = namedtuple(
     "observation", ["state", "action", "reward", "done", "new_state"]
 )
 
 
-#  Load configuration
-with open("./config.json", "r") as f:
-    config = json.load(f)
-
-
-def get_config_strategy(name: str) -> Dict[str, Union[str, int]]:
+def get_config_strategy(strategy: str) -> Dict[str, Union[str, int]]:
     """ Grab config for different strategies """
 
     strategies = {
-        "dqn": os.path.join(os.getcwd(), "rl", "configs", "dqn.json"),
-        "ddqn": os.path.join(os.getcwd(), "rl", "configs", "ddqn.json"),
-        "dueling": os.path.join(os.getcwd(), "rl", "configs", "dueling-ddqn.json"),
-        "c51": os.path.join(os.getcwd(), "rl", "configs", "c51.json"),
+        "q-learner": os.path.join(os.getcwd(), "configs", "q-learner.json"),
+        "dqn": os.path.join(os.getcwd(), "configs", "dqn.json"),
+        "ddqn": os.path.join(os.getcwd(), "configs", "ddqn.json"),
+        "dueling": os.path.join(os.getcwd(), "configs", "dueling.json"),
+        "c51": os.path.join(os.getcwd(), "configs", "c51.json"),
     }
 
     try:
-        with open(strategies[name], "r") as f:
-            config = json.load(f)
+        filename = strategies[strategy]
     except KeyError:
-        raise KeyError("Strategy not defined")
+        logger.error("Strategy not defined")
+        raise KeyError
+    else:
+        with open(filename, "r") as f:
+            config = json.load(f)
 
-    return config
+            if strategy != "q-learner" and not config.get("save"):
+                logger.error("Please specify a path to save model.")
+
+        return config
 
 
 def get_model_path(file_path: str) -> str:
@@ -77,7 +73,9 @@ def write_results(filename: str, data: Dict[str, List[int]]) -> None:
     """ Write data to csv """
 
     df = pd.DataFrame.from_dict(data)
-    if not ".csv" in filename:
+    head, tail = os.path.split(filename)
+
+    if tail == ".csv":
         print("Filename to save results does not have the '.csv' extension.")
         sys.exit()
 

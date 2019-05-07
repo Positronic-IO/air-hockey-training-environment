@@ -128,5 +128,8 @@ dmypy.json
 # testing
 *.h5
 *.csv
-# *.ipynb
+#*.ipynb
 todo
+
+# Tensorboard
+logs/

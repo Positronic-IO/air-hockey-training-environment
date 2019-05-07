@@ -3,13 +3,14 @@
 import sys
 
 from environment import AirHockey
-from utils import get_config_strategy
-
+from rl.Agent import Agent
 from rl.c51 import c51
 from rl.DDQN import DDQN
 from rl.DQN import DQN
 from rl.DuelingDDQN import DuelingDDQN
+from rl.helpers import TensorBoardLogger
 from rl.QLearner import QLearner
+from utils import get_config_strategy
 
 
 class Strategy:
@@ -25,12 +26,17 @@ class Strategy:
     def __init__(self):
         pass
 
-    def make(self, name: str, env: AirHockey, agent_name: str = "main"):
+    def make(
+        self, env: AirHockey, strategy: str, capacity: int = 0, train: bool = False
+    ):
         """ Return instance of learner """
 
-        if env is None:
-            raise ValueError("Need to pass a gaming environment")
+        if strategy == "human":
+            return Agent(env)
 
-        config = get_config_strategy(name)
- 
-        return self.strategies[name](env, config, agent_name)
+        config = get_config_strategy(strategy)
+
+        if strategy == "q-learner":
+            return self.strategies[strategy](env, config)
+
+        return self.strategies[strategy](env, capacity, train, config)

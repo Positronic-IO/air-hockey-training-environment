@@ -1,10 +1,9 @@
 """ Reinforcement Learning Neural Network Models """
 from typing import Tuple
 
-import tensorflow as tf
 from keras import backend as K
-from keras.layers import BatchNormalization, Dense, Dropout, Flatten, Input, Lambda, add
-from keras.layers.core import Activation, Dense
+from keras.layers import Dense, Flatten, Input, Lambda, add
+from keras.layers.core import Activation
 from keras.models import Model, Sequential, load_model
 from keras.optimizers import Adam, RMSprop
 
@@ -16,39 +15,32 @@ class Networks:
 
     @staticmethod
     def dueling_ddqn(
-        state_size: Tuple[int, int], action_size: int, learning_rate: float
+        state_size: Tuple[int, int, int], action_size: int, learning_rate: float
     ) -> Model:
         """ Duelling DDQN Neural Net """
 
         state_input = Input(shape=state_size)
-        x = Dense(12, kernel_initializer="normal", activation="relu")(state_input)
-        x = Dropout(rate=0.3)(x)
+        x = Dense(8, kernel_initializer="normal", activation="relu")(state_input)
 
-        x = Dense(30, kernel_initializer="normal", activation="relu")(x)
-        x = Dropout(rate=0.3)(x)
+        # x = Dense(35, kernel_initializer="normal", activation="relu")(x)
 
-        x = Dense(20, kernel_initializer="normal", activation="relu")(x)
-        x = Dropout(rate=0.3)(x)
+        x = Dense(15, kernel_initializer="normal", activation="relu")(x)
 
         x = Flatten()(x)
 
         # state value tower - V
-        state_value = Dense(256, kernel_initializer="normal", activation="relu")(x)
-        state_value = Dropout(rate=0.3)(state_value)
+        state_value = Dense(32, kernel_initializer="normal", activation="relu")(x)
 
         state_value = Dense(1, kernel_initializer="random_uniform")(state_value)
-        state_value = Dropout(rate=0.3)(state_value)
 
         state_value = Lambda(lambda s: K.expand_dims(s[:, 0]), output_shape=(4,))(
             state_value
         )
 
         # action advantage tower - A
-        action_advantage = Dense(256, kernel_initializer="normal", activation="relu")(x)
-        action_advantage = BatchNormalization()(action_advantage)
+        action_advantage = Dense(32, kernel_initializer="normal", activation="relu")(x)
 
         action_advantage = Dense(action_size)(action_advantage)
-        action_advantage = BatchNormalization()(action_advantage)
 
         action_advantage = Lambda(
             lambda a: a[:, :] - K.mean(a[:, :], keepdims=True),
@@ -64,7 +56,7 @@ class Networks:
         return model
 
     @staticmethod
-    def dqn(state_size: Tuple[int, int]) -> Model:
+    def dqn(state_size: Tuple[int, int, int]) -> Model:
         """ Deep Q Neural Network """
 
         model = Sequential()
@@ -81,14 +73,14 @@ class Networks:
         model.add(Flatten())
 
         model.add(Dense(4, kernel_initializer="random_uniform"))
-        model.add(Activation("linear"))
+        model.add(Activation("sigmoid"))
 
         model.compile(loss=huber_loss, optimizer=RMSprop())
 
         return model
 
     @staticmethod
-    def ddqn(state_size: Tuple[int, int], learning_rate: float) -> Model:
+    def ddqn(state_size: Tuple[int, int, int], learning_rate: float) -> Model:
         """ DDQN Neural Network """
 
         model = Sequential()
@@ -105,7 +97,7 @@ class Networks:
         model.add(Flatten())
 
         model.add(Dense(4, kernel_initializer="random_uniform"))
-        model.add(Activation("linear"))
+        model.add(Activation("sigmoid"))
 
         model.compile(loss=huber_loss, optimizer=Adam(lr=learning_rate))
 
@@ -113,19 +105,16 @@ class Networks:
 
     @staticmethod
     def c51(
-        state_size: Tuple[int, int], action_size: int, learning_rate: float
+        state_size: Tuple[int, int, int], action_size: int, learning_rate: float
     ) -> Model:
         """ c51 Neural Net """
 
         state_input = Input(shape=state_size)
         x = Dense(12, kernel_initializer="normal", activation="relu")(state_input)
-        x = BatchNormalization()(x)
 
-        x = Dense(30, kernel_initializer="normal", activation="relu")(x)
-        x = BatchNormalization()(x)
+        # x = Dense(30, kernel_initializer="normal", activation="relu")(x)
 
-        x = Dense(20, kernel_initializer="normal", activation="relu")(x)
-        x = BatchNormalization()(x)
+        x = Dense(12, kernel_initializer="normal", activation="relu")(x)
 
         x = Flatten()(x)
 

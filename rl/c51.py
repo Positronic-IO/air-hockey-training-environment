@@ -1,19 +1,20 @@
 """ C51 DDQN """
-
+import logging
 import math
-import os
-import random
-import time
-from collections import deque
-from typing import Dict, Tuple, Union
+from typing import Any, Dict, Tuple, Union
 
 import numpy as np
 
 from environment import AirHockey
 from rl.Agent import Agent
-from rl.helpers import huber_loss
+from rl.helpers import TensorBoardLogger, huber_loss
+from rl.MemoryBuffer import MemoryBuffer
 from rl.Networks import Networks
-from utils import Observation, State, get_model_path
+from utils import Observation, State
+
+# Initiate Logger
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
 
 class c51(Agent):
@@ -23,16 +24,19 @@ class c51(Agent):
     def __init__(
         self,
         env: AirHockey,
-        config: Dict[str, Dict[str, int]],
-        agent_name: str = "main",
+        capacity: int,
+        train: bool,
+        config: Dict[str, Any]
+        # tbl: TensorBoardLogger,
     ):
-        super().__init__(env, agent_name)
+        super().__init__(env)
 
-        # get size of state and action
-        self.state_size = (7, 2)
-        self.action_size = len(self.env.actions)
+        # Get size of state and action
+        # State grows by the amount of frames we want to hold in our memory
+        self.state_size = (2, capacity, 2)
+        self.action_size = 4
 
-        # these is hyper parameters for the DQN
+        # These are the hyper parameters for the c51
         self.gamma = config["params"]["gamma"]
         self.learning_rate = config["params"]["learning_rate"]
         self.epsilon = config["params"]["epsilon"]
@@ -43,32 +47,45 @@ class c51(Agent):
         self.explore = config["params"]["explore"]
         self.frame_per_action = config["params"]["frame_per_action"]
         self.update_target_freq = config["params"]["update_target_freq"]
-        self.timestep_per_train = config["params"][
-            "timestep_per_train"
-        ]  # Number of timesteps between training interval
+        self.timestep_per_train = config["params"]["timestep_per_train"]
 
         # Initialize Atoms
-        self.num_atoms = config["params"]["num_atoms"]  # Defaults to51 for C51
-        self.v_max = config["params"][
-            "v_max"
-        ]  # Max possible score for Defend the center is 26 - 0.1*26 = 23.4
+        self.num_atoms = config["params"]["num_atoms"]  # Defaults to 51 for C51
+        self.v_max = config["params"]["v_max"]  # Max possible score for agents is 10
         self.v_min = config["params"]["v_min"]
         self.delta_z = (self.v_max - self.v_min) / float(self.num_atoms - 1)
         self.z = [self.v_min + i * self.delta_z for i in range(self.num_atoms)]
 
         # create replay memory using deque
-        self.memory = deque()
-        self.max_memory = config["params"][
-            "max_memory"
-        ]  # number of previous transitions to remember
+        self.max_memory = config["params"]["max_memory"]
+        self.memory = MemoryBuffer(self.max_memory)
 
-        # Counters
-        self.batch_counter, self.sync_counter, self.t = 0, 0, 0
+        # If we are not training, set our epsilon to final_epsilon.
+        # We want to choose our prediction more than a random policy.
+        self.train = train
+        self.epsilon = self.epsilon if self.train else self.final_epsilon
+
+        # Keep up with the iterations
+        self.t = 0
+
+        # Model load and save paths
+        self.load_path = config["load"]
+        self.save_path = config["save"]
 
         # Model construction
         self.build_model()
 
-        self.version = "0.1.0"
+        # Initiate Tensorboard
+        # self.tbl = tbl
+
+        self.version = "0.2.0"
+        logger.info(f"Strategy defined for {self._agent_name}: {self.__repr__()}")
+
+    def __repr__(self) -> str:
+        return f"{self.__str__()} {self.version}"
+
+    def __str__(self) -> str:
+        return "c51 DDQN"
 
     def build_model(self) -> None:
         """ Create our DNN model for Q-value approximation """
@@ -76,74 +93,80 @@ class c51(Agent):
         model = Networks().c51(self.state_size, self.action_size, self.learning_rate)
 
         self.model = model
-        self.target_model = model
+
+        if self.load_path:
+            self.load_model()
+
+        self.target_model = self.model
+
         print(self.model.summary())
         return model
 
     def update_target_model(self) -> None:
-        """ Copy weights from model to target_model """
+        """ After some time interval update the target model to be same with model """
 
-        print("Sync target model")
-        self.target_model.set_weights(self.model.get_weights())
+        # Update the target model to be same with model
+        if self.t > 0 and self.t % self.update_target_freq == 0:
+
+            logger.debug("Sync target model for c51")
+            self.target_model.set_weights(self.model.get_weights())
+
+        return None
+
+    def _epsilon(self) -> None:
+        """ Update all things epsilon """
+
+        # If we are not in training mode, then break.
+        if not self.train:
+            return None
+
+        # self.tbl.log_scalar("c51 epsilon", self.epsilon, self.t)
+
+        if self.epsilon > self.final_epsilon and self.t % self.observe == 0:
+            self.epsilon -= (self.initial_epsilon - self.final_epsilon) / self.explore
+
+        return None
 
     def get_action(self, state: State) -> int:
         """ Apply an espilon-greedy policy to pick next action """
 
         # Helps over fitting, encourages to exploration
         if np.random.uniform(0, 1) < self.epsilon:
-            return np.random.randint(0, self.action_size)
+            idx = np.random.randint(0, self.action_size)
+            # self.tbl.log_histogram("c51 Greedy Actions", idx, self.t)
+            return idx
 
         # Compute rewards for any posible action
         z = self.model.predict(np.array([state]), batch_size=1)
         z_concat = np.vstack(z)
         q = np.sum(np.multiply(z_concat, np.array(self.z)), axis=1)
         # Pick action with the biggest Q value
-        idx = np.argmax(q[0])
+        idx = np.argmax(q)
+        # self.tbl.log_histogram("c51 Predict Actions", idx, self.t)
         return idx
 
-    def remember(self, data: Observation) -> None:
-        """ Push data into memory for replay later """
+    def update(self, data: Observation) -> None:
+        """ Experience replay """
 
         # Push data into observation and remove one from buffer
         self.memory.append(data)
 
         # Modify epsilon
-        if self.epsilon > self.final_epsilon and self.t > self.observe:
-            self.epsilon -= (self.initial_epsilon - self.final_epsilon) / self.explore
-        self.t += 1
+        self._epsilon()
 
-        # Memory management
-        if len(self.memory) > self.max_memory:
-            self.memory.popleft()
-
-        assert len(self.memory) < self.max_memory + 1, "Max memory exceeded"
-
-    def update(self, data: Observation) -> Union[float, None]:
-        """ Experience replay """
-
-        # Push data into observation and remove one from buffer
-        self.remember(data)
-
-        self.sync_counter += 1
-        if self.sync_counter > self.update_target_freq:
-            # Sync Target Model
-            self.update_target_model()
-            self.sync_counter = 0
+        # Sync Target Model
+        self.update_target_model()
 
         # Update model in intervals
-        self.batch_counter += 1
-        if self.batch_counter > self.timestep_per_train:
+        if self.t > self.observe and self.t % self.timestep_per_train == 0:
 
-            print("Update Model")
-
-            # Reset Batch counter
-            self.batch_counter = 0
+            logger.info(f"Updating c51 model")
 
             # Get samples from replay
             num_samples = min(
                 self.batch_size * self.timestep_per_train, len(self.memory)
             )
-            replay_samples = random.sample(self.memory, num_samples)
+            replay_samples = self.memory.sample(num_samples)
 
             # Convert Observations/trajectories into tensors
             action = np.array([sample[1] for sample in replay_samples], dtype=np.int32)
@@ -200,9 +223,10 @@ class c51(Agent):
                             j
                         ] * (bj - m_l)
 
-            loss = self.model.fit(
+            self.model.fit(
                 state_inputs, m_prob, batch_size=self.batch_size, epochs=1, verbose=0
             )
 
-            return loss.history["loss"]
+        self.t += 1
+
         return None

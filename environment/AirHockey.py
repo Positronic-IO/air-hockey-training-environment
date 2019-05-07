@@ -1,28 +1,32 @@
 """ Air Hockey Game Environment """
 
 import json
+import logging
 from time import time
 from typing import Any, Dict, Tuple, Union
 
 import numpy as np
 from redis import Redis
 
+from connect import RedisConnection
 from environment.components import Goal, Mallet, Puck
-from utils import Action, config, State, Observation
+from utils import Action, Observation, State
+
+# Initiate Logger
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
 
 class AirHockey:
 
-    redis = Redis()
-
-    # Possible actions
-    actions = ["U", "D", "L", "R"]
-
     # Default rewwards
-    rewards = config["rewards"]
+    rewards = {"point": 1, "loss": -5, "hit": 0, "miss": 0}
 
     def __init__(self, **kwargs) -> None:
         """ Initiate an air hockey game """
+
+        self.redis = RedisConnection()
 
         # Define table and rink sizes
         self.table_size = kwargs.get("table_size", [900, 480])
@@ -35,11 +39,17 @@ class AirHockey:
         self.puck_radius = kwargs.get("puck_radius", 15)
 
         # Default scores
-        self.cpu_score = 0
-        self.agent_score = 0
-        self.redis.set(
-            "scores",
-            json.dumps({"agent_score": self.agent_score, "cpu_score": self.cpu_score}),
+        self.opponent_score = 0
+        self.robot_score = 0
+
+        # Push to redis
+        self.redis.post(
+            {
+                "scores": {
+                    "robot_score": self.robot_score,
+                    "opponent_score": self.opponent_score,
+                }
+            }
         )
 
         self.ticks_to_friction = 60
@@ -56,7 +66,7 @@ class AirHockey:
         puck_start_x, puck_start_y = self.table_midpoints[0], self.table_midpoints[1]
 
         # Create puck
-        self.puck = Puck(puck_start_x, puck_start_y)
+        self.puck = Puck(x=puck_start_x, y=puck_start_y, redis=self.redis)
 
         # Make goals
         self.left_goal = Goal(0, self.table_midpoints[1] - 50, w=27)
@@ -65,12 +75,13 @@ class AirHockey:
         )
 
         # Makes Computer Mallet
-        self.agent = Mallet(
-            "agent",
+        self.robot = Mallet(
+            "robot",
             default_left_position[0],
             default_left_position[1],
             right_lim=self.table_midpoints[0] - self.puck_radius,
             table_size=self.table_size,
+            redis=self.redis,
         )
 
         # Makes Computer Mallet
@@ -80,6 +91,7 @@ class AirHockey:
             default_right_position[1],
             left_lim=self.table_midpoints[0] + self.puck_radius,
             table_size=self.table_size,
+            redis=self.redis,
         )
 
         # Define step size of mallet
@@ -90,96 +102,20 @@ class AirHockey:
 
         # Reward
         self.reward = 0
-        self.cumulative_reward = 0
+        self.robot_cumulative_reward = 0
+        self.opponent_cumulative_reward = 0
 
         # If episode is done
         self.done = False
-
-        # Cumulative scores
-        self.agent_cumulative_score = 0
-        self.cpu_cumulative_score = 0
-
-        # Reward per episode
-        self.reward_per_episode = 0
-
-    def check_stall(self) -> None:
-        """ Check to see if the game has stalled """
-
-        if self.puck.x < self.table_midpoints[0]:
-            self.timer = time()
-            return None
-
-        delta = time() - self.timer
-
-        if (delta > 3) and (self.puck.x > self.table_midpoints[0]):
-            self.reset()
-            self.timer = time()
-            print("Stalled")
-
-        return None
-
-    def mallet_ai(self) -> None:
-        """ The 'AI' of the computer """
-
-        self.check_stall()
-
-        if self.puck.x < self.opponent.x:
-            if self.puck.x < self.opponent.left_lim:
-                self.opponent.dx = 1
-            else:
-                self.opponent.dx = -2
-
-        if self.puck.x > self.opponent.x:
-            if self.puck.x > self.opponent.right_lim:
-                self.opponent.dx = -1
-            else:
-                self.opponent.dx = 2
-
-        if self.puck.y < self.opponent.y:
-            if self.puck.y < self.opponent.u_lim:
-                self.opponent.dy = 1
-            else:
-                self.opponent.dy = -6
-
-        if self.puck.y > self.opponent.y:
-            if self.puck.y <= 360:  # was 250
-                self.opponent.dy = 6
-
-            else:
-                if self.opponent.y > 200:
-                    self.opponent.dy = -2
-                else:
-                    self.opponent.dy = 0
-            # Addresses situation when the puck and the computer are on top of each other.
-            # Breaks loop
-            if (
-                abs(self.puck.y - self.opponent.y) < 40
-                and abs(self.puck.x - self.opponent.x) < 40
-            ):
-                self.puck.dx += 2
-                self.puck.dy += 2
-
-        return None
 
     def _move(self, agent: Mallet, action: Action) -> None:
         """ Move agent's mallet """
 
         # Update action
-        if isinstance(action, tuple):  # Cartesian Coordinates
-            agent.x, self.agent.y = action[0], action[1]
-
-        # Strings
-        if isinstance(action, str) and action == self.actions[0]:
-            agent.y += self.step_size
-
-        if isinstance(action, str) and action == self.actions[1]:
-            agent.y += -self.step_size
-
-        if isinstance(action, str) and action == self.actions[2]:
-            agent.x += self.step_size
-
-        if isinstance(action, str) and action == self.actions[3]:
-            agent.x += -self.step_size
+        if isinstance(action, tuple) or isinstance(
+            action, list
+        ):  # Cartesian Coordinates
+            agent.x, agent.y = action[0], action[1]
 
         # Integers
         if isinstance(action, int) and action == 0:
@@ -189,10 +125,10 @@ class AirHockey:
             agent.y += -self.step_size
 
         if isinstance(action, int) and action == 2:
-            agent.x += self.step_size
+            agent.x += -self.step_size
 
         if isinstance(action, int) and action == 3:
-            agent.x += -self.step_size
+            agent.x += self.step_size
 
         # Set agent position
         agent.update_mallet()
@@ -204,24 +140,32 @@ class AirHockey:
 
         return None
 
-    def update_state(self, action: Action, agent_name: str = "main") -> None:
+    def update_state(self, action: Action, agent_name: str = "robot") -> None:
         """ Update state of game """
 
         # Move mallet
-        if agent_name == "main":
-            self._move(self.agent, action)
+        if agent_name == "robot":
+            self._move(self.robot, action)
         elif agent_name == "opponent":
             self._move(self.opponent, action)
+        elif agent_name == "human":
+            # Update action
+            if isinstance(action, tuple) or isinstance(
+                action, list
+            ):  # Cartesian Coordinates
+                self.opponent.x, self.opponent.y = action[0], action[1]
+                self.opponent.update_mallet()
         else:
-            raise ValueError("Invalid agent name")
+            logger.error("Invalid agent name")
+            raise ValueError
 
         # Determine puck physics
         if (
-            abs(self.agent.x - self.puck.x) <= 50
-            and abs(self.agent.y - self.puck.y) <= 50
+            abs(self.robot.x - self.puck.x) <= 50
+            and abs(self.robot.y - self.puck.y) <= 50
         ):
-            self.puck.dx = -3 * self.puck.dx + self.agent.dx
-            self.puck.dy = -3 * self.puck.dy + self.agent.dy
+            self.puck.dx = -3 * self.puck.dx + self.robot.dx
+            self.puck.dy = -3 * self.puck.dy + self.robot.dy
 
         if (
             abs(self.opponent.x - self.puck.x) <= 50
@@ -240,9 +184,9 @@ class AirHockey:
             self.ticks_to_friction = 60
 
         # Update agent position
-        self.agent.last_x = self.agent.x
-        self.agent.last_y = self.agent.y
-        self.agent.update_mallet()
+        self.robot.last_x = self.robot.x
+        self.robot.last_y = self.robot.y
+        self.robot.update_mallet()
 
         self.opponent.last_x = self.opponent.x
         self.opponent.last_y = self.opponent.y
@@ -264,20 +208,26 @@ class AirHockey:
             abs(self.right_goal.centre_y - self.puck.y) <= 50
             and abs(self.right_goal.centre_x - self.puck.x) <= 45
         ):
-            self.agent_score += 1
-            self.agent_cumulative_score += 1
-            self.reward = self.rewards["point"]
-            self.cumulative_reward += self.reward
-
-            # Push to redis
-            self.redis.set(
-                "scores",
-                json.dumps(
-                    {"agent_score": self.agent_score, "cpu_score": self.cpu_score}
-                ),
+            self.robot_score += 1
+            self.reward = self.rewards["point"] if self.robot_score == 10 else 0
+            self.robot_cumulative_reward += (
+                self.rewards["point"] if self.robot_score == 10 else 0
+            )
+            self.opponent_cumulative_reward += (
+                self.rewards["loss"] if self.robot_score == 10 else 0
             )
 
-            print(f"Computer {self.cpu_score}, Agent {self.agent_score}")
+            # Push to redis
+            self.redis.post(
+                {
+                    "scores": {
+                        "robot_score": self.robot_score,
+                        "opponent_score": self.opponent_score,
+                    }
+                }
+            )
+
+            logger.info(f"Robot {self.robot_score}, Computer {self.opponent_score}")
             self.done = True
             self.reset()
             return None
@@ -287,54 +237,67 @@ class AirHockey:
             abs(self.left_goal.centre_y - self.puck.y) <= 50
             and abs(self.left_goal.centre_x - self.puck.x) <= 45
         ):
-            self.cpu_score += 1
-            self.cpu_cumulative_score += 1
-            self.reward = self.rewards["loss"]
-            self.cumulative_reward += self.reward
+            self.opponent_score += 1
+            self.reward = self.rewards["loss"] if self.opponent_score == 10 else 0
+            self.robot_cumulative_reward += (
+                self.rewards["loss"] if self.opponent_score == 10 else 0
+            )
+            self.opponent_cumulative_reward += (
+                self.rewards["point"] if self.opponent_score == 10 else 0
+            )
 
             # Push to redis
-            self.redis.set(
-                "scores",
-                json.dumps(
-                    {"agent_score": self.agent_score, "cpu_score": self.cpu_score}
-                ),
+            self.redis.post(
+                {
+                    "scores": {
+                        "robot_score": self.robot_score,
+                        "opponent_score": self.opponent_score,
+                    }
+                }
             )
-            print(f"Computer {self.cpu_score}, Agent {self.agent_score}")
+
+            logger.info(f"Robot {self.robot_score}, Computer {self.opponent_score}")
             self.done = True
             self.reset()
             return None
 
         # # We hit the puck
-        if (
-            abs(self.agent.x - self.puck.x) <= 35
-            and abs(self.agent.y - self.puck.y) <= 35
-        ):
-            self.reward = self.rewards["hit"]
-            self.cumulative_reward += self.reward
-            self.done = False
-            return None
+        # if (
+        #     abs(self.robot.x - self.puck.x) <= 35
+        #     and abs(self.robot.y - self.puck.y) <= 35
+        # ):
+        #     self.reward = self.rewards["hit"]
+        #     self.cumulative_reward += self.reward
+        #     self.done = False
+        #     return None
 
-        self.reward = self.rewards["miss"]
-        self.cumulative_reward += self.reward
-        self.done = False
+        # self.reward = self.rewards["miss"]
+        # self.cumulative_reward += self.reward
+        # self.done = False
         return None
 
     def reset(self, total: bool = False) -> None:
         """ Reset Game """
 
         if total:
-            self.cpu_score = 0
-            self.agent_score = 0
+            self.opponent_score = 0
+            self.robot_score = 0
 
-            self.redis.set(
-                "scores",
-                json.dumps(
-                    {"agent_score": self.agent_score, "cpu_score": self.cpu_score}
-                ),
+            # Push to redis
+            self.redis.post(
+                {
+                    "scores": {
+                        "robot_score": self.robot_score,
+                        "opponent_score": self.opponent_score,
+                    }
+                }
             )
+            logger.info("Total Game reset")
 
         self.puck.reset()
-        self.agent.reset_mallet()
+        self.robot.reset_mallet()
         self.opponent.reset_mallet()
+
+        logger.info("Game reset")
 
         return None

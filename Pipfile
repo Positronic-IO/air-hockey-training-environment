@@ -5,6 +5,8 @@ verify_ssl = true
 
 [dev-packages]
 sentry-sdk = "*"
+flake8 = "*"
+v = {editable = true,version = "*"}
 
 [packages]
 pygame = "*"
@@ -12,14 +14,16 @@ mypy = "*"
 jupyterlab = "*"
 numpy = "*"
 keras = "*"
-tensorflow-gpu = "==1.12.0"
 matplotlib = "*"
 pillow = "*"
 seaborn = "*"
 pandas = "*"
 h5py = "*"
-tensorflow-tensorboard = "*"
 redis = "*"
+tensorboard = "*"
+tensorflow-gpu = "==1.12.0"
+requests = "*"
+pytest = "*"
 
 [requires]
 python_version = "3.6"
