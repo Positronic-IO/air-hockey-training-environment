@@ -38,10 +38,14 @@ class Train:
         self.robot.agent_name = "robot"
         logging.info(f"Strategy {self.args['robot']} loaded")
 
+        # Set up our opponent. The opponent can also be a human player.
         self.opponent = Strategy().make(
             env=self.env, strategy=self.args["opponent"], capacity=self.args["capacity"]
         )
-        self.opponent.agent_name = "opponent"
+        self.opponent.agent_name = (
+            "human" if self.args["opponent"] == "human" else "opponent"
+        )
+
         logging.info(f"Strategy {self.args['opponent']} loaded")
 
         # Interesting and important constants
@@ -215,6 +219,11 @@ class Train:
 
     def opponent_player(self) -> None:
         """ Opponent player """
+
+        # If the opponent is human
+        if self.opponent.agent_name == "human":
+            self.opponent.move(self.opponent_location)
+            return None
 
         # For first move, move in a random direction
         if self.init_opponent:

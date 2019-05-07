@@ -35,7 +35,8 @@ class AirHockeyGui:
         self.redis = RedisConnection()
 
         # Set frames per second
-        self.fps = args["fps"]
+        self.args = args
+        self.fps = int(self.args["fps"])
 
         # Initiate game environment
         self.env = AirHockey()
@@ -169,10 +170,16 @@ class AirHockeyGui:
         # Game loop
         while True:
 
+            if self.args.get("human"):
+                # Grab and send user position to Redis
+                pos = pygame.mouse.get_pos()
+                self.redis.post({"opponent": {"location": pos}})
+
             self.rerender_environment()
 
             # frames per second
-            clock.tick(self.fps)
+            if self.fps > 0:
+                clock.tick(self.fps)
 
         pygame.quit()
 
@@ -180,9 +187,17 @@ class AirHockeyGui:
 if __name__ == "__main__":
     """ Start Gui """
     parser = argparse.ArgumentParser(description="Pygame gui")
-
     parser.add_argument(
-        "--fps", default=60, help="Frames per second. Default is 60 fps"
+        "--human",
+        default=False,
+        dest="human",
+        action="store_true",
+        help="A person can play as the opponent with their mouse",
+    )
+    parser.add_argument(
+        "--fps",
+        default=60,
+        help="Frames per second. Default is 60 fps. -1 renders as fast as possible.",
     )
     args = vars(parser.parse_args())
 
@@ -190,7 +205,9 @@ if __name__ == "__main__":
     try:
         gui = AirHockeyGui(args)
     except ConnectionError:
-        logging.error("Cannot connect to Redis. Please make sure Redis is up and active.")
+        logging.error(
+            "Cannot connect to Redis. Please make sure Redis is up and active."
+        )
         sys.exit()
 
     gui.run()
