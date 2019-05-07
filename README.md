@@ -6,7 +6,7 @@ Either one can use this to play for fun, capture state, or train reinforcement l
 
 Currently, this project supports 5 types of reinforcement learning techniques: Q-learning, Deep Q-learning (DQN), and Double DQN (DDQN), c51-DDQN, and Dueling DDQN.
 
-Many examples use of reinforcement learning capture the state from video frames; thus, their architecture involves CNNs. This project captures the state of the board via the coordinates of agent, puck, and opponent.
+Many examples of reinforcement learning capture the state from video frames; thus, their architecture involves CNNs. This project captures the state of the board via the coordinates of agent and the puck.
 
 Our model uses the [Huber Loss](https://en.wikipedia.org/wiki/Huber_loss) as the loss function for training. For reinforcement learning, this loss function is recommended.
 
@@ -17,47 +17,35 @@ This project is Python 3.6+ compatible and uses Pipenv for depencency management
 
 To install `pipenv`, run: `pip install pipenv`.
 
-To install depencencies for this project, run `pipenv install`.
+To install all depencencies for this project, run `pipenv install`.
 
-To enter into the virtual environment created by `pipenv`, run ``pipenv shell`.
+To enter into the virtual environment created by `pipenv`, run `pipenv shell`.
 
 This project uses Redis. Either pull down a Docker image or download Redis locally.
 
 ## Setup
 
-For reference, the left mallet is the main agent, and the right mallet is the opponent.
+For reference, the left mallet is the robot, and the right mallet is the opponent.
 
-All the settings can be found in JSON config files. The config files for the reinforcement learning strategies (these detail the hyperparameters) can be found in the `rl/configs` directory. The main config file is `config.json`.
+All the settings for the different reinforcement learning strategies can be found in `configs/`. 
 
-We can either train our agents or play air hockey. This can be set with the "train" flag in `config.json`. If we are training, then the training script will look at the "training" field in `config.json` for the strategies we ought to use. Also, the respective load and save paths for the models can be defined there. Q-learning is an exception because it uses the traditional Q-learning algorithm. There is no actual machine learning going on. Thus, there is no need to load/save the model. A save path is required for all models while a load path does not have to be defined. We can also define a path to save stats about the training in a csv file by the "results" subfield of the "training" field.
+We can either train our agents  with the `train.py` script. There a few cli flags we use. You have `--robot` and `--opponent` flags which specify which reinforcement strategy we want to use. If we set `--opponent` to  `human`, then the training script will look to Redis for the human player's input instead of tracking it's position in the air hockey environment instance. For training, we set the "train" key in `configs/{strategy}.json` to `true`. This key is important because it will tell the algorithm to just use the model's predictions and no extra randomness. Also, the respective load and save paths for the models can be defined there. Q-learning is an exception because it uses the traditional Q-learning algorithm. There is no actual machine learning going on. Thus, there is no need to load/save the model. A save path is required for all models while a load path does not have to be defined. There is a `--capacity` cli flag which defines how many frames we want to use for training and prediction.
 
-If we want to have our model play, we can set the train field to false and the simulator will use the strategies defined in the `live` field. We can define where we should load the models.
+If we want to have our model play, we can set the train field to false and run `predict.py` which takes in the same cli flags as `train.py`, but only focuses on model predicting.
 
-In the main config file, we can define the rewards we want to use to train the strategies. Currently, it is set to train the strategies based of whether an agent scores or loses. You can edit the game environment to include more complex rewards.
+If you want to edit the rewards of the game, the rewards dictionary can be found in `environment/AirHockey.py`. You can also edit the environment and define custom reward functions.
 
-There is a field called "capcity" which defines how many frames we want to use for training.
 
-You can set the fps of `gui.py` with the "fps" field. This defaults to `-1` which turns off the fps setting for `pygame`.
-
-The "tensorboard" field details where you want to save Tensorboard logs.
-
-The "robot" field dictates whether we want the main agent (the left mallet) to be either a human or a robot agent.
-
-## Run Simulator
-
-There are two important scripts in the repo, `gui.py` and `train.py`. `gui.py` brings up a gui of the air hockey environment and either allows the user to play with their mouse, a loaded model, or display results from a robot agent training via Redis updates. `train.py` controls what type of learning strategy your robot wants to use.
-
-In our virtual environment, we can start the gui with either a human or robot agent with a specific fps via `python3 gui.py` and have the appropriate fields in the `config.json` file defined. If you want to load a model, you also have to specify the strategy your agent wants to use. (This is due to each strategy having certain hyperparameters.)
-
-If you want a robot agent, run `python3 train.py` and have the appropriate fields in the `config.json` file defined to set up its learning strategy and duel against another agent.
+The 	`gui.py` brings up a `pygame` gui windown, and the puck, robot's and opponent's mallets are tracked via Redis. If we have `--human` entered, then it will let the gui know to let the opponent use their mouse to move the opponent's mallet. This data is sent to Redis. You can set the fps of `gui.py` with the `--fps` flag. This defaults to `-1` which turns off the fps setting for `pygame`.
 
 The neural network architectures for these learning strategies can be found in the `rl/Networks.py` file.
 
 ## Warnings
 + Beware of how you set your rewards because these settings drastically effect the exploitation/exploration tradeoff. 
 
-## Miscellaneous
-This project uses Python type hints. You can use [Mypy](https://mypy.readthedocs.io/en/latest/) or any other static type checking system.
+## Todo
++ Have the compute and display interesting statistics of the game.
++ Explore policy based reinforcement learning strategies.
 
 ## Author
 [Tony Hammack](www.tonyhammack.com)
