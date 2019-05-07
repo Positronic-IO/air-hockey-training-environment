@@ -1,4 +1,5 @@
 """ DDQN """
+import logging
 from typing import Any, Dict, Tuple, Union
 
 import numpy as np
@@ -9,6 +10,10 @@ from rl.helpers import TensorBoardLogger, huber_loss
 from rl.MemoryBuffer import MemoryBuffer
 from rl.Networks import Networks
 from utils import Observation, State
+
+# Initiate Logger
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
 
 class DDQN(Agent):
@@ -61,6 +66,7 @@ class DDQN(Agent):
         # self.tbl = tbl
 
         self.version = "0.3.0"
+        logger.info(f"Strategy defined for {self._agent_name}: {self.__repr__()}")
 
     def __repr__(self) -> str:
         return f"{self.__str__()} {self.version}"
@@ -86,7 +92,7 @@ class DDQN(Agent):
     def update_target_model(self) -> None:
         """ Copy weights from model to target_model """
 
-        print("Sync target model for DDQN")
+        logger.debug("Sync target model for DDQN")
         self.target_model.set_weights(self.model.get_weights())
 
     def _epsilon(self) -> None:
@@ -131,7 +137,7 @@ class DDQN(Agent):
         # Update model in intervals
         if self.t > 0 and self.t % self.sync_target_interval == 0:
 
-            print(f"Updating DDQN model")
+            logger.info(f"Updating DDQN model")
 
             # Sample observations from memory for experience replay
             minibatch = self.memory.sample(self.batch_size)

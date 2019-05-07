@@ -13,7 +13,10 @@ from environment import AirHockey
 from rl import MemoryBuffer, Strategy
 from utils import Observation, State, write_results
 
-logging.basicConfig(level=os.environ.get("LOGLEVEL", "INFO"))
+# Initiate logger
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
 
 class Predict:
@@ -62,7 +65,7 @@ class Predict:
 
         # Update buffers
         self._update_buffers()
-        logging.info("Connected to Redis")
+        logger.info("Connected to Redis")
 
     def _update_buffers(self) -> None:
         """ Update redis buffers """
@@ -152,6 +155,7 @@ class Predict:
 
             # Update game state
             self.robot.move(action)
+            logger.debug(f"Robot took action: {action}")
 
             self.init = False
         else:
@@ -168,6 +172,7 @@ class Predict:
 
             # Determine next action
             action = self.robot.get_action(state)
+            logger.debug(f"Robot took action: {action}")
 
             # Update game state
             self.robot.move(action)
@@ -193,6 +198,7 @@ class Predict:
 
             # Update game state
             self.opponent.move(action)
+            logger.debug(f"Opponent took action: {action}")
 
             self.init_opponent = False
         else:
@@ -209,6 +215,7 @@ class Predict:
 
             # Determine next action
             action = self.opponent.get_action(state)
+            logger.debug(f"Opponent took action: {action}")
 
             # Update game state
             self.opponent.move(action)
@@ -235,17 +242,17 @@ class Predict:
 
             # Compute scores
             if self.env.opponent_score == 10:
-                print(
+                logger.info(
                     f"Agent {self.env.robot_score}, Computer {self.env.opponent_score}"
                 )
-                print("Computer wins!")
+                logger.info("Computer wins!")
                 self.env.reset(total=True)
 
             if self.env.robot_score == 10:
-                print(
+                logger.info(
                     f"Agent {self.env.robot_score}, Computer {self.env.opponent_score} "
                 )
-                print("Agent wins!")
+                logger.info("Agent wins!")
                 self.env.reset(total=True)
 
 
@@ -267,20 +274,21 @@ if __name__ == "__main__":
 
     # Validation
     if not args.get("robot"):
-        print("Robot strategy Undefined")
+        logger.error("Robot strategy Undefined")
         sys.exit()
 
     if not args.get("opponent"):
-        print("Opponent strategy Undefined")
+        logger.error("Opponent strategy Undefined")
         sys.exit()
 
     # Run program
     try:
         predict = Predict(args)
     except ConnectionError:
-        logging.error(
+        logger.error(
             "Cannot connect to Redis. Please make sure Redis is up and active."
         )
         sys.exit()
+        
 
     predict.run()

@@ -11,7 +11,10 @@ from redis import ConnectionError
 from connect import RedisConnection
 from environment import AirHockey
 
-logging.basicConfig(level=os.environ.get("LOGLEVEL", "INFO"))
+# Initiate Logger
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
 # Initialize the game engine
 pygame.init()
@@ -46,7 +49,7 @@ class AirHockeyGui:
 
         # Update locations
         self.update_locations()
-        logging.info("Connected to Redis")
+        logger.info("Connected to Redis")
 
     def update_locations(self) -> None:
         """ Update locations of puck, robot, and the opponent"""
@@ -165,7 +168,7 @@ class AirHockeyGui:
 
         # Set game clock
         clock = pygame.time.Clock()
-        logging.info(f"Rendering game at {self.fps} frames per second")
+        logger.info(f"Rendering at {self.fps} frames per second")
 
         # Game loop
         while True:
@@ -205,9 +208,10 @@ if __name__ == "__main__":
     try:
         gui = AirHockeyGui(args)
     except ConnectionError:
-        logging.error(
+        logger.error(
             "Cannot connect to Redis. Please make sure Redis is up and active."
         )
         sys.exit()
+        
 
     gui.run()

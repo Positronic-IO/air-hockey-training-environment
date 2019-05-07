@@ -1,15 +1,21 @@
 """ Air Hockey Game Environment """
 
 import json
+import logging
 from time import time
 from typing import Any, Dict, Tuple, Union
 
 import numpy as np
 from redis import Redis
 
-from environment.components import Goal, Mallet, Puck
-from utils import Action, State, Observation
 from connect import RedisConnection
+from environment.components import Goal, Mallet, Puck
+from utils import Action, Observation, State
+
+# Initiate Logger
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
 
 class AirHockey:
@@ -150,7 +156,8 @@ class AirHockey:
                 self.opponent.x, self.opponent.y = action[0], action[1]
                 self.opponent.update_mallet()
         else:
-            raise ValueError("Invalid agent name")
+            logger.error("Invalid agent name")
+            raise ValueError
 
         # Determine puck physics
         if (
@@ -220,7 +227,7 @@ class AirHockey:
                 }
             )
 
-            print(f"Robot {self.robot_score}, Computer {self.opponent_score}")
+            logger.info(f"Robot {self.robot_score}, Computer {self.opponent_score}")
             self.done = True
             self.reset()
             return None
@@ -249,7 +256,7 @@ class AirHockey:
                 }
             )
 
-            print(f"Robot {self.robot_score}, Computer {self.opponent_score}")
+            logger.info(f"Robot {self.robot_score}, Computer {self.opponent_score}")
             self.done = True
             self.reset()
             return None
@@ -285,9 +292,12 @@ class AirHockey:
                     }
                 }
             )
+            logger.info("Total Game reset")
 
         self.puck.reset()
         self.robot.reset_mallet()
         self.opponent.reset_mallet()
+
+        logger.info("Game reset")
 
         return None

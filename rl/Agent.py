@@ -1,5 +1,6 @@
 """ Initialize an agent for a game """
 import json
+import logging
 import os
 from typing import Dict, Tuple, Union
 
@@ -10,12 +11,17 @@ from environment import AirHockey
 from rl.helpers import huber_loss
 from utils import Action, get_model_path
 
+# Initiate Logger
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+
+
 class Agent:
 
     # Using test server with Environment
 
     def __init__(self, env: AirHockey):
-        
+
         self.env = env
 
         self._agent_name = ""
@@ -34,18 +40,19 @@ class Agent:
 
         agents = {
             "robot": self.env.robot.location(),
-            "opponent": self.env.opponent.location()
+            "opponent": self.env.opponent.location(),
         }
 
         if not agents.get(self._agent_name):
-            raise KeyError("Improper agent name")
+            logger.exception("Improper agent name")
+            raise ValueError
 
         return agents.get(self._agent_name)
 
     def load_model(self) -> None:
         """ Load a model"""
 
-        print(f"Loading model")
+        logger.info(f"Saving model from: {self.load_path}")
 
         self.model = load_model(
             self.load_path, custom_objects={"huber_loss": huber_loss}
@@ -54,7 +61,7 @@ class Agent:
     def save_model(self) -> None:
         """ Save a model """
 
-        print(f"Saving model")
+        logger.info(f"Saving model to: {self.save_path}")
 
         # Create path with epoch number
         head, ext = os.path.splitext(self.save_path)

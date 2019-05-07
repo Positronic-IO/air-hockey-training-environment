@@ -2,13 +2,17 @@
 
 import json
 import logging
-import logging.config
 import os
 import sys
 from collections import namedtuple
 from typing import Any, Dict, List, Tuple, Union
 
 import pandas as pd
+
+# Initiate logger
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
 # Define custom types
 Action = Union[int, str, Tuple[int, int]]
@@ -18,16 +22,6 @@ State = namedtuple("state", ["robot_location", "puck_location"])
 Observation = namedtuple(
     "observation", ["state", "action", "reward", "done", "new_state"]
 )
-
-
-def setup_logging(path="logging.json", default_level=logging.INFO, env_key="LOG_CFG"):
-    """ Setup logging configuration """
-    if os.path.exists(path):
-        with open(path, "rt") as f:
-            config = json.load(f)
-        logging.config.dictConfig(config)
-    else:
-        logging.basicConfig(level=default_level)
 
 
 def get_config_strategy(strategy: str) -> Dict[str, Union[str, int]]:
@@ -44,13 +38,13 @@ def get_config_strategy(strategy: str) -> Dict[str, Union[str, int]]:
     try:
         filename = strategies[strategy]
     except KeyError:
-        raise KeyError("Strategy not defined")
+        logger.error("Strategy not defined")
 
     with open(filename, "r") as f:
         config = json.load(f)
 
         if strategy != "q-learner" and not config.get("save"):
-            raise KeyError("Please specify a path to save model.")
+            logger.error("Please specify a path to save model.")
 
     return config
 

@@ -1,11 +1,16 @@
 """ Q-Learner """
-from typing import Dict, Tuple, Union, Any
+import logging
+from typing import Any, Dict, Tuple, Union
 
 import numpy as np
 
 from environment import AirHockey
 from rl.Agent import Agent
 from utils import Action, Observation, State
+
+# Initiate Logger
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
 
 class QLearner:
@@ -22,6 +27,7 @@ class QLearner:
         self._agent_name = ""
 
         self.version = "0.1.0"
+        logger.info(f"Strategy defined for {self._agent_name}: {self.__repr__()}")
 
     def __repr__(self) -> str:
         return f"{self.__str__()} {self.version}"
@@ -43,7 +49,8 @@ class QLearner:
         elif self.agent_name == "opponent":
             return self.env.opponent.location()
         else:
-            raise ValueError("Invalid agent name")
+            logging.error("Invalid agent name")
+            raise ValueError
 
     def get_action(self, state: State) -> int:
         """ Give current state, predict next action which maximizes reward """

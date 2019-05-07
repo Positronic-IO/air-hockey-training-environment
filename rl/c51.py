@@ -1,4 +1,5 @@
 """ C51 DDQN """
+import logging
 import math
 from typing import Any, Dict, Tuple, Union
 
@@ -10,6 +11,10 @@ from rl.helpers import TensorBoardLogger, huber_loss
 from rl.MemoryBuffer import MemoryBuffer
 from rl.Networks import Networks
 from utils import Observation, State
+
+# Initiate Logger
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
 
 class c51(Agent):
@@ -74,6 +79,7 @@ class c51(Agent):
         # self.tbl = tbl
 
         self.version = "0.2.0"
+        logger.info(f"Strategy defined for {self._agent_name}: {self.__repr__()}")
 
     def __repr__(self) -> str:
         return f"{self.__str__()} {self.version}"
@@ -87,10 +93,11 @@ class c51(Agent):
         model = Networks().c51(self.state_size, self.action_size, self.learning_rate)
 
         self.model = model
-        self.target_model = model
 
         if self.load_path:
             self.load_model()
+
+        self.target_model = self.model
 
         print(self.model.summary())
         return model
@@ -101,7 +108,7 @@ class c51(Agent):
         # Update the target model to be same with model
         if self.t > 0 and self.t % self.update_target_freq == 0:
 
-            print("Sync target model for c51")
+            logger.debug("Sync target model for c51")
             self.target_model.set_weights(self.model.get_weights())
 
         return None
@@ -153,7 +160,7 @@ class c51(Agent):
         # Update model in intervals
         if self.t > self.observe and self.t % self.timestep_per_train == 0:
 
-            print(f"Updating c51 model")
+            logger.info(f"Updating c51 model")
 
             # Get samples from replay
             num_samples = min(

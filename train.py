@@ -16,7 +16,11 @@ from environment import AirHockey
 from rl import MemoryBuffer, Strategy
 from utils import Observation, State, write_results
 
-logging.basicConfig(level=os.environ.get("LOGLEVEL", "INFO"))
+
+# Initiate Logger
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
 
 class Train:
@@ -36,7 +40,6 @@ class Train:
             env=self.env, strategy=self.args["robot"], capacity=self.args["capacity"]
         )
         self.robot.agent_name = "robot"
-        logging.info(f"Strategy {self.args['robot']} loaded")
 
         # Set up our opponent. The opponent can also be a human player.
         self.opponent = Strategy().make(
@@ -45,8 +48,6 @@ class Train:
         self.opponent.agent_name = (
             "human" if self.args["opponent"] == "human" else "opponent"
         )
-
-        logging.info(f"Strategy {self.args['opponent']} loaded")
 
         # Interesting and important constants
         self.epoch = 0
@@ -70,12 +71,12 @@ class Train:
 
         # Update buffers
         self._update_buffers()
-        logging.info("Connected to Redis")
+        logger.info("Connected to Redis")
 
         # Initial time
         self.time = time.time()
         self.wait = (60 ** 2) * int(self.args["time"])  # Defaults to 3 hours
-        logging.info(f"Training time: {self.args['time']} hours")
+        logger.info(f"Training time: {self.args['time']} hours")
 
     def _update_buffers(self) -> None:
         """ Update redis buffers """
@@ -305,21 +306,21 @@ class Train:
 
                 # Compute scores
                 if self.env.opponent_score == 10:
-                    print(
+                    logger.info(
                         f"Agent {self.env.robot_score}, Computer {self.env.opponent_score}"
                     )
-                    print("Computer wins!")
+                    logger.info("Computer wins!")
                     self.env.reset(total=True)
 
                 if self.env.robot_score == 10:
-                    print(
+                    logger.info(
                         f"Agent {self.env.robot_score}, Computer {self.env.opponent_score} "
                     )
-                    print("Agent wins!")
+                    logger.info("Agent wins!")
                     self.env.reset(total=True)
 
             else:
-                print("Training time elasped")
+                logger.info("Training time elasped")
                 sys.exit()
 
 
@@ -346,18 +347,18 @@ if __name__ == "__main__":
 
     # Validation
     if not args.get("robot"):
-        print("Robot strategy Undefined")
+        logger.error("Robot strategy Undefined")
         sys.exit()
 
     if not args.get("opponent"):
-        print("Opponent strategy Undefined")
+        logger.error("Opponent strategy Undefined")
         sys.exit()
 
     # Run program
     try:
         train = Train(args)
     except ConnectionError:
-        logging.error(
+        logger.error(
             "Cannot connect to Redis. Please make sure Redis is up and active."
         )
         sys.exit()

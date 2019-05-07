@@ -1,4 +1,5 @@
 """ Dueling DDQN """
+import logging
 from typing import Any, Dict, Tuple, Union
 
 import numpy as np
@@ -9,6 +10,10 @@ from rl.helpers import TensorBoardLogger, huber_loss
 from rl.MemoryBuffer import MemoryBuffer
 from rl.Networks import Networks
 from utils import Observation, State
+
+# Initiate Logger
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
 
 class DuelingDDQN(Agent):
@@ -61,6 +66,7 @@ class DuelingDDQN(Agent):
         # self.tbl = tbl
 
         self.version = "0.3.0"
+        logger.info(f"Strategy defined for {self._agent_name}: {self.__repr__()}")
 
     def __repr__(self) -> str:
         return f"{self.__str__()} {self.version}"
@@ -90,7 +96,7 @@ class DuelingDDQN(Agent):
         # Update the target model to be same with model
         if self.t % self.update_target_freq == 0:
 
-            print("Sync target model for Dueling DDQN")
+            logger.debug("Sync target model for Dueling DDQN")
             self.target_model.set_weights(self.model.get_weights())
 
         return None
@@ -141,7 +147,7 @@ class DuelingDDQN(Agent):
         # Update model in intervals
         if self.t > 0 and self.t % self.timestep_per_train == 0:
 
-            print(f"Updating Dueling DDQN model")
+            logger.info(f"Updating Dueling DDQN model")
 
             # Get samples from replay
             num_samples = min(
