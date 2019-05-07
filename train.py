@@ -1,4 +1,4 @@
-""" Air Hockey Simulator """
+""" Air Hockey Training Simulator """
 import argparse
 import json
 import logging

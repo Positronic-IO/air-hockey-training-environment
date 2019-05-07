@@ -1,4 +1,4 @@
-""" Air Hockey Simulator Gui """
+""" Air Hockey GUi Simulator """
 import argparse
 import logging
 import os
