@@ -44,6 +44,7 @@ The neural network architectures for these learning strategies can be found in t
 + Beware of how you set your rewards because these settings drastically effect the exploitation/exploration tradeoff. 
 
 ## Todo
++ Re-enable Tesnsorboard logging
 + Have the compute and display interesting statistics of the game.
 + Explore policy based reinforcement learning strategies.
 
