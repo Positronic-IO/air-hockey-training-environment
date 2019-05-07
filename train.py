@@ -20,10 +20,10 @@ logging.basicConfig(level=os.environ.get("LOGLEVEL", "INFO"))
 
 
 class Train:
-
-    redis = RedisConnection()
-
     def __init__(self, args: Dict[str, Union[str, int]]):
+
+        # Set up Redis
+        self.redis = RedisConnection()
 
         # Parse cli args
         self.args = args

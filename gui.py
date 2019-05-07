@@ -19,9 +19,6 @@ pygame.init()
 
 class AirHockeyGui:
 
-    # Set up redis
-    redis = RedisConnection()
-
     # Define some colors
     black = (0, 0, 0)
     white = (255, 255, 255)
@@ -33,6 +30,9 @@ class AirHockeyGui:
     middle_line_offset = 4.5
 
     def __init__(self, args: Dict[str, int]):
+
+        # Set up redis
+        self.redis = RedisConnection()
 
         # Set frames per second
         self.fps = args["fps"]
