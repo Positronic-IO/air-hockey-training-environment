@@ -160,8 +160,7 @@ class ServerConnection(BaseConnection):
 class Connection:
 
     """ Connection facade
-    
-        We could connect to either redis or local server. 
+        We could connect to either redis or local server.
     """
 
     connections = {"redis": RedisConnection, "server": ServerConnection}

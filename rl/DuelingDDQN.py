@@ -178,8 +178,6 @@ class DuelingDDQN(Agent):
                 # like Q Learning, get maximum Q value at s'
                 # But from target model
 
-                old_t = target[i][action[i]]
-
                 if done[i]:
                     target[i][action[i]] = reward[i]
                 else:
@@ -189,7 +187,7 @@ class DuelingDDQN(Agent):
                     a = np.argmax(target_val[i])
                     target[i][action[i]] = reward[i] + self.gamma * (target_val_[i][a])
 
-            loss = self.model.fit(
+            self.model.fit(
                 update_input, target, batch_size=self.batch_size, epochs=1, verbose=0
             )
 

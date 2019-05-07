@@ -73,7 +73,9 @@ def write_results(filename: str, data: Dict[str, List[int]]) -> None:
     """ Write data to csv """
 
     df = pd.DataFrame.from_dict(data)
-    if not ".csv" in filename:
+    head, tail = os.path.split(filename)
+
+    if tail == ".csv":
         print("Filename to save results does not have the '.csv' extension.")
         sys.exit()
 
