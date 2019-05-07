@@ -1,6 +1,8 @@
 """ Helpful utility functions """
 
 import json
+import logging
+import logging.config
 import os
 import sys
 from collections import namedtuple
@@ -16,6 +18,16 @@ State = namedtuple("state", ["robot_location", "puck_location"])
 Observation = namedtuple(
     "observation", ["state", "action", "reward", "done", "new_state"]
 )
+
+
+def setup_logging(path="logging.json", default_level=logging.INFO, env_key="LOG_CFG"):
+    """ Setup logging configuration """
+    if os.path.exists(path):
+        with open(path, "rt") as f:
+            config = json.load(f)
+        logging.config.dictConfig(config)
+    else:
+        logging.basicConfig(level=default_level)
 
 
 def get_config_strategy(strategy: str) -> Dict[str, Union[str, int]]:
