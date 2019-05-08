@@ -144,7 +144,6 @@ class c51(Agent):
         logger.debug(q)
         idx = np.argmax(q)
         # self.tbl.log_histogram("c51 Predict Actions", idx, self.t)
-        logger.debug(f"Action: {idx}")
         return idx
 
     def update(self, data: Observation) -> None:
