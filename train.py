@@ -160,7 +160,7 @@ class Train:
 
         # For first move, move in a random direction
         if self.init:
-            action = np.random.randint(0, 3)
+            action = np.random.randint(0, 4)
 
             # Update game state
             self.robot.move(action)
@@ -228,7 +228,7 @@ class Train:
         # For first move, move in a random direction
         if self.init_opponent:
 
-            action = np.random.randint(0, 3)
+            action = np.random.randint(0, 4)
 
             # Update game state
             self.opponent.move(action)

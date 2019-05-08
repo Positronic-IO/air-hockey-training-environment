@@ -9,8 +9,8 @@
         "batch_size": 100,
         "sync_target_interval": 10000
     },
-    "load": "models/robot/dueling/v1.h5",
-    "save": "models/robot/dueling/v2.h5",
+    "load": "",
+    "save": "",
     "train": true
 
 }

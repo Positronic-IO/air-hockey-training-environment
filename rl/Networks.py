@@ -20,11 +20,11 @@ class Networks:
         """ Duelling DDQN Neural Net """
 
         state_input = Input(shape=state_size)
-        x = Dense(8, kernel_initializer="normal", activation="relu")(state_input)
+        x = Dense(12, kernel_initializer="normal", activation="relu")(state_input)
 
         # x = Dense(35, kernel_initializer="normal", activation="relu")(x)
 
-        x = Dense(15, kernel_initializer="normal", activation="relu")(x)
+        x = Dense(12, kernel_initializer="normal", activation="relu")(x)
 
         x = Flatten()(x)
 
@@ -33,9 +33,9 @@ class Networks:
 
         state_value = Dense(1, kernel_initializer="random_uniform")(state_value)
 
-        state_value = Lambda(lambda s: K.expand_dims(s[:, 0]), output_shape=(4,))(
-            state_value
-        )
+        state_value = Lambda(
+            lambda s: K.expand_dims(s[:, 0]), output_shape=(action_size,)
+        )(state_value)
 
         # action advantage tower - A
         action_advantage = Dense(32, kernel_initializer="normal", activation="relu")(x)

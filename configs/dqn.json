@@ -3,7 +3,7 @@
         "gamma": 0.1,
         "epsilon": 0.9
     },
-    "load": "models/robot/dueling/v1.h5",
-    "save": "models/robot/dueling/v2.h5",
+    "load": "",
+    "save": "models/test.h5",
     "train": true
 }

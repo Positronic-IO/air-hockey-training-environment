@@ -141,8 +141,10 @@ class c51(Agent):
         z_concat = np.vstack(z)
         q = np.sum(np.multiply(z_concat, np.array(self.z)), axis=1)
         # Pick action with the biggest Q value
+        logger.debug(q)
         idx = np.argmax(q)
         # self.tbl.log_histogram("c51 Predict Actions", idx, self.t)
+        logger.debug(f"Action: {idx}")
         return idx
 
     def update(self, data: Observation) -> None:
@@ -206,8 +208,8 @@ class c51(Agent):
                     Tz = min(self.v_max, max(self.v_min, reward[i]))
                     bj = (Tz - self.v_min) / self.delta_z
                     m_l, m_u = math.floor(bj), math.ceil(bj)
-                    m_prob[action[i]][i][int(m_l)] += m_u - bj
-                    m_prob[action[i]][i][int(m_u)] += bj - m_l
+                    m_prob[action[i]][i][int(m_l)] += (m_u - bj)
+                    m_prob[action[i]][i][int(m_u)] += (bj - m_l)
                 else:
                     for j in range(self.num_atoms):
                         Tz = min(

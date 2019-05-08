@@ -17,6 +17,6 @@
         "v_min": -10
     },
     "load": "",
-    "save": "models/test/test.h5",
+    "save": "model/test/c51.h5",
     "train": true
 }

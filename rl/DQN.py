@@ -21,7 +21,7 @@ class DQN(Agent):
 
         # Get size of state and action
         # State grows by the amount of frames we want to hold in our memory
-        self.state_size = (1, capacity, 2)
+        self.state_size = (2, capacity, 2)
         self.action_size = 4
 
         # Hyperparameters

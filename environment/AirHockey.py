@@ -21,7 +21,7 @@ logger.setLevel(logging.DEBUG)
 class AirHockey:
 
     # Default rewwards
-    rewards = {"point": 1, "loss": -5, "hit": 0, "miss": 0}
+    rewards = {"point": 1, "loss": -1, "hit": 0, "miss": 0}
 
     def __init__(self, **kwargs) -> None:
         """ Initiate an air hockey game """
