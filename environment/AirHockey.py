@@ -209,7 +209,7 @@ class AirHockey:
             and abs(self.right_goal.centre_x - self.puck.x) <= 45
         ):
             self.robot_score += 1
-            self.reward = self.rewards["point"] if self.robot_score == 10 else 0
+            self.reward = self.rewards["point"]
             self.robot_cumulative_reward += (
                 self.rewards["point"] if self.robot_score == 10 else 0
             )
@@ -238,7 +238,7 @@ class AirHockey:
             and abs(self.left_goal.centre_x - self.puck.x) <= 45
         ):
             self.opponent_score += 1
-            self.reward = self.rewards["loss"] if self.opponent_score == 10 else 0
+            self.reward = self.rewards["loss"]
             self.robot_cumulative_reward += (
                 self.rewards["loss"] if self.opponent_score == 10 else 0
             )
