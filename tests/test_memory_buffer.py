@@ -27,3 +27,16 @@ class TestMemoryBuffer:
             buffer.append(item)
 
         assert buffer.sample(4) == output
+
+    def test_memory_buffer_reset(self):
+        """ Test memory buffer reset """
+
+        capacity = 10
+        data = [[random.randint(0, 10), random.randint(0, 10)] for _ in range(capacity)]
+        buffer = MemoryBuffer(capacity)
+
+        for item in data:
+            buffer.append(item)
+
+        buffer.reset()
+        assert len(buffer) == 0
