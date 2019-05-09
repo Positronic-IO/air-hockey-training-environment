@@ -16,7 +16,6 @@
         "v_max": 10,
         "v_min": -10
     },
-    "load": "",
-    "save": "model/test/c51.h5",
-    "train": true
+    "load": "model/robot/c51/v2.h5",
+    "save": "model/robot/c51/v3.h5"
 }

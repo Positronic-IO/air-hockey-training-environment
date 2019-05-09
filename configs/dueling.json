@@ -13,7 +13,6 @@
         "update_target_freq": 30000,
         "timestep_per_train": 10000
     },
-    "load": "",
-    "save": "model/test/dueling.h5",
-    "train": true
+    "load": "model/opponent/dueling/v2.h5",
+    "save": "model/opponent/dueling/v3.h5"
 }

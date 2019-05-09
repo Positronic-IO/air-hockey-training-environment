@@ -4,6 +4,5 @@
         "epsilon": 0.9
     },
     "load": "",
-    "save": "models/test.h5",
-    "train": true
+    "save": "models/test.h5"
 }

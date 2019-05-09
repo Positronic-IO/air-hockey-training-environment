@@ -10,7 +10,5 @@
         "sync_target_interval": 10000
     },
     "load": "",
-    "save": "",
-    "train": true
-
+    "save": ""
 }
