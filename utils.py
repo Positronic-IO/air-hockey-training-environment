@@ -17,7 +17,9 @@ logger.setLevel(logging.DEBUG)
 # Define custom types
 Action = Union[int, str, Tuple[int, int]]
 
-State = namedtuple("state", ["robot_location", "puck_location"]) #, "opponent_location"])
+State = namedtuple(
+    "state", ["robot_location", "puck_location"]
+)  # , "opponent_location"])
 
 Observation = namedtuple(
     "observation", ["state", "action", "reward", "done", "new_state"]
