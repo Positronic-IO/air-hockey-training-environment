@@ -63,7 +63,7 @@ class c51(Agent):
         # If we are not training, set our epsilon to final_epsilon.
         # We want to choose our prediction more than a random policy.
         self.train = train
-        self.epsilon = self.epsilon if self.train else self.final_epsilon
+        self.epsilon = self.epsilon  if self.train else self.final_epsilon
 
         # Keep up with the iterations
         self.t = 0
