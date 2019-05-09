@@ -176,6 +176,7 @@ class Train:
             state = State(
                 robot_location=self.robot_location_buffer.retreive(),
                 puck_location=self.puck_location_buffer.retreive(),
+                # opponent_location=self.opponent_location_buffer.retreive()
             )
 
             # Determine next action
@@ -191,6 +192,7 @@ class Train:
             new_state = State(
                 robot_location=self.robot_location_buffer.retreive(),
                 puck_location=self.puck_location_buffer.retreive(),
+                # opponent_location=self.opponent_location_buffer.retreive()
             )
 
             # Get updated stats
@@ -244,6 +246,7 @@ class Train:
             state = State(
                 robot_location=self.opponent_location_buffer.retreive(),
                 puck_location=self.puck_location_buffer.retreive(),
+                # opponent_location=self.robot_location_buffer.retreive()
             )
 
             # Determine next action
@@ -259,6 +262,7 @@ class Train:
             new_state = State(
                 robot_location=self.opponent_location_buffer.retreive(),
                 puck_location=self.puck_location_buffer.retreive(),
+                # opponent_location=self.robot_location_buffer.retreive()
             )
 
             # Get updated stats
