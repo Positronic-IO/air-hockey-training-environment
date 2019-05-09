@@ -28,8 +28,8 @@ class TestMemoryBuffer:
 
         assert buffer.sample(4) == output
 
-    def test_memory_buffer_reset(self):
-        """ Test memory buffer reset """
+    def test_memory_buffer_purge(self):
+        """ Test memory buffer purge """
 
         capacity = 10
         data = [[random.randint(0, 10), random.randint(0, 10)] for _ in range(capacity)]
@@ -38,5 +38,5 @@ class TestMemoryBuffer:
         for item in data:
             buffer.append(item)
 
-        buffer.reset()
+        buffer.purge()
         assert len(buffer) == 0

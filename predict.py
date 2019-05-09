@@ -18,6 +18,7 @@ logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
+
 class Predict:
     def __init__(self, args: Dict[str, Union[str, int]]):
 
@@ -32,13 +33,19 @@ class Predict:
 
         # Set up our robot
         self.robot = Strategy().make(
-            env=self.env, strategy=self.args["robot"], capacity=self.args["capacity"], train=False
+            env=self.env,
+            strategy=self.args["robot"],
+            capacity=self.args["capacity"],
+            train=False,
         )
         self.robot.agent_name = "robot"
 
         # Set up our opponent. The opponent can also be a human player.
         self.opponent = Strategy().make(
-            env=self.env, strategy=self.args["opponent"], capacity=self.args["capacity"], train=False
+            env=self.env,
+            strategy=self.args["opponent"],
+            capacity=self.args["capacity"],
+            train=False,
         )
         self.opponent.agent_name = (
             "human" if self.args["opponent"] == "human" else "opponent"

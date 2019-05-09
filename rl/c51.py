@@ -63,7 +63,7 @@ class c51(Agent):
         # If we are not training, set our epsilon to final_epsilon.
         # We want to choose our prediction more than a random policy.
         self.train = train
-        self.epsilon = self.epsilon  if self.train else self.final_epsilon
+        self.epsilon = self.epsilon if self.train else self.final_epsilon
 
         # Keep up with the iterations
         self.t = 0
@@ -206,8 +206,8 @@ class c51(Agent):
                     Tz = min(self.v_max, max(self.v_min, reward[i]))
                     bj = (Tz - self.v_min) / self.delta_z
                     m_l, m_u = math.floor(bj), math.ceil(bj)
-                    m_prob[action[i]][i][int(m_l)] += (m_u - bj)
-                    m_prob[action[i]][i][int(m_u)] += (bj - m_l)
+                    m_prob[action[i]][i][int(m_l)] += m_u - bj
+                    m_prob[action[i]][i][int(m_u)] += bj - m_l
                 else:
                     for j in range(self.num_atoms):
                         Tz = min(

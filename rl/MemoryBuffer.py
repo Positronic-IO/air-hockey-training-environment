@@ -40,8 +40,8 @@ class MemoryBuffer:
 
         return random.sample(self.buffer, batch_size)
 
-    def reset(self, default: Any = None) -> None:
-        """ Reset memory """
+    def purge(self, default: Any = None) -> None:
+        """ Purge memory """
 
         del self.buffer
         self.buffer = deque(maxlen=self.capacity)
