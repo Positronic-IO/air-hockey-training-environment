@@ -298,6 +298,4 @@ class AirHockey:
         self.robot.reset_mallet()
         self.opponent.reset_mallet()
 
-        logger.info("Game reset")
-
         return None

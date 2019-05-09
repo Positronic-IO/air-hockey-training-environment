@@ -16,8 +16,7 @@ from utils import Observation, State, write_results
 # Initiate logger
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
-
+logger.setLevel(logging.INFO)
 
 class Predict:
     def __init__(self, args: Dict[str, Union[str, int]]):
