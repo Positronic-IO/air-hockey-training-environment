@@ -1,0 +1,20 @@
+{
+    "params": {
+        "max_memory": 5000,
+        "actor_learning_rate": 0.0001,
+        "critic_learning_rate": 0.0001,
+        "gamma": 0.99,
+        "batch_size": 100,
+        "observe": 2000,
+        "frame_per_action": 4,
+        "timestep_per_train": 10000
+    },
+    "actor": {
+        "load": "",
+        "save": "models/test/actor.h5"
+    },
+    "critic": {
+        "load": "",
+        "save": "models/test/critic.h5"
+    }
+}

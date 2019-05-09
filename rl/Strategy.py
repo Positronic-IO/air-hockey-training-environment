@@ -3,6 +3,7 @@
 import sys
 
 from environment import AirHockey
+from rl.A2C import A2C
 from rl.Agent import Agent
 from rl.c51 import c51
 from rl.DDQN import DDQN
@@ -21,6 +22,7 @@ class Strategy:
         "ddqn": DDQN,
         "dueling": DuelingDDQN,
         "c51": c51,
+        "a2c": A2C
     }
 
     def __init__(self):

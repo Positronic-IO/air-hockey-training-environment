@@ -127,3 +127,55 @@ class Networks:
         model.compile(loss=huber_loss, optimizer=Adam(lr=learning_rate))
 
         return model
+
+    @staticmethod
+    def actor(
+        state_size: Tuple[int, int, int], action_size: int, learning_rate: float
+    ) -> Model:
+        """ A2C Actor Neural Network """
+
+        model = Sequential()
+
+        model.add(Dense(12, kernel_initializer="normal", input_shape=state_size))
+        model.add(Activation("relu"))
+
+        model.add(Dense(30, kernel_initializer="normal"))
+        model.add(Activation("relu"))
+
+        model.add(Dense(20, kernel_initializer="normal"))
+        model.add(Activation("relu"))
+
+        model.add(Flatten())
+
+        model.add(Dense(action_size, kernel_initializer="normal"))
+        model.add(Activation("softmax"))
+
+        model.compile(loss=huber_loss, optimizer=Adam(lr=learning_rate))
+
+        return model
+
+    @staticmethod
+    def critic(
+        state_size: Tuple[int, int, int], value_size: int, learning_rate: float
+    ) -> Model:
+        """ A2C Critic Neural Network """
+
+        model = Sequential()
+
+        model.add(Dense(12, kernel_initializer="normal", input_shape=state_size))
+        model.add(Activation("relu"))
+
+        model.add(Dense(30, kernel_initializer="normal"))
+        model.add(Activation("relu"))
+
+        model.add(Dense(20, kernel_initializer="normal"))
+        model.add(Activation("relu"))
+
+        model.add(Flatten())
+
+        model.add(Dense(value_size, kernel_initializer="random_uniform"))
+        model.add(Activation("linear"))
+
+        model.compile(loss=huber_loss, optimizer=Adam(lr=learning_rate))
+
+        return model

@@ -9,6 +9,7 @@ from rl.DuelingDDQN import DuelingDDQN
 from rl.helpers import TensorBoardLogger
 from rl.QLearner import QLearner
 from rl.Strategy import Strategy
+from rl.A2C import A2C
 
 
 class TestStrategy:
@@ -53,3 +54,9 @@ class TestStrategy:
 
         strategy = Strategy().make(self.env, "q-learner", self.capacity, self.train)
         assert isinstance(strategy, QLearner)
+
+    def test_a2c_agent(self):
+        """ Test to see if created agent is A2C """
+
+        strategy = Strategy().make(self.env, "a2c", self.capacity, self.train)
+        assert isinstance(strategy, A2C)
