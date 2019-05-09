@@ -40,6 +40,17 @@ class MemoryBuffer:
 
         return random.sample(self.buffer, batch_size)
 
+    def reset(self, default: Any = None) -> None:
+        """ Reset memory """
+
+        del self.buffer
+        self.buffer = deque(maxlen=self.capacity)
+
+        # Set up a buffer with default entries
+        if default:
+            for _ in range(self.capacity):
+                self.append(default)
+
     def __len__(self) -> int:
         """ Return amount of items in buffer """
 
