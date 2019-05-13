@@ -20,13 +20,12 @@ class Networks:
         """ Duelling DDQN Neural Net """
 
         state_input = Input(shape=state_size)
-        x = Dense(12, kernel_initializer="normal", activation="relu")(state_input)
-
-        # x = Dense(35, kernel_initializer="normal", activation="relu")(x)
-
+        x = Flatten()(state_input)
         x = Dense(12, kernel_initializer="normal", activation="relu")(x)
 
-        x = Flatten()(x)
+        # x = Dense(12, kernel_initializer="normal", activation="relu")(x)
+
+        x = Dense(12, kernel_initializer="normal", activation="relu")(x)
 
         # state value tower - V
         state_value = Dense(32, kernel_initializer="normal", activation="relu")(x)
@@ -110,13 +109,13 @@ class Networks:
         """ c51 Neural Net """
 
         state_input = Input(shape=state_size)
-        x = Dense(12, kernel_initializer="normal", activation="relu")(state_input)
+        x = Flatten()(state_input)
+        x = Dense(12, kernel_initializer="normal", activation="relu")(x)
 
-        # x = Dense(30, kernel_initializer="normal", activation="relu")(x)
+        # x = Dense(12, kernel_initializer="normal", activation="relu")(x)
 
         x = Dense(12, kernel_initializer="normal", activation="relu")(x)
 
-        x = Flatten()(x)
 
         distribution_list = list()
         for _ in range(action_size):
