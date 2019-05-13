@@ -4,6 +4,7 @@ import math
 from typing import Any, Dict, List, Tuple, Union
 
 import numpy as np
+from keras.models import load_model
 
 from environment import AirHockey
 from rl.Agent import Agent
@@ -33,7 +34,7 @@ class A2C(Agent):
 
         # Get size of state and action
         # State grows by the amount of frames we want to hold in our memory
-        self.state_size = (2, capacity, 2)
+        self.state_size = (3, capacity, 2)
         self.action_size = 4
         self.value_size = 1
 
@@ -58,6 +59,8 @@ class A2C(Agent):
 
         # Model construction
         self.build_model()
+
+        self.train = train
 
         # Keep up with the iterations
         self.t = 0
@@ -84,10 +87,9 @@ class A2C(Agent):
     def get_action(self, state: State) -> int:
         """ Using the output of policy network, pick action stochastically (Stochastic Policy) """
         policy = self.actor_model.predict(np.array([state]))[0]
-
         if not self.train:
-            return np.random.choice(self.action_size, 1, p=policy)[0]
-        return np.argmax(p)
+            return np.argmax(policy)
+        return np.random.choice(self.action_size, 1, p=policy)[0]
 
     def discount_rewards(self, rewards: List[int]):
         """ Instead agent uses sample returns for evaluating policy
@@ -157,13 +159,13 @@ class A2C(Agent):
     def load_model(self) -> None:
         """ Load a model"""
 
-        logger.info(f"Saving model from: {self.actor_load_path}")
+        logger.info(f"Loading model from: {self.actor_load_path}")
 
         self.actor_model = load_model(
             self.actor_load_path, custom_objects={"huber_loss": huber_loss}
         )
 
-        logger.info(f"Saving model from: {self.critic_load_path}")
+        logger.info(f"Loading model from: {self.critic_load_path}")
 
         self.critic_model = load_model(
             self.critic_load_path, custom_objects={"huber_loss": huber_loss}
