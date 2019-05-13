@@ -6,9 +6,11 @@ import os
 import random
 import sys
 import time
+from datetime import datetime
 from typing import Dict, Union
 
 import numpy as np
+from pymongo import MongoClient
 from redis import ConnectionError
 
 from connect import RedisConnection
@@ -25,24 +27,31 @@ logger.setLevel(logging.DEBUG)
 class Train:
     def __init__(self, args: Dict[str, Union[str, int]]):
 
-        # Set up Redis
-        self.redis = RedisConnection()
-
         # Parse cli args
         self.args = args
+
+        # Set up Redis
+        self.redis = RedisConnection()
+        self.mongo = MongoClient()["stats"]
 
         # Load Environment
         self.env = AirHockey()
 
         # Set up our robot
         self.robot = Strategy().make(
-            env=self.env, strategy=self.args["robot"], capacity=self.args["capacity"], train=True
+            env=self.env,
+            strategy=self.args["robot"],
+            capacity=self.args["capacity"],
+            train=True,
         )
         self.robot.agent_name = "robot"
 
         # Set up our opponent. The opponent can also be a human player.
         self.opponent = Strategy().make(
-            env=self.env, strategy=self.args["opponent"], capacity=self.args["capacity"], train=True
+            env=self.env,
+            strategy=self.args["opponent"],
+            capacity=self.args["capacity"],
+            train=True,
         )
         self.opponent.agent_name = (
             "human" if self.args["opponent"] == "human" else "opponent"
@@ -91,69 +100,34 @@ class Train:
 
         return None
 
-    # def stats(self) -> None:
-    #     """ Record training stats """
+    def stats(self) -> None:
+        """ Record training stats """
 
-    #     results = dict()
+        results = dict()
 
-    #     if self.env.agent_cumulative_score > self.agent_cumulative_score:
-    #         results["agent_goal"] = [self.env.agent_cumulative_score]
-    #         self.agent_cumulative_score = self.env.agent_cumulative_score
-    #         self.new = True
-    #     else:
-    #         results["agent_goal"] = [self.agent_cumulative_score]
+        results = {
+            "created_at": datetime.utcnow(),
+            "robot_goal": False,
+            "opponent_goal": False,
+            "robot_win": False,
+            "opponent_win": False,
+        }
 
-    #     if self.env.cpu_cumulative_score > self.opponent_cumulative_score:
-    #         results["opponent_goal"] = [self.env.cpu_cumulative_score]
-    #         self.opponent_cumulative_score = self.env.cpu_cumulative_score
-    #         self.new = True
-    #     else:
-    #         results["opponent_goal"] = [self.opponent_cumulative_score]
+        if self.env.reward == self.env.rewards["point"]:
+            results["robot_goal"] = True
 
-    #     if self.env.agent_score == 10:
-    #         results["agent_win"] = [1]
-    #         self.agent_cumulative_win += 1
-    #     else:
-    #         results["agent_win"] = [0]
+        if self.env.reward == self.env.rewards["loss"]:
+            results["opponent_goal"] = True
 
-    #     if self.env.cpu_score == 10:
-    #         results["opponent_win"] = [1]
-    #         self.opponent_cumulative_win += 1
-    #     else:
-    #         results["opponent_win"] = [0]
+        if self.env.robot_score == 10:
+            results["robot_win"] = True
 
-    #     if self.new:
-    #         write_results(self.config["training"]["results"], results)
-    #         self.new = False
+        if self.env.opponent_score == 10:
+            results["opponent_win"] = True
 
-    #         # Push to Tensorboard
-    #         self.tbl.log_scalar(
-    #             f"Agent Win", self.agent_cumulative_win, self.iterations
-    #         )
-    #         self.tbl.log_scalar(
-    #             f"Opponent Win", self.opponent_cumulative_win, self.iterations
-    #         )
-    #         self.tbl.log_scalar(
-    #             f"Agent goal", results["agent_goal"][0], self.iterations
-    #         )
-    #         self.tbl.log_scalar(
-    #             f"Opponent goal", results["opponent_goal"][0], self.iterations
-    #         )
-    #         self.tbl.log_scalar(
-    #             f"Agent Win", self.agent_cumulative_win, self.itqerations
-    #         )
-    #         self.tbl.log_scalar(
-    #             f"Agent Cumulative Reward",
-    #             self.env.agent_cumulative_reward,
-    #             self.iterations,
-    #         )
-    #         self.tbl.log_scalar(
-    #             f"Opponent Cumulative Reward",
-    #             self.env.cpu_cumulative_reward,
-    #             self.iterations,
-    #         )
+        self.mongo[self.args["stats"]].insert(results)
 
-    #     return None
+        return None
 
     def robot_player(self) -> None:
         """ Main player """
@@ -176,7 +150,7 @@ class Train:
             state = State(
                 robot_location=self.robot_location_buffer.retreive(),
                 puck_location=self.puck_location_buffer.retreive(),
-                opponent_location=self.opponent_location_buffer.retreive()
+                opponent_location=self.opponent_location_buffer.retreive(),
             )
 
             # Determine next action
@@ -192,7 +166,7 @@ class Train:
             new_state = State(
                 robot_location=self.robot_location_buffer.retreive(),
                 puck_location=self.puck_location_buffer.retreive(),
-                opponent_location=self.opponent_location_buffer.retreive()
+                opponent_location=self.opponent_location_buffer.retreive(),
             )
 
             # Get updated stats
@@ -209,9 +183,8 @@ class Train:
             # Update model
             self.robot.update(observation)
 
-            # Save results to csv
-            # if self.config["training"]["results"]:
-            #     self.stats()
+        # Save stats to Mongo
+        self.stats()
 
         # After so many iterations, save model
         if self.iterations % self.iterations_on_save == 0:
@@ -246,7 +219,7 @@ class Train:
             state = State(
                 robot_location=self.opponent_location_buffer.retreive(),
                 puck_location=self.puck_location_buffer.retreive(),
-                opponent_location=self.robot_location_buffer.retreive()
+                opponent_location=self.robot_location_buffer.retreive(),
             )
 
             # Determine next action
@@ -262,11 +235,8 @@ class Train:
             new_state = State(
                 robot_location=self.opponent_location_buffer.retreive(),
                 puck_location=self.puck_location_buffer.retreive(),
-                opponent_location=self.robot_location_buffer.retreive()
+                opponent_location=self.robot_location_buffer.retreive(),
             )
-
-            # Get updated stats
-            # stats = self.conn.get("stats")
 
             # Observation of the game at the moment
             observation = Observation(
@@ -279,6 +249,9 @@ class Train:
 
             # Update model
             self.opponent.update(observation)
+
+            # Save stats to Mongo
+            self.stats()
 
             # # After so many iterations, save motedel
             if self.iterations % self.iterations_on_save == 0:
@@ -304,22 +277,19 @@ class Train:
                 # Update iterator
                 self.iterations += 1
 
-                # Scores
-                # self.scores = self.conn.get("scores")
-
                 # Compute scores
                 if self.env.opponent_score == 10:
                     logger.info(
-                        f"Agent {self.env.robot_score}, Computer {self.env.opponent_score}"
+                        f"Robot {self.env.robot_score}, Computer {self.env.opponent_score}"
                     )
                     logger.info("Computer wins!")
                     self.env.reset(total=True)
 
                 if self.env.robot_score == 10:
                     logger.info(
-                        f"Agent {self.env.robot_score}, Computer {self.env.opponent_score} "
+                        f"Robot {self.env.robot_score}, Computer {self.env.opponent_score} "
                     )
-                    logger.info("Agent wins!")
+                    logger.info("Robot wins!")
                     self.env.reset(total=True)
 
             else:
@@ -335,6 +305,9 @@ if __name__ == "__main__":
     parser.add_argument("-o", "--opponent", help="Opponent strategy")
     parser.add_argument(
         "-c", "--capacity", default=5, help="Number of past expierences to store"
+    )
+    parser.add_argument(
+        "-s", "--stats", default="test", help="MongoDB to store training data"
     )
     parser.add_argument(
         "-t",

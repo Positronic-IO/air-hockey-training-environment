@@ -24,6 +24,7 @@ tensorboard = "*"
 tensorflow-gpu = "==1.12.0"
 requests = "*"
 pytest = "*"
+pymongo = "*"
 
 [requires]
 python_version = "3.6"
