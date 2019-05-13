@@ -261,19 +261,9 @@ class AirHockey:
             self.reset()
             return None
 
-        # # We hit the puck
-        # if (
-        #     abs(self.robot.x - self.puck.x) <= 35
-        #     and abs(self.robot.y - self.puck.y) <= 35
-        # ):
-        #     self.reward = self.rewards["hit"]
-        #     self.cumulative_reward += self.reward
-        #     self.done = False
-        #     return None
-
-        # self.reward = self.rewards["miss"]
-        # self.cumulative_reward += self.reward
-        # self.done = False
+        # If nothing happens
+        self.done = False
+        self.reward = 0
         return None
 
     def reset(self, total: bool = False) -> None:
