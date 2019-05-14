@@ -19,7 +19,9 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
 import pygame
+
 pygame.init()
+
 
 class Predict:
     def __init__(self, args: Dict[str, Union[str, int]]):
@@ -111,7 +113,7 @@ class Predict:
             state = State(
                 robot_location=self.robot_location_buffer.retreive(),
                 puck_location=self.puck_location_buffer.retreive(),
-                opponent_location=self.opponent_location_buffer.retreive()
+                opponent_location=self.opponent_location_buffer.retreive(),
             )
 
             # Determine next action
@@ -155,7 +157,7 @@ class Predict:
             state = State(
                 robot_location=self.opponent_location_buffer.retreive(),
                 puck_location=self.puck_location_buffer.retreive(),
-                opponent_location=self.robot_location_buffer.retreive()
+                opponent_location=self.robot_location_buffer.retreive(),
             )
 
             # Determine next action
@@ -170,38 +172,44 @@ class Predict:
 
         return None
 
+    def play(self) -> None:
+        """ Play a round for training """
+
+        # Our Agent
+        self.robot_player()
+        print("robot")
+
+        # Our opponent
+        self.opponent_player()
+
+        # Update iterator
+        self.iterations += 1
+
+        # Compute scores
+        if self.env.opponent_score == 10:
+            logger.info(
+                f"Robot {self.env.robot_score}, Computer {self.env.opponent_score}"
+            )
+            logger.info("Computer wins!")
+            self.env.reset(total=True)
+
+        if self.env.robot_score == 10:
+            logger.info(
+                f"Robot {self.env.robot_score}, Computer {self.env.opponent_score} "
+            )
+            logger.info("Robot wins!")
+            self.env.reset(total=True)
+
     def run(self) -> None:
         """ Main guts of training """
 
         clock = pygame.time.Clock()
 
-
         # Game loop
         while True:
 
-            # Our Agent
-            self.robot_player()
-
-            # Our opponent
-            self.opponent_player()
-
-            # Update iterator
-            # self.iterations += 1
-
-            # Compute scores
-            if self.env.opponent_score == 10:
-                logger.info(
-                    f"Agent {self.env.robot_score}, Computer {self.env.opponent_score}"
-                )
-                logger.info("Computer wins!")
-                self.env.reset(total=True)
-
-            if self.env.robot_score == 10:
-                logger.info(
-                    f"Agent {self.env.robot_score}, Computer {self.env.opponent_score} "
-                )
-                logger.info("Agent wins!")
-                self.env.reset(total=True)
+            # Play a frame
+            self.play()
 
             clock.tick(60)
 

@@ -259,6 +259,33 @@ class Train:
 
         return None
 
+    def play(self) -> None:
+        """ Play a round for training """
+
+        # Our Agent
+        self.robot_player()
+
+        # Our opponent
+        self.opponent_player()
+
+        # Update iterator
+        self.iterations += 1
+
+        # Compute scores
+        if self.env.opponent_score == 10:
+            logger.info(
+                f"Robot {self.env.robot_score}, Computer {self.env.opponent_score}"
+            )
+            logger.info("Computer wins!")
+            self.env.reset(total=True)
+
+        if self.env.robot_score == 10:
+            logger.info(
+                f"Robot {self.env.robot_score}, Computer {self.env.opponent_score} "
+            )
+            logger.info("Robot wins!")
+            self.env.reset(total=True)
+
     def run(self) -> None:
         """ Main guts of training """
 
@@ -268,29 +295,8 @@ class Train:
             # Train for an alotted amount of time
             if time.time() - self.time < self.wait:
 
-                # Our Agent
-                self.robot_player()
-
-                # Our opponent
-                self.opponent_player()
-
-                # Update iterator
-                self.iterations += 1
-
-                # Compute scores
-                if self.env.opponent_score == 10:
-                    logger.info(
-                        f"Robot {self.env.robot_score}, Computer {self.env.opponent_score}"
-                    )
-                    logger.info("Computer wins!")
-                    self.env.reset(total=True)
-
-                if self.env.robot_score == 10:
-                    logger.info(
-                        f"Robot {self.env.robot_score}, Computer {self.env.opponent_score} "
-                    )
-                    logger.info("Robot wins!")
-                    self.env.reset(total=True)
+                # Play a frame
+                self.play()
 
             else:
                 logger.info("Training time elasped")
