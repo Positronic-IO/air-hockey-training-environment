@@ -1,9 +1,11 @@
 """ C51 DDQN """
 import logging
 import math
+import os
 from typing import Any, Dict, Tuple, Union
 
 import numpy as np
+from keras.models import load_model
 
 from environment import AirHockey
 from rl.Agent import Agent
@@ -222,3 +224,22 @@ class c51(Agent):
         self.t += 1
 
         return None
+
+    def load_model(self) -> None:
+        """ Load a model"""
+
+        logger.info(f"Loading model from: {self.load_path}")
+
+        self.model = load_model(
+            self.load_path, custom_objects={"huber_loss": huber_loss}
+        )
+
+    def save_model(self) -> None:
+        """ Save a model """
+
+        logger.info(f"Saving model to: {self.save_path}")
+
+        # Create path with epoch number
+        head, ext = os.path.splitext(self.save_path)
+        path = get_model_path(self.save_path)
+        self.model.save(path, overwrite=True)

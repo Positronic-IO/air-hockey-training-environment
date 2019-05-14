@@ -177,7 +177,6 @@ class Predict:
 
         # Our Agent
         self.robot_player()
-        print("robot")
 
         # Our opponent
         self.opponent_player()
