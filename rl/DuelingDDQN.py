@@ -27,7 +27,7 @@ class DuelingDDQN(Agent):
 
         # Get size of state and action
         # State grows by the amount of frames we want to hold in our memory
-        self.state_size = (3, capacity, 2)
+        self.state_size = (3, int(capacity), 2)
         self.action_size = 4
 
         # These is hyper parameters for the Dueling DQN

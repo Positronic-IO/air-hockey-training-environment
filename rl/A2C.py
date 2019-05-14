@@ -33,7 +33,7 @@ class A2C(Agent):
 
         # Get size of state and action
         # State grows by the amount of frames we want to hold in our memory
-        self.state_size = (3, capacity, 2)
+        self.state_size = (3, int(capacity), 2)
         self.action_size = 4
         self.value_size = 1
 

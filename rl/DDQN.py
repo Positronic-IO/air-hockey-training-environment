@@ -31,7 +31,7 @@ class DDQN(Agent):
 
         # Get size of state and action
         # State grows by the amount of frames we want to hold in our memory
-        self.state_size = (1, capacity, 2)
+        self.state_size = (1, int(capacity), 2)
         self.action_size = 4
 
         # create replay memory using deque
