@@ -6,7 +6,7 @@ import numpy as np
 
 from environment import AirHockey
 from rl.Agent import Agent
-from rl.helpers import TensorBoardLogger, huber_loss
+from rl.helpers import huber_loss
 from rl.MemoryBuffer import MemoryBuffer
 from rl.Networks import Networks
 from utils import Observation, State
@@ -62,9 +62,6 @@ class DuelingDDQN(Agent):
         # Keep up with the iterations
         self.t = 0
 
-        # Initiate Tensorboard
-        # self.tbl = tbl
-
         self.version = "0.3.0"
         logger.info(f"Strategy defined for {self._agent_name}: {self.__repr__()}")
 
@@ -108,8 +105,6 @@ class DuelingDDQN(Agent):
         if not self.train:
             return None
 
-        # self.tbl.log_scalar("Dueling DDQN epsilon", self.epsilon, self.t)
-
         if self.epsilon > self.final_epsilon and self.t % self.observe == 0:
             self.epsilon -= (self.initial_epsilon - self.final_epsilon) / self.explore
 
@@ -121,7 +116,6 @@ class DuelingDDQN(Agent):
         # Helps over fitting, encourages to exploration
         if np.random.uniform(0, 1) < self.epsilon:
             idx = np.random.randint(0, self.action_size)
-            # self.tbl.log_histogram("Dueling DDQN Greedy Actions", idx, self.t)
             return idx
 
         # Compute rewards for any posible action
@@ -129,7 +123,6 @@ class DuelingDDQN(Agent):
         assert len(rewards) == self.action_size
 
         idx = np.argmax(rewards)
-        # self.tbl.log_histogram("Dueling DDQN Predict Actions", idx, self.t)
         return idx
 
     def update(self, data: Observation) -> None:

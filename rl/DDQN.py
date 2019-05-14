@@ -6,7 +6,7 @@ import numpy as np
 
 from environment import AirHockey
 from rl.Agent import Agent
-from rl.helpers import TensorBoardLogger, huber_loss
+from rl.helpers import huber_loss
 from rl.MemoryBuffer import MemoryBuffer
 from rl.Networks import Networks
 from utils import Observation, State
@@ -26,7 +26,6 @@ class DDQN(Agent):
         capacity: int,
         train: bool,
         config: Dict[str, Any]
-        # tbl: TensorBoardLogger,
     ):
         super().__init__(env)
 
@@ -61,9 +60,6 @@ class DDQN(Agent):
 
         # Counters
         self.t = 0
-
-        # Initiate Tensorboard
-        # self.tbl = tbl
 
         self.version = "0.3.0"
         logger.info(f"Strategy defined for {self._agent_name}: {self.__repr__()}")
@@ -101,8 +97,6 @@ class DDQN(Agent):
         if not self.train:
             return None
 
-        # self.tbl.log_scalar("DDQN epsilon", self.epsilon, self.t)
-
         if self.epsilon > self.epsilon_min:
             self.epsilon *= self.epsilon_decay
 
@@ -114,7 +108,6 @@ class DDQN(Agent):
         # Helps over fitting, encourages to exploration
         if np.random.uniform(0, 1) < self.epsilon:
             idx = np.random.randint(0, self.action_size)
-            # self.tbl.log_histogram("DDQN Greedy Actions", idx, self.t)
             return idx
 
         # Compute rewards for any posible action
@@ -122,7 +115,6 @@ class DDQN(Agent):
         assert len(rewards) == self.action_size
 
         idx = np.argmax(rewards)
-        # self.tbl.log_histogram("DDQN Predict Actions", idx, self.t)
         return idx
 
     def update(self, data: Observation) -> None:

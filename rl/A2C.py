@@ -8,7 +8,7 @@ from keras.models import load_model
 
 from environment import AirHockey
 from rl.Agent import Agent
-from rl.helpers import TensorBoardLogger, huber_loss
+from rl.helpers import huber_loss
 from rl.MemoryBuffer import MemoryBuffer
 from rl.Networks import Networks
 from utils import Observation, State, get_model_path
@@ -28,7 +28,6 @@ class A2C(Agent):
         capacity: int,
         train: bool,
         config: Dict[str, Any]
-        # tbl: TensorBoardLogger,
     ):
         super().__init__(env)
 

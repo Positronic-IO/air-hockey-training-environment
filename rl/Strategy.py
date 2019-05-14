@@ -9,7 +9,6 @@ from rl.c51 import c51
 from rl.DDQN import DDQN
 from rl.DQN import DQN
 from rl.DuelingDDQN import DuelingDDQN
-from rl.helpers import TensorBoardLogger
 from rl.QLearner import QLearner
 from utils import get_config_strategy
 

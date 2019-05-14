@@ -7,7 +7,7 @@ import numpy as np
 
 from environment import AirHockey
 from rl.Agent import Agent
-from rl.helpers import TensorBoardLogger, huber_loss
+from rl.helpers import huber_loss
 from rl.MemoryBuffer import MemoryBuffer
 from rl.Networks import Networks
 from utils import Observation, State
@@ -27,7 +27,6 @@ class c51(Agent):
         capacity: int,
         train: bool,
         config: Dict[str, Any]
-        # tbl: TensorBoardLogger,
     ):
         super().__init__(env)
 
@@ -75,9 +74,6 @@ class c51(Agent):
         # Model construction
         self.build_model()
 
-        # Initiate Tensorboard
-        # self.tbl = tbl
-
         self.version = "0.2.0"
         logger.info(f"Strategy defined for {self._agent_name}: {self.__repr__()}")
 
@@ -120,8 +116,6 @@ class c51(Agent):
         if not self.train:
             return None
 
-        # self.tbl.log_scalar("c51 epsilon", self.epsilon, self.t)
-
         if self.epsilon > self.final_epsilon and self.t % self.observe == 0:
             self.epsilon -= (self.initial_epsilon - self.final_epsilon) / self.explore
 
@@ -133,7 +127,6 @@ class c51(Agent):
         # Helps over fitting, encourages to exploration
         if np.random.uniform(0, 1) < self.epsilon:
             idx = np.random.randint(0, self.action_size)
-            # self.tbl.log_histogram("c51 Greedy Actions", idx, self.t)
             return idx
 
         # Compute rewards for any posible action
@@ -142,7 +135,6 @@ class c51(Agent):
         q = np.sum(np.multiply(z_concat, np.array(self.z)), axis=1)
         # Pick action with the biggest Q value
         idx = np.argmax(q)
-        # self.tbl.log_histogram("c51 Predict Actions", idx, self.t)
         return idx
 
     def update(self, data: Observation) -> None:

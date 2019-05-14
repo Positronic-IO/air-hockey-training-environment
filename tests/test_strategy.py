@@ -15,7 +15,6 @@ from rl.A2C import A2C
 class TestStrategy:
     def setup(self):
         self.env = AirHockey()
-        # self.tbl = TensorBoardLogger(log_dir="logs/test")
         self.train = True
         self.capacity = 4
 
