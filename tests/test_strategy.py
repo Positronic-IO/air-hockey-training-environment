@@ -6,7 +6,6 @@ from rl.c51 import c51
 from rl.DDQN import DDQN
 from rl.DQN import DQN
 from rl.DuelingDDQN import DuelingDDQN
-from rl.helpers import TensorBoardLogger
 from rl.QLearner import QLearner
 from rl.Strategy import Strategy
 from rl.A2C import A2C
