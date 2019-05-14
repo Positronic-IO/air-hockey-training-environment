@@ -49,7 +49,7 @@ class Agent:
     def load_model(self) -> None:
         """ Load a model"""
 
-        logger.info(f"Saving model from: {self.load_path}")
+        logger.info(f"Loading model from: {self.load_path}")
 
         self.model = load_model(
             self.load_path, custom_objects={"huber_loss": huber_loss}
