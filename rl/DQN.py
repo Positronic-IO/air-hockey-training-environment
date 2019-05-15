@@ -9,7 +9,7 @@ from environment import AirHockey
 from rl.Agent import Agent
 from rl.helpers import huber_loss
 from rl.Networks import Networks
-from utils import Observation, State
+from utils import Observation, State, get_model_path
 
 
 class DQN(Agent):

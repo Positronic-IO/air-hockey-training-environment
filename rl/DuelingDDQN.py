@@ -11,7 +11,7 @@ from rl.Agent import Agent
 from rl.helpers import huber_loss
 from rl.MemoryBuffer import MemoryBuffer
 from rl.Networks import Networks
-from utils import Observation, State
+from utils import Observation, State, get_model_path
 
 # Initiate Logger
 logger = logging.getLogger(__name__)
