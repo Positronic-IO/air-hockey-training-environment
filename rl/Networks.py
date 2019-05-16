@@ -109,13 +109,13 @@ class Networks:
         """ c51 Neural Net """
 
         state_input = Input(shape=state_size)
-        x = Flatten()(state_input)
-        x = Dense(12, kernel_initializer="normal", activation="relu")(x)
+        x = Dense(12, kernel_initializer="normal", activation="relu")(state_input)
 
         # x = Dense(12, kernel_initializer="normal", activation="relu")(x)
 
         x = Dense(12, kernel_initializer="normal", activation="relu")(x)
 
+        x = Flatten()(x)
 
         distribution_list = list()
         for _ in range(action_size):
