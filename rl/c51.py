@@ -34,7 +34,7 @@ class c51(Agent):
 
         # Get size of state and action
         # State grows by the amount of frames we want to hold in our memory
-        self.state_size = (2, 1, 2)
+        self.state_size = (1, 8)
         self.action_size = 4
 
         # These are the hyper parameters for the c51
@@ -131,8 +131,9 @@ class c51(Agent):
             idx = np.random.randint(0, self.action_size)
             return idx
 
+        flattened_state = np.hstack(state)
         # Compute rewards for any posible action
-        z = self.model.predict(np.array([state]), batch_size=1)
+        z = self.model.predict(np.array([flattened_state]), batch_size=1)
         z_concat = np.vstack(z)
         q = np.sum(np.multiply(z_concat, np.array(self.z)), axis=1)
         # Pick action with the biggest Q value
@@ -171,8 +172,8 @@ class c51(Agent):
                 [1 if sample[3] else 0 for sample in replay_samples], dtype=np.int8
             )
 
-            state_inputs = np.array([sample[0] for sample in replay_samples])
-            next_states = np.array([sample[4] for sample in replay_samples])
+            state_inputs = np.array([np.hstack(sample[0]) for sample in replay_samples])
+            next_states = np.array([np.hstack(sample[4]) for sample in replay_samples])
 
             assert state_inputs.shape == ((num_samples,) + self.state_size)
             assert next_states.shape == ((num_samples,) + self.state_size)

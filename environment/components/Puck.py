@@ -39,7 +39,7 @@ class Puck:
         self.puck_speed = 10
 
         # Update Redis
-        self.redis.post({"puck": {"location": self.location()}})
+        self.redis.post({"puck": {"location": self.location(), "velocity":  self.velocity()}})
 
     def update_puck(self) -> None:
         """ Update puck position """
@@ -68,7 +68,7 @@ class Puck:
         self.y += self.dy
 
         # Update Redis
-        self.redis.post({"puck": {"location": self.location()}})
+        self.redis.post({"puck": {"location": self.location(), "velocity":  self.velocity()}})
 
         return None
 
@@ -88,7 +88,7 @@ class Puck:
             self.dy += 1
 
         # Update Redis
-        self.redis.post({"puck": {"location": self.location()}})
+        self.redis.post({"puck": {"location": self.location(), "velocity":  self.velocity()}})
 
         return None
 
@@ -112,7 +112,7 @@ class Puck:
         self.last_y = self.y
 
         # Update Redis
-        self.redis.post({"puck": {"location": self.location()}})
+        self.redis.post({"puck": {"location": self.location(), "velocity":  self.velocity()}})
 
         return None
 
@@ -124,7 +124,7 @@ class Puck:
         self.dy = random.randint(-3, 3)
 
         # Update Redis
-        self.redis.post({"puck": {"location": self.location()}})
+        self.redis.post({"puck": {"location": self.location(), "velocity":  self.velocity()}})
 
         return None
 

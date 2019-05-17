@@ -43,7 +43,7 @@ class Mallet:
         self.mallet_start_y = self.y
 
         # Update Redis
-        self.redis.post({self.name: {"location": self.location()}})
+        self.redis.post({self.name: {"location": self.location(), "velocity": self.velocity()}})
 
     def update_mallet(self) -> None:
         """ Update mallet position """
@@ -72,7 +72,7 @@ class Mallet:
             self.y = self.b_lim
 
         # Update Redis
-        self.redis.post({self.name: {"location": self.location()}})
+        self.redis.post({self.name: {"location": self.location(), "velocity": self.velocity()}})
 
         return None
 
@@ -86,7 +86,7 @@ class Mallet:
         self.dy = 0
 
         # Update Redis
-        self.redis.post({self.name: {"location": self.location()}})
+        self.redis.post({self.name: {"location": self.location(), "velocity": self.velocity()}})
 
     def location(self) -> Tuple[int, int]:
         """ Current Cartesian coordinates """

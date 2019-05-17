@@ -29,7 +29,7 @@ class DuelingDDQN(Agent):
 
         # Get size of state and action
         # State grows by the amount of frames we want to hold in our memory
-        self.state_size = (2, 1, 2)
+        self.state_size = (1, 8)
         self.action_size = 4
 
         # These is hyper parameters for the Dueling DQN
@@ -121,7 +121,8 @@ class DuelingDDQN(Agent):
             return idx
 
         # Compute rewards for any posible action
-        rewards = self.model.predict(np.array([state]), batch_size=1)[0]
+        flattened_state = np.hstack(state)
+        rewards = self.model.predict(np.array([flattened_state]), batch_size=1)[0]
         assert len(rewards) == self.action_size
 
         idx = np.argmax(rewards)
@@ -159,8 +160,8 @@ class DuelingDDQN(Agent):
                 [1 if sample[3] else 0 for sample in replay_samples], dtype=np.int8
             )
 
-            update_input = np.array([sample[0] for sample in replay_samples])
-            update_target = np.array([sample[4] for sample in replay_samples])
+            update_input = np.array([np.hstack(sample[0]) for sample in replay_samples])
+            update_target = np.array([np.hstack(sample[4]) for sample in replay_samples])
 
             assert update_input.shape == ((num_samples,) + self.state_size)
             assert update_target.shape == ((num_samples,) + self.state_size)
