@@ -239,10 +239,6 @@ if __name__ == "__main__":
     parser.add_argument(
         "-c", "--capacity", default=5, help="Number of past expierences to store"
     )
-    parser.add_argument(
-        "--tensorboard",
-        help="Tensorbaord log location. If none is specified, then Tensorboard will not be used.",
-    )
     args = vars(parser.parse_args())
 
     # Validation

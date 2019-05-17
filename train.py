@@ -342,10 +342,6 @@ if __name__ == "__main__":
         default=3,
         help="Time per train. Units in hours. (Default to 3 hours)",
     )
-    parser.add_argument(
-        "--tensorboard",
-        help="Tensorbaord log location. If none is specified, then Tensorboard will not be used.",
-    )
     args = vars(parser.parse_args())
 
     # Validation
