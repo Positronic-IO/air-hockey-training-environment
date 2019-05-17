@@ -86,21 +86,21 @@ class Predict:
         """ Update redis buffers """
 
         data = self.redis.get()
-        self.puck_location = data["puck"]["location"]
-        self.robot_location = data["robot"]["location"]
-        self.opponent_location = data["opponent"]["location"]
+        puck_location = data["puck"]["location"]
+        robot_location = data["robot"]["location"]
+        opponent_location = data["opponent"]["location"]
 
-        self.puck_velocity = data["puck"]["velocity"]
-        self.robot_velocity = data["robot"]["velocity"]
-        self.opponent_velocity = data["opponent"]["velocity"]
+        puck_velocity = data["puck"]["velocity"]
+        robot_velocity = data["robot"]["velocity"]
+        opponent_velocity = data["opponent"]["velocity"]
 
-        self.robot_location_buffer.append(tuple(self.robot_location))
-        self.puck_location_buffer.append(tuple(self.puck_location))
-        self.opponent_location_buffer.append(tuple(self.opponent_location))
+        self.robot_location_buffer.append(tuple(robot_location))
+        self.puck_location_buffer.append(tuple(puck_location))
+        self.opponent_location_buffer.append(tuple(opponent_location))
 
-        self.robot_velocity_buffer.append(tuple(self.robot_velocity))
-        self.puck_velocity_buffer.append(tuple(self.puck_velocity))
-        self.opponent_velocity_buffer.append(tuple(self.opponent_velocity))
+        self.robot_velocity_buffer.append(tuple(robot_velocity))
+        self.puck_velocity_buffer.append(tuple(puck_velocity))
+        self.opponent_velocity_buffer.append(tuple(opponent_velocity))
 
         return None
 
@@ -241,7 +241,7 @@ if __name__ == "__main__":
     )
     args = vars(parser.parse_args())
 
-    # Validation
+    # Valid
     if not args.get("robot"):
         logger.error("Robot strategy Undefined")
         sys.exit()
