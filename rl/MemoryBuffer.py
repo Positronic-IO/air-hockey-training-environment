@@ -30,8 +30,17 @@ class MemoryBuffer:
 
         assert len(self.buffer) < self.capacity + 1, "Max memory exceeded"
 
-    def retreive(self) -> Tuple[Union[State, Observation]]:
+    def retreive(self, average: bool = False) -> Tuple[Union[State, Observation]]:
         """ Retrieve last n states """
+
+        def buffer_average(data):
+            return tuple(int(sum(col)/len(data)) for col in zip(*data))
+
+
+        # Return the average of all the points in the buffer
+        if average:
+            retval = buffer_average(tuple(self.buffer))
+            return (retval,)
 
         return tuple(self.buffer)
 

@@ -148,9 +148,9 @@ class Train:
 
             # Current state
             state = State(
-                robot_location=self.robot_location_buffer.retreive(),
-                puck_location=self.puck_location_buffer.retreive(),
-                opponent_location=self.opponent_location_buffer.retreive(),
+                robot_location=self.robot_location_buffer.retreive(average=True),
+                puck_location=self.puck_location_buffer.retreive(average=True),
+                # opponent_location=self.opponent_location_buffer.retreive(),
             )
 
             # Determine next action
@@ -164,9 +164,9 @@ class Train:
 
             # New state
             new_state = State(
-                robot_location=self.robot_location_buffer.retreive(),
-                puck_location=self.puck_location_buffer.retreive(),
-                opponent_location=self.opponent_location_buffer.retreive(),
+                robot_location=self.robot_location_buffer.retreive(average=True),
+                puck_location=self.puck_location_buffer.retreive(average=True),
+                # opponent_location=self.opponent_location_buffer.retreive(),
             )
 
             # Get updated stats
@@ -217,9 +217,9 @@ class Train:
 
             # Current state
             state = State(
-                robot_location=self.opponent_location_buffer.retreive(),
-                puck_location=self.puck_location_buffer.retreive(),
-                opponent_location=self.robot_location_buffer.retreive(),
+                robot_location=self.opponent_location_buffer.retreive(average=True),
+                puck_location=self.puck_location_buffer.retreive(average=True),
+                # opponent_location=self.robot_location_buffer.retreive(),
             )
 
             # Determine next action
@@ -233,9 +233,9 @@ class Train:
 
             # New state
             new_state = State(
-                robot_location=self.opponent_location_buffer.retreive(),
-                puck_location=self.puck_location_buffer.retreive(),
-                opponent_location=self.robot_location_buffer.retreive(),
+                robot_location=self.opponent_location_buffer.retreive(average=True),
+                puck_location=self.puck_location_buffer.retreive(average=True),
+                # opponent_location=self.robot_location_buffer.retreive(),
             )
 
             # Observation of the game at the moment

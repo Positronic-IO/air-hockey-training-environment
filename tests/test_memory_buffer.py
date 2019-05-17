@@ -40,3 +40,15 @@ class TestMemoryBuffer:
 
         buffer.purge()
         assert len(buffer) == 0
+
+    def test_memory_buffer_retrieve_average(self):
+        """ Test to retrieve the average of each column of the buffer """
+
+        buffer = MemoryBuffer(4)
+        data = [(3, 4), (5, 6), (4, 6), (2, 1)]
+        
+        for item in data:
+            buffer.append(item)
+        
+        assert buffer.retreive(average=True) == (3, 4)
+
