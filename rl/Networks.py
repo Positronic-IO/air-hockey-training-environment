@@ -15,29 +15,31 @@ class Networks:
 
     @staticmethod
     def dueling_ddqn(
-        state_size: Tuple[int, int, int], action_size: int, learning_rate: float
+        state_size: Tuple[int, int], action_size: int, learning_rate: float
     ) -> Model:
         """ Duelling DDQN Neural Net """
 
         state_input = Input(shape=state_size)
-        x = Flatten()(state_input)
-        x = Dense(12, kernel_initializer="normal", activation="relu")(x)
+
+        x = Dense(12, kernel_initializer="normal", activation="elu")(state_input)
 
         # x = Dense(12, kernel_initializer="normal", activation="relu")(x)
 
-        x = Dense(12, kernel_initializer="normal", activation="relu")(x)
+        x = Dense(12, kernel_initializer="normal", activation="elu")(x)
+
+        x = Flatten()(x)
 
         # state value tower - V
-        state_value = Dense(32, kernel_initializer="normal", activation="relu")(x)
+        state_value = Dense(32, kernel_initializer="normal", activation="elu")(x)
 
-        state_value = Dense(1, kernel_initializer="random_uniform")(state_value)
+        state_value = Dense(1, kernel_initializer="random_uniform", activation="linear")(state_value)
 
         state_value = Lambda(
             lambda s: K.expand_dims(s[:, 0]), output_shape=(action_size,)
         )(state_value)
 
         # action advantage tower - A
-        action_advantage = Dense(32, kernel_initializer="normal", activation="relu")(x)
+        action_advantage = Dense(32, kernel_initializer="normal", activation="elu")(x)
 
         action_advantage = Dense(action_size)(action_advantage)
 
@@ -104,16 +106,16 @@ class Networks:
 
     @staticmethod
     def c51(
-        state_size: Tuple[int, int, int], action_size: int, learning_rate: float
+        state_size: Tuple[int, int], action_size: int, learning_rate: float
     ) -> Model:
         """ c51 Neural Net """
 
         state_input = Input(shape=state_size)
-        x = Dense(12, kernel_initializer="normal", activation="relu")(state_input)
+        x = Dense(12, kernel_initializer="normal", activation="elu")(state_input)
 
-        # x = Dense(12, kernel_initializer="normal", activation="relu")(x)
+        # x = Dense(12, kernel_initializer="normal", activation="elu")(x)
 
-        x = Dense(12, kernel_initializer="normal", activation="relu")(x)
+        x = Dense(12, kernel_initializer="normal", activation="elu")(x)
 
         x = Flatten()(x)
 
