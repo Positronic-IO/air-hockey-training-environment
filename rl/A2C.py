@@ -34,7 +34,7 @@ class A2C(Agent):
 
         # Get size of state and action
         # State grows by the amount of frames we want to hold in our memory
-        self.state_size = (3, int(capacity), 2)
+        self.state_size = (1, 8)
         self.action_size = 4
         self.value_size = 1
 
@@ -86,7 +86,8 @@ class A2C(Agent):
 
     def get_action(self, state: State) -> int:
         """ Using the output of policy network, pick action stochastically (Stochastic Policy) """
-        policy = self.actor_model.predict(np.array([state]))[0]
+        flattened_state = np.hstack(state)
+        policy = self.actor_model.predict(np.array([flattened_state]))[0]
         if not self.train:
             return np.argmax(policy)
         return np.random.choice(self.action_size, 1, p=policy)[0]
@@ -113,7 +114,7 @@ class A2C(Agent):
         # Update model in intervals
         if self.t > self.observe and self.t % self.timestep_per_train == 0:
             observations = self.memory.retreive()
-            states = [observation.state for observation in observations]
+            states = [np.hstack(observation.state) for observation in observations]
             actions = [observation.action for observation in observations]
             rewards = [observation.reward for observation in observations]
             episode_length = len(self.memory)
@@ -135,7 +136,7 @@ class A2C(Agent):
 
             # Episode length is like the minibatch size in DQN
             for i in range(episode_length):
-                update_inputs[i, :, :, :] = states[i]
+                update_inputs[i, :] = states[i]
 
             # Prediction of state values for each state appears in the episode
             values = self.critic_model.predict(update_inputs)
