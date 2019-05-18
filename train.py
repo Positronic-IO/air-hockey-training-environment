@@ -167,7 +167,6 @@ class Train:
                 puck_velocity=self.puck_velocity_buffer.retreive(average=True),
             )
 
-            
             # Determine next action
             action = self.robot.get_action(state)
 
@@ -184,7 +183,6 @@ class Train:
                 robot_velocity=self.robot_velocity_buffer.retreive(average=True),
                 puck_velocity=self.puck_velocity_buffer.retreive(average=True),
             )
-
 
             # Get updated stats
 
@@ -240,7 +238,6 @@ class Train:
                 puck_velocity=self.puck_velocity_buffer.retreive(average=True),
             )
 
-
             # Determine next action
             action = self.opponent.get_action(state)
 
@@ -257,7 +254,6 @@ class Train:
                 robot_velocity=self.opponent_velocity_buffer.retreive(average=True),
                 puck_velocity=self.puck_velocity_buffer.retreive(average=True),
             )
-
 
             # Observation of the game at the moment
             observation = Observation(

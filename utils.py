@@ -17,7 +17,9 @@ logger.setLevel(logging.DEBUG)
 # Define custom types
 Action = Union[int, str, Tuple[int, int]]
 
-State = namedtuple("state", ["robot_location", "puck_location", "robot_velocity", "puck_velocity"])
+State = namedtuple(
+    "state", ["robot_location", "puck_location", "robot_velocity", "puck_velocity"]
+)
 
 Observation = namedtuple(
     "observation", ["state", "action", "reward", "done", "new_state"]
@@ -45,7 +47,7 @@ def get_config_strategy(strategy: str) -> Dict[str, Union[str, int]]:
         with open(filename, "r") as f:
             config = json.load(f)
 
-            if strategy == 'a2c':
+            if strategy == "a2c":
                 if not config["actor"].get("save") or not config["critic"].get("save"):
                     logger.error("Please specify a path to save model.")
 

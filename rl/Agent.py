@@ -34,7 +34,7 @@ class Agent:
             "opponent": self.env.opponent.location(),
         }
 
-        if not agents.get(self._agent_name):
+        if not locations.get(self._agent_name):
             logger.exception("Improper agent name")
             raise ValueError
 

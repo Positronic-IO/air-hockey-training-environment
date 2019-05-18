@@ -59,15 +59,14 @@ class DQN(Agent):
     def get_action(self, state: State) -> int:
         """ Apply an espilon-greedy policy to pick next action """
 
-        # Compute rewards for any posible action
-        rewards = self.model.predict(np.array([state]), batch_size=1)
-        assert len(rewards[0]) == self.action_size
-
         # Helps over fitting, encourages to exploration
         if np.random.uniform(0, 1) < self.epsilon:
             # We use the action which corresponds to the highest reward
             idx = np.random.randint(0, self.action_size)
         else:
+            # Compute rewards for any posible action
+            rewards = self.model.predict(np.array([state]), batch_size=1)
+            assert len(rewards[0]) == self.action_size
             idx = np.argmax(rewards[0])
 
         # Update
