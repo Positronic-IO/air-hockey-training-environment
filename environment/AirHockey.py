@@ -10,7 +10,7 @@ from redis import Redis
 
 from connect import RedisConnection
 from environment.components import Goal, Mallet, Puck
-from utils import Action, Observation, State
+from utils import Action, Observation, State, gaussian
 
 # Initiate Logger
 logging.basicConfig(level=logging.DEBUG)
@@ -21,7 +21,7 @@ logger.setLevel(logging.DEBUG)
 class AirHockey:
 
     # Default rewwards
-    rewards = {"point": 1, "loss": -1, "hit": 0, "miss": 0}
+    rewards = {"point": 1, "loss": -1}
 
     def __init__(self, **kwargs) -> None:
         """ Initiate an air hockey game """
@@ -102,8 +102,6 @@ class AirHockey:
 
         # Reward
         self.reward = 0
-        self.robot_cumulative_reward = 0
-        self.opponent_cumulative_reward = 0
 
         # If episode is done
         self.done = False
@@ -205,17 +203,11 @@ class AirHockey:
 
         # When then agent scores on the computer
         if (
-            abs(self.right_goal.centre_y - self.puck.y) <= 50
+            abs(self.right_goal.centre_y - self.puck.y) <= 45
             and abs(self.right_goal.centre_x - self.puck.x) <= 45
         ):
             self.robot_score += 1
             self.reward = self.rewards["point"]
-            self.robot_cumulative_reward += (
-                self.rewards["point"] if self.robot_score == 10 else 0
-            )
-            self.opponent_cumulative_reward += (
-                self.rewards["loss"] if self.robot_score == 10 else 0
-            )
 
             # Push to redis
             self.redis.post(
@@ -234,17 +226,11 @@ class AirHockey:
 
         # When the computer scores on the agent
         if (
-            abs(self.left_goal.centre_y - self.puck.y) <= 50
+            abs(self.left_goal.centre_y - self.puck.y) <= 45
             and abs(self.left_goal.centre_x - self.puck.x) <= 45
         ):
             self.opponent_score += 1
             self.reward = self.rewards["loss"]
-            self.robot_cumulative_reward += (
-                self.rewards["loss"] if self.opponent_score == 10 else 0
-            )
-            self.opponent_cumulative_reward += (
-                self.rewards["point"] if self.opponent_score == 10 else 0
-            )
 
             # Push to redis
             self.redis.post(
@@ -259,6 +245,18 @@ class AirHockey:
             logger.info(f"Robot {self.robot_score}, Computer {self.opponent_score}")
             self.done = True
             self.reset()
+            return None
+
+        if abs(self.right_goal.centre_x - self.puck.x) <= 60:
+            # Puck hit the opponet's wall
+            self.reward = gaussian(self.puck.y, self.right_goal.centre_y, 50)
+            self.done = False
+            return None
+
+        if abs(self.left_goal.x - self.puck.x) <= 60:
+            # Puck hit the robot's wall
+            self.reward = -1 * gaussian(self.puck.y, self.left_goal.centre_y, 50)
+            self.done = False
             return None
 
         # If nothing happens

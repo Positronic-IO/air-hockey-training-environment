@@ -126,17 +126,23 @@ class Train:
             "opponent_win": False,
         }
 
-        if self.env.reward == self.env.rewards["point"]:
+        if self.env.robot_score > self.robot_cumulative_score:
             results["robot_goal"] = True
+            self.robot_cumulative_score += 1
 
-        if self.env.reward == self.env.rewards["loss"]:
+        if self.env.opponent_score > self.opponent_cumulative_score:
             results["opponent_goal"] = True
+            self.opponent_cumulative_score += 1
 
         if self.env.robot_score == 10:
             results["robot_win"] = True
+            self.robot_cumulative_score = 0
+            self.opponent_cumulative_score = 0
 
         if self.env.opponent_score == 10:
             results["opponent_win"] = True
+            self.robot_cumulative_score = 0
+            self.opponent_cumulative_score = 0
 
         self.mongo[self.args["stats"]].insert(results)
 
@@ -183,8 +189,6 @@ class Train:
                 robot_velocity=self.robot_velocity_buffer.retreive(average=True),
                 puck_velocity=self.puck_velocity_buffer.retreive(average=True),
             )
-
-            # Get updated stats
 
             # Observation of the game at the moment
             observation = Observation(

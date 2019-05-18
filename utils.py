@@ -7,6 +7,7 @@ import sys
 from collections import namedtuple
 from typing import Any, Dict, List, Tuple, Union
 
+import numpy as np
 import pandas as pd
 
 # Initiate logger
@@ -89,3 +90,7 @@ def write_results(filename: str, data: Dict[str, List[int]]) -> None:
     with open(filename, "a") as f:
         df.to_csv(f, header=False)
     return None
+
+def gaussian(x: int, mu: int, sigma: int) -> float:
+    """ Calculate probability of x from some normal distribution """
+    return np.exp(-np.power(x - mu, 2.) / (2 * np.power(sigma, 2.)))
