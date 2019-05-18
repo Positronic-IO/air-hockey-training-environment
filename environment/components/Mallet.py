@@ -79,9 +79,6 @@ class Mallet:
     def reset_mallet(self) -> None:
         """ Reset mallet """
 
-        self.x = self.mallet_start_x
-        self.y = self.mallet_start_y
-
         self.dx = 0
         self.dy = 0
 
