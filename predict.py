@@ -88,15 +88,21 @@ class Predict:
         data = self.redis.get()
         puck_location = data["puck"]["location"]
         robot_location = data["robot"]["location"]
-        opponent_location = data["opponent"]["location"]
+
+        # This is an attribute because it is referenced when there exists a human player.
+        self.opponent_location = data["opponent"]["location"]
 
         puck_velocity = data["puck"]["velocity"]
         robot_velocity = data["robot"]["velocity"]
-        opponent_velocity = data["opponent"]["velocity"]
+        opponent_velocity = (
+            (0, 0)
+            if self.opponent.agent_name == "human"
+            else data["opponent"]["velocity"]
+        )
 
         self.robot_location_buffer.append(tuple(robot_location))
         self.puck_location_buffer.append(tuple(puck_location))
-        self.opponent_location_buffer.append(tuple(opponent_location))
+        self.opponent_location_buffer.append(tuple(self.opponent_location))
 
         self.robot_velocity_buffer.append(tuple(robot_velocity))
         self.puck_velocity_buffer.append(tuple(puck_velocity))
