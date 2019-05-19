@@ -1,22 +1,32 @@
 """ Puck object """
 import json
 import random
-from typing import Tuple
+from typing import Tuple, Any
 
 from connect import RedisConnection
+from environment.components import Table
 
 
 class Puck:
     """ Puck object """
 
     def __init__(
-        self, x: int, y: int, dx: int = -5, dy: int = 3, redis: RedisConnection = None
+        self,
+        x: int,
+        y: int,
+        dx: int = -5,
+        dy: int = 3,
+        radius: int = 0,
+        redis: RedisConnection = None,
     ):
         """ Create a goal """
 
         self.name = "puck"
+        self.radius = radius
 
         # Set up Redis connection
+        if not redis:
+            redis = RedisConnection()
         self.redis = redis
 
         # Puck position
@@ -39,7 +49,9 @@ class Puck:
         self.puck_speed = 10
 
         # Update Redis
-        self.redis.post({"puck": {"location": self.location(), "velocity":  self.velocity()}})
+        self.redis.post(
+            payload={"puck": {"location": self.location(), "velocity": self.velocity()}}
+        )
 
     def update_puck(self) -> None:
         """ Update puck position """
@@ -68,7 +80,9 @@ class Puck:
         self.y += self.dy
 
         # Update Redis
-        self.redis.post({"puck": {"location": self.location(), "velocity":  self.velocity()}})
+        self.redis.post(
+            payload={"puck": {"location": self.location(), "velocity": self.velocity()}}
+        )
 
         return None
 
@@ -88,7 +102,9 @@ class Puck:
             self.dy += 1
 
         # Update Redis
-        self.redis.post({"puck": {"location": self.location(), "velocity":  self.velocity()}})
+        self.redis.post(
+            payload={"puck": {"location": self.location(), "velocity": self.velocity()}}
+        )
 
         return None
 
@@ -112,7 +128,9 @@ class Puck:
         self.last_y = self.y
 
         # Update Redis
-        self.redis.post({"puck": {"location": self.location(), "velocity":  self.velocity()}})
+        self.redis.post(
+            payload={"puck": {"location": self.location(), "velocity": self.velocity()}}
+        )
 
         return None
 
@@ -124,7 +142,9 @@ class Puck:
         self.dy = random.randint(-3, 3)
 
         # Update Redis
-        self.redis.post({"puck": {"location": self.location(), "velocity":  self.velocity()}})
+        self.redis.post(
+            payload={"puck": {"location": self.location(), "velocity": self.velocity()}}
+        )
 
         return None
 
@@ -142,3 +162,48 @@ class Puck:
         """ Velocity of Puck """
 
         return self.dx, self.dy
+
+    def __and__(self, component: Any) -> bool:
+        """ Determine if the puck and other objects overlap """
+
+        if component.__class__.__name__.lower() == "table":
+            # Check to see if there is any intersection in the x-axis
+            if (
+                abs(self.x - component.left_wall) <= 50
+                or abs(component.right_wall - self.x) <= 50
+            ):
+                return True
+        else:
+            # Check to see if there is any intersection in the x-axis
+            if abs(self.x - component.x) <= 50:
+                return True
+
+        # No intersection
+        return False
+
+    def __or__(self, component: Any) -> bool:
+        """ Determine if the puck and other objects overlap (y-axis) """
+
+        if abs(self.y - component.y) <= 50:
+            return True
+
+        # No intersection
+        return False
+
+    def __lshift__(self, component: Table) -> bool:
+        """ Determine if the puck and the left side of table overlap """
+
+        if abs(self.x - component.left_wall) <= 50:
+            return True
+
+        # No intersection
+        return False
+
+    def __rshift__(self, component: Table) -> bool:
+        """ Determine if the puck and the right side of table overlap """
+
+        if abs(self.x - component.right_wall) <= 50:
+            return True
+
+        # No intersection
+        return False

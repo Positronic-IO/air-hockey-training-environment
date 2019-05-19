@@ -6,19 +6,10 @@ class Goal(object):
     def __init__(self, x: int, y: int, w: int = 20, h: int = 100):
         """ Create goal """
 
-        #  Initial position
-        self.x = x
-        self.y = y
-
-        # Width and heighth of goal
-        self.w = w
-        self.h = h
-
         # Define center of goal
-        self.centre_x = int(self.x + self.w / 2)
-        self.centre_y = int(self.y + self.h / 2)
+        self.left_corner_x, self.left_corner_y = x, y
+        self.w, self.h = w, h
 
-    def location(self) -> Tuple[int, int]:
-        """ Cartesian coordinates """
+        self.x = int(self.left_corner_x + self.w / 2)
+        self.y = int(self.left_corner_y + self.h / 2)
 
-        return self.centre_x, self.centre_y

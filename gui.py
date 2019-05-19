@@ -28,6 +28,8 @@ class AirHockeyGui:
     green = (0, 255, 0)
     red = (255, 0, 0)
     blue = (0, 0, 255)
+    
+    rink_size = (840, 440)
 
     # Offest for drawing the center line of table
     middle_line_offset = 4.5
@@ -64,14 +66,14 @@ class AirHockeyGui:
         """ Re-renders table """
 
         # Make screen
-        screen = pygame.display.set_mode(self.env.table_size)
+        screen = pygame.display.set_mode(self.env.table.size)
         screen.fill(self.blue)
 
         # Base of rink
         pygame.draw.rect(
             screen,
             self.white,
-            (25, 25, self.env.rink_size[0], self.env.rink_size[1]),
+            (25, 25, self.rink_size[0], self.rink_size[1]),
             0,
         )
 
@@ -80,14 +82,14 @@ class AirHockeyGui:
             screen,
             self.red,
             [
-                self.env.table_midpoints[0],
-                ((self.env.table_size[1] - self.env.rink_size[1]) / 2)
+                self.env.table.midpoints[0],
+                ((self.env.table.size[1] - self.rink_size[1]) / 2)
                 + self.middle_line_offset,
             ],
             [
-                self.env.table_midpoints[0],
-                self.env.table_size[1]
-                - ((self.env.table_size[1] - self.env.rink_size[1]) / 2)
+                self.env.table.midpoints[0],
+                self.env.table.size[1]
+                - ((self.env.table.size[1] - self.rink_size[1]) / 2)
                 + self.middle_line_offset,
             ],
             5,
@@ -97,7 +99,7 @@ class AirHockeyGui:
         pygame.draw.rect(
             screen,
             self.black,
-            (25, 25, self.env.rink_size[0], self.env.rink_size[1]),
+            (25, 25, self.rink_size[0], self.rink_size[1]),
             5,
         )
 
@@ -116,7 +118,7 @@ class AirHockeyGui:
         self.update_locations()
 
         # Make screen
-        screen = pygame.display.set_mode(self.env.table_size)
+        screen = pygame.display.set_mode(self.env.table.size)
 
         # Draw table
         self.draw_table()
@@ -136,8 +138,8 @@ class AirHockeyGui:
             screen,
             self.green,
             (
-                self.env.left_goal.x,
-                self.env.left_goal.y,
+                self.env.left_goal.left_corner_x,
+                self.env.left_goal.left_corner_y,
                 self.env.left_goal.w,
                 self.env.left_goal.h,
             ),
@@ -149,8 +151,8 @@ class AirHockeyGui:
             screen,
             self.green,
             (
-                self.env.right_goal.x,
-                self.env.right_goal.y,
+                self.env.right_goal.left_corner_x,
+                self.env.right_goal.left_corner_y,
                 self.env.right_goal.w,
                 self.env.right_goal.h,
             ),
@@ -159,7 +161,7 @@ class AirHockeyGui:
 
         # Draw puck
         pygame.draw.circle(
-            screen, self.black, self.puck_location, self.env.puck_radius, 0
+            screen, self.black, self.puck_location, self.env.puck.radius, 0
         )
         pygame.display.flip()
 

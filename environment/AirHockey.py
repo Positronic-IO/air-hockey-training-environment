@@ -9,7 +9,7 @@ import numpy as np
 from redis import Redis
 
 from connect import RedisConnection
-from environment.components import Goal, Mallet, Puck
+from environment.components import Goal, Mallet, Puck, Table
 from utils import Action, Observation, State, gaussian
 
 # Initiate Logger
@@ -23,20 +23,65 @@ class AirHockey:
     # Default rewwards
     rewards = {"point": 1, "loss": -1}
 
-    def __init__(self, **kwargs) -> None:
+    def __init__(self) -> None:
         """ Initiate an air hockey game """
 
         self.redis = RedisConnection()
 
-        # Define table and rink sizes
-        self.table_size = kwargs.get("table_size", [900, 480])
-        self.rink_size = kwargs.get("rink_size", [840, 440])
+        # Some constants for air hockey components
+        width_offset = (27, 40)
+        x_offset = 38
+        y_offset = 50
 
-        # Create board
-        self.board = np.zeros(shape=self.table_size, dtype=int)
+        # Create Table
+        self.table = Table(
+            size=(900, 480), x_offset=x_offset, width_offset=width_offset
+        )
+
+        # Make goals
+        self.left_goal = Goal(
+            x=0, y=self.table.midpoints[1] - y_offset, w=width_offset[0]
+        )
+        self.right_goal = Goal(
+            x=self.table.size[0] - x_offset,
+            y=self.table.midpoints[1] - y_offset,
+            w=width_offset[1],
+        )
 
         # Puck settings
-        self.puck_radius = kwargs.get("puck_radius", 15)
+        puck_radius = 15
+
+        # Create puck
+        self.puck = Puck(
+            x=self.table.midpoints[0],
+            y=self.table.midpoints[1],
+            radius=puck_radius,
+            redis=self.redis,
+        )
+
+        # Define left and right mallet positions
+        mallet_l = self.table.midpoints[0] - 100, self.table.midpoints[1]
+        mallet_r = self.table.midpoints[0] + 100, self.table.midpoints[1]
+
+        # Makes Computer Mallet
+        self.robot = Mallet(
+            "robot",
+            mallet_l[0],
+            mallet_l[1],
+            right_lim=self.table.midpoints[0] - puck_radius,
+            table_size=self.table.size,
+            redis=self.redis,
+        )
+
+        # Makes Computer Mallet
+        self.opponent = Mallet(
+            "opponent",
+            mallet_r[0],
+            mallet_r[1],
+            left_lim=self.table.midpoints[0] + puck_radius,
+            table_size=self.table.size,
+            redis=self.redis,
+        )
 
         # Default scores
         self.opponent_score = 0
@@ -52,47 +97,9 @@ class AirHockey:
             }
         )
 
+        # Physics
         self.ticks_to_friction = 60
         self.ticks_to_ai = 10
-
-        # Define midpoints
-        self.table_midpoints = list(map(lambda x: int(x / 2), self.table_size))
-
-        # Define left and right mallet positions
-        default_left_position = self.table_midpoints[0] - 100, self.table_midpoints[1]
-        default_right_position = self.table_midpoints[0] + 100, self.table_midpoints[1]
-
-        # Set puck initial position
-        puck_start_x, puck_start_y = self.table_midpoints[0], self.table_midpoints[1]
-
-        # Create puck
-        self.puck = Puck(x=puck_start_x, y=puck_start_y, redis=self.redis)
-
-        # Make goals
-        self.left_goal = Goal(0, self.table_midpoints[1] - 50, w=27)
-        self.right_goal = Goal(
-            self.table_size[0] - 38, self.table_midpoints[1] - 50, w=40
-        )
-
-        # Makes Computer Mallet
-        self.robot = Mallet(
-            "robot",
-            default_left_position[0],
-            default_left_position[1],
-            right_lim=self.table_midpoints[0] - self.puck_radius,
-            table_size=self.table_size,
-            redis=self.redis,
-        )
-
-        # Makes Computer Mallet
-        self.opponent = Mallet(
-            "opponent",
-            default_right_position[0],
-            default_right_position[1],
-            left_lim=self.table_midpoints[0] + self.puck_radius,
-            table_size=self.table_size,
-            redis=self.redis,
-        )
 
         # Define step size of mallet
         self.step_size = 10
@@ -158,17 +165,12 @@ class AirHockey:
             raise ValueError
 
         # Determine puck physics
-        if (
-            abs(self.robot.x - self.puck.x) <= 50
-            and abs(self.robot.y - self.puck.y) <= 50
-        ):
+        # If the mallet is in the neighborhood of the puck, do stuff.
+        if self.puck & self.robot and self.puck | self.robot:
             self.puck.dx = -3 * self.puck.dx + self.robot.dx
             self.puck.dy = -3 * self.puck.dy + self.robot.dy
 
-        if (
-            abs(self.opponent.x - self.puck.x) <= 50
-            and abs(self.opponent.y - self.puck.y) <= 50
-        ):
+        if self.puck & self.opponent and self.puck | self.opponent:
             self.puck.dx = -3 * self.puck.dx + self.opponent.dx
             self.puck.dy = -3 * self.puck.dy + self.opponent.dy
 
@@ -201,11 +203,8 @@ class AirHockey:
     def update_score(self) -> Union[int, None]:
         """ Get current score """
 
-        # When then agent scores on the computer
-        if (
-            abs(self.right_goal.centre_y - self.puck.y) <= 45
-            and abs(self.right_goal.centre_x - self.puck.x) <= 45
-        ):
+        # # When then agent scores on the computer
+        if self.puck & self.right_goal and self.puck | self.right_goal:
             self.robot_score += 1
             self.reward = self.rewards["point"]
 
@@ -225,10 +224,7 @@ class AirHockey:
             return None
 
         # When the computer scores on the agent
-        if (
-            abs(self.left_goal.centre_y - self.puck.y) <= 45
-            and abs(self.left_goal.centre_x - self.puck.x) <= 45
-        ):
+        if self.puck & self.left_goal and self.puck | self.left_goal:
             self.opponent_score += 1
             self.reward = self.rewards["loss"]
 
@@ -247,15 +243,15 @@ class AirHockey:
             self.reset()
             return None
 
-        if abs(self.right_goal.centre_x - self.puck.x) <= 60:
+        if self.puck >> self.table:
             # Puck hit the opponet's wall
-            self.reward = gaussian(self.puck.y, self.right_goal.centre_y, 50)
+            self.reward = gaussian(self.puck.y, self.right_goal.y, 50)
             self.done = False
             return None
 
-        if abs(self.left_goal.x - self.puck.x) <= 60:
+        if self.puck << self.table:
             # Puck hit the robot's wall
-            self.reward = -1 * gaussian(self.puck.y, self.left_goal.centre_y, 50)
+            self.reward = -1 * gaussian(self.puck.y, self.left_goal.y, 50)
             self.done = False
             return None
 
