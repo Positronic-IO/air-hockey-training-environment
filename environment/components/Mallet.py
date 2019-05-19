@@ -13,6 +13,8 @@ class Mallet:
         """ Create a mallet """
 
         # Set up Redis connection
+        if not redis:
+            redis = RedisConnection()
         self.redis = redis
 
         # Set current position (default to initial position
