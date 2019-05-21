@@ -2,7 +2,6 @@ from .A2C import A2C
 from .Agent import Agent
 from .c51 import c51
 from .DDQN import DDQN
-from .DQN import DQN
 from .DuelingDDQN import DuelingDDQN
 from .MemoryBuffer import MemoryBuffer
 from .networks import *

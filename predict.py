@@ -14,7 +14,7 @@ from rl import MemoryBuffer, Strategy
 from utils import Observation, State, write_results
 
 # Initiate logger
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 

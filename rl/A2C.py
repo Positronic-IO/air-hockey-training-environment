@@ -12,11 +12,11 @@ from rl.Agent import Agent
 from rl.helpers import huber_loss
 from rl.MemoryBuffer import MemoryBuffer
 from rl import networks
-from utils import Observation, State, get_model_path
+from utils import Observation, State
 
 # Initiate Logger
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.INFO)
 
 
 class A2C(Agent):
@@ -28,15 +28,18 @@ class A2C(Agent):
     ):
         super().__init__(env)
 
+        self.version = "0.1.0"
+        logger.info(f"Strategy defined for {self.agent_name}: {self.__repr__()}")
+
         # Get size of state and action
         # State grows by the amount of frames we want to hold in our memory
         self.state_size = (1, 8)
         self.action_size = 4
         self.value_size = 1
 
-        self.observe = config["params"]["observe"]
         self.frame_per_action = config["params"]["frame_per_action"]
         self.timestep_per_train = config["params"]["timestep_per_train"]
+        self.iterations_on_save = config["params"]["iterations_on_save"]
 
         # These are hyper parameters for the Policy Gradient
         self.gamma = config["params"]["gamma"]

@@ -55,31 +55,7 @@ def dueling_ddqn(
     return model
 
 
-def dqn(state_size: Tuple[int, int, int]) -> Model:
-    """ Deep Q Neural Network """
-
-    model = Sequential()
-
-    model.add(Dense(12, kernel_initializer="normal", input_shape=state_size))
-    model.add(Activation("relu"))
-
-    model.add(Dense(30, kernel_initializer="normal"))
-    model.add(Activation("relu"))
-
-    model.add(Dense(20, kernel_initializer="normal"))
-    model.add(Activation("relu"))
-
-    model.add(Flatten())
-
-    model.add(Dense(4, kernel_initializer="random_uniform"))
-    model.add(Activation("sigmoid"))
-
-    model.compile(loss=huber_loss, optimizer=RMSprop())
-
-    return model
-
-
-def ddqn(state_size: Tuple[int, int, int], learning_rate: float) -> Model:
+def ddqn(state_size: Tuple[int, int], learning_rate: float) -> Model:
     """ DDQN Neural Network """
 
     model = Sequential()

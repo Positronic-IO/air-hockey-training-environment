@@ -7,7 +7,6 @@ from rl.A2C import A2C
 from rl.Agent import Agent
 from rl.c51 import c51
 from rl.DDQN import DDQN
-from rl.DQN import DQN
 from rl.DuelingDDQN import DuelingDDQN
 from rl.QLearner import QLearner
 from utils import get_config_strategy
@@ -17,7 +16,6 @@ class Strategy:
 
     strategies = {
         "q-learner": QLearner,
-        "dqn": DQN,
         "ddqn": DDQN,
         "dueling": DuelingDDQN,
         "c51": c51,

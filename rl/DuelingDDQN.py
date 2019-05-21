@@ -11,11 +11,11 @@ from rl.Agent import Agent
 from rl.helpers import huber_loss
 from rl.MemoryBuffer import MemoryBuffer
 from rl import networks
-from utils import Observation, State, get_model_path
+from utils import Observation, State
 
 # Initiate Logger
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.INFO)
 
 
 class DuelingDDQN(Agent):
@@ -26,6 +26,9 @@ class DuelingDDQN(Agent):
         self, env: AirHockey, capacity: int, train: bool, config: Dict[str, Any]
     ):
         super().__init__(env)
+
+        self.version = "0.3.0"
+        logger.info(f"Strategy defined for {self.agent_name}: {self.__repr__()}")
 
         # Get size of state and action
         # State grows by the amount of frames we want to hold in our memory

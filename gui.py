@@ -12,9 +12,9 @@ from connect import RedisConnection
 from environment import AirHockey
 
 # Initiate Logger
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.INFO)
 
 # Initialize the game engine
 pygame.init()

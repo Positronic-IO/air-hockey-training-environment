@@ -19,9 +19,9 @@ from rl import MemoryBuffer, Strategy
 from utils import Observation, State, record_model_info
 
 # Initiate Logger
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.INFO)
 
 
 class Train:
@@ -58,13 +58,14 @@ class Train:
         )
 
         # Save model architectures with an unique run id
-        record_model_info(self.args["robot"], self.args["opponent"])
+        robot_path, opponent_path = record_model_info(
+            self.args["robot"], self.args["opponent"]
+        )
 
-        # Interesting and important constants
-        self.epoch = 0
-        self.iterations_on_save = 10 ** 4
-        self.iterations = 1
-        self.new = False
+        # Paths to save models
+        self.robot.save_path = robot_path
+        if self.opponent.agent_name != "human":
+            self.opponent.save_path = opponent_path
 
         # We begin..
         self.init, self.init_opponent = True, True
@@ -208,10 +209,6 @@ class Train:
         # Save stats to Mongo
         self.stats()
 
-        # After so many iterations, save model
-        if self.iterations % self.iterations_on_save == 0:
-            self.robot.save_model()
-
         return None
 
     def opponent_player(self) -> None:
@@ -277,10 +274,6 @@ class Train:
             # Save stats to Mongo
             self.stats()
 
-            # # After so many iterations, save motedel
-            if self.iterations % self.iterations_on_save == 0:
-                self.opponent.save_model()
-
         return None
 
     def play(self) -> None:
@@ -291,9 +284,6 @@ class Train:
 
         # Our opponent
         self.opponent_player()
-
-        # Update iterator
-        self.iterations += 1
 
         # Compute scores
         if self.env.opponent_score == 10:
