@@ -16,7 +16,7 @@ from redis import ConnectionError
 from connect import RedisConnection
 from environment import AirHockey
 from rl import MemoryBuffer, Strategy
-from utils import Observation, State, write_results
+from utils import Observation, State, record_model_info
 
 # Initiate Logger
 logging.basicConfig(level=logging.DEBUG)
@@ -56,6 +56,9 @@ class Train:
         self.opponent.agent_name = (
             "human" if self.args["opponent"] == "human" else "opponent"
         )
+
+        # Save model architectures with an unique run id
+        record_model_info(self.args["robot"], self.args["opponent"])
 
         # Interesting and important constants
         self.epoch = 0

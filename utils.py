@@ -94,7 +94,7 @@ def unique_directory(directory: str) -> str:
             return path
 
 
-def record_model_infos(robot: str, opponent: str) -> None:
+def record_model_info(robot: str, opponent: str) -> None:
     """ Record model information """
 
     from rl import networks
@@ -108,14 +108,22 @@ def record_model_infos(robot: str, opponent: str) -> None:
     }
 
     directory = unique_directory(os.path.join(os.getcwd(), "model"))
-    if strategies.get(robot):
+    
+    try:
+        # Deal with robot's models
         path = os.path.join(directory, "robot")
         os.mkdir(path)
         with open(os.path.join(path, strategies.get(robot).__name__), "w+") as file:
             file.write(inspect.getsource(strategies.get(robot)))
 
-    if strategies.get(opponent):
+        # Deal with opponent's models
+        if opponent == "human":
+            return None
+        
         path = os.path.join(directory, "opponent")
         os.mkdir(path)
         with open(os.path.join(path, strategies.get(opponent).__name__), "w+") as file:
             file.write(inspect.getsource(strategies.get(opponent)))
+    
+    except KeyError:
+        logger.error("Strategy not defined.")
