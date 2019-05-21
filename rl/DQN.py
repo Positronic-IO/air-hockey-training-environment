@@ -8,7 +8,7 @@ from keras.models import load_model
 from environment import AirHockey
 from rl.Agent import Agent
 from rl.helpers import huber_loss
-from rl.Networks import Networks
+from rl import networks
 from utils import Observation, State, get_model_path
 
 
@@ -48,7 +48,7 @@ class DQN(Agent):
     def build_model(self) -> None:
         """ Create our DNN model for Q-value approximation """
 
-        self.model = Networks().dqn(self.state_size)
+        self.model = networks.dqn(self.state_size)
 
         if self.load_path:
             self.load_model()
@@ -99,16 +99,12 @@ class DQN(Agent):
     def load_model(self) -> None:
         """ Load a model"""
 
-        logger.info(f"Loading model from: {self.load_path}")
-
         self.model = load_model(
             self.load_path, custom_objects={"huber_loss": huber_loss}
         )
 
     def save_model(self) -> None:
         """ Save a model """
-
-        logger.info(f"Saving model to: {self.save_path}")
 
         # Create path with epoch number
         head, ext = os.path.splitext(self.save_path)

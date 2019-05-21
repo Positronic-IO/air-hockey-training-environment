@@ -1,5 +1,6 @@
 """ Helpful utility functions """
 
+import inspect
 import json
 import logging
 import os
@@ -8,7 +9,6 @@ from collections import namedtuple
 from typing import Any, Dict, List, Tuple, Union
 
 import numpy as np
-import pandas as pd
 
 # Initiate logger
 logging.basicConfig(level=logging.DEBUG)
@@ -77,20 +77,45 @@ def get_model_path(file_path: str) -> str:
     return file_path
 
 
-def write_results(filename: str, data: Dict[str, List[int]]) -> None:
-    """ Write data to csv """
-
-    df = pd.DataFrame.from_dict(data)
-    head, tail = os.path.split(filename)
-
-    if tail == ".csv":
-        print("Filename to save results does not have the '.csv' extension.")
-        sys.exit()
-
-    with open(filename, "a") as f:
-        df.to_csv(f, header=False)
-    return None
-
 def gaussian(x: int, mu: int, sigma: int) -> float:
     """ Calculate probability of x from some normal distribution """
-    return np.exp(-np.power(x - mu, 2.) / (2 * np.power(sigma, 2.)))
+    return np.exp(-np.power(x - mu, 2.0) / (2 * np.power(sigma, 2.0)))
+
+
+def unique_directory(directory: str) -> str:
+    """ Create a unique directory  """
+
+    counter = 0
+    while True:
+        counter += 1
+        path = os.path.join(directory, str(counter))
+        if not os.path.exists(path):
+            os.makedirs(path)
+            return path
+
+
+def record_model_infos(robot: str, opponent: str) -> None:
+    """ Record model information """
+
+    from rl import networks
+
+    strategies = {
+        "dqn": networks.dqn,
+        "ddqn": networks.ddqn,
+        "dueling": networks.dueling_ddqn,
+        "c51": networks.c51,
+        "a2c": networks.a2c,
+    }
+
+    directory = unique_directory(os.path.join(os.getcwd(), "model"))
+    if strategies.get(robot):
+        path = os.path.join(directory, "robot")
+        os.mkdir(path)
+        with open(os.path.join(path, strategies.get(robot).__name__), "w+") as file:
+            file.write(inspect.getsource(strategies.get(robot)))
+
+    if strategies.get(opponent):
+        path = os.path.join(directory, "opponent")
+        os.mkdir(path)
+        with open(os.path.join(path, strategies.get(opponent).__name__), "w+") as file:
+            file.write(inspect.getsource(strategies.get(opponent)))

@@ -11,7 +11,7 @@ from environment import AirHockey
 from rl.Agent import Agent
 from rl.helpers import huber_loss
 from rl.MemoryBuffer import MemoryBuffer
-from rl.Networks import Networks
+from rl import networks
 from utils import Observation, State, get_model_path
 
 # Initiate Logger
@@ -24,11 +24,7 @@ class A2C(Agent):
     """ Reference: https://github.com/flyyufelix/VizDoom-Keras-RL/blob/master/a2c.py """
 
     def __init__(
-        self,
-        env: AirHockey,
-        capacity: int,
-        train: bool,
-        config: Dict[str, Any]
+        self, env: AirHockey, capacity: int, train: bool, config: Dict[str, Any]
     ):
         super().__init__(env)
 
@@ -68,11 +64,12 @@ class A2C(Agent):
     def build_model(self) -> None:
         """ Create our Actor/Critic Models """
 
-        self.actor_model = Networks().actor(
-            self.state_size, self.action_size, self.actor_lr
-        )
-        self.critic_model = Networks().critic(
-            self.state_size, self.value_size, self.critic_lr
+        self.actor_model, self.critic_model = networks.a2c(
+            state_size=self.state_size,
+            action_size=self.action_size,
+            value_size=self.value_size,
+            actor_learning_rate=self.actor_lr,
+            critic_learning_rate=self.critic_lr,
         )
 
         if self.actor_load_path and self.critic_load_path:

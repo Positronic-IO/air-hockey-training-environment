@@ -11,7 +11,7 @@ from environment import AirHockey
 from rl.Agent import Agent
 from rl.helpers import huber_loss
 from rl.MemoryBuffer import MemoryBuffer
-from rl.Networks import Networks
+from rl import networks
 from utils import Observation, State, get_model_path
 
 # Initiate Logger
@@ -88,7 +88,7 @@ class c51(Agent):
     def build_model(self) -> None:
         """ Create our DNN model for Q-value approximation """
 
-        model = Networks().c51(self.state_size, self.action_size, self.learning_rate)
+        model = networks.c51(self.state_size, self.action_size, self.learning_rate)
 
         self.model = model
 
