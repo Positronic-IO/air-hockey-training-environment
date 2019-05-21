@@ -11,8 +11,8 @@
         "explore": 50000,
         "frame_per_action": 4,
         "update_target_freq": 30000,
-        "timestep_per_train": 10000
+        "timestep_per_train": 10000,
+        "iterations_on_save": 10000
     },
-    "load": "model/opponent/dueling/v2.h5",
-    "save": "model/opponent/dueling/v3.h5"
+    "load": "model/1/robot/dueling.h5"
 }

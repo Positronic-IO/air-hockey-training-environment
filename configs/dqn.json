@@ -1,8 +1,0 @@
-{
-    "params": {
-        "gamma": 0.1,
-        "epsilon": 0.9
-    },
-    "load": "",
-    "save": "models/test.h5"
-}

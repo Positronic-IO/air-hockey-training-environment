@@ -14,8 +14,8 @@
         "timestep_per_train": 10000,
         "num_atoms": 51,
         "v_max": 10,
-        "v_min": -10
+        "v_min": -10,
+        "iterations_on_save": 10000
     },
-    "load": "model/robot/c51/v2.h5",
-    "save": "model/robot/c51/v3.h5"
+    "load": "model/1/opponent/c51.h5"
 }

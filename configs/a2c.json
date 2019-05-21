@@ -5,16 +5,14 @@
         "critic_learning_rate": 0.0001,
         "gamma": 0.99,
         "batch_size": 100,
-        "observe": 2000,
         "frame_per_action": 4,
-        "timestep_per_train": 10000
+        "timestep_per_train": 10000,
+        "iterations_on_save": 10000
     },
     "actor": {
-        "load": "",
-        "save": "models/test/actor.h5"
+        "load": ""
     },
     "critic": {
-        "load": "",
-        "save": "models/test/critic.h5"
+        "load": ""
     }
 }

@@ -7,8 +7,8 @@
         "epsilon_decay": 0.99,
         "learning_rate": 0.001,
         "batch_size": 100,
-        "sync_target_interval": 10000
+        "sync_target_interval": 10000,
+        "iterations_on_save": 10000
     },
-    "load": "",
-    "save": ""
+    "load": ""
 }
