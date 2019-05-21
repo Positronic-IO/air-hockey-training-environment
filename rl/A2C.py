@@ -47,10 +47,13 @@ class A2C(Agent):
         self.critic_lr = config["params"]["critic_learning_rate"]
 
         # Model load and save paths
-        self.actor_load_path = config["actor"]["load"]
-        self.actor_save_path = config["actor"]["save"]
-        self.critic_load_path = config["critic"]["load"]
-        self.critic_save_path = config["critic"]["save"]
+        self.actor_load_path = (
+            None if not config["actor"].get("load") else config["actor"]["load"]
+        )
+        self.critic_load_path = (
+            None if not config["critic"].get("load") else config["critic"]["load"]
+        )
+        self.save_path = None
 
         # create replay memory using deque
         self.max_memory = config["params"]["max_memory"]
@@ -112,7 +115,7 @@ class A2C(Agent):
         self.memory.append(data)
 
         # Update model in intervals
-        if self.t > self.observe and self.t % self.timestep_per_train == 0:
+        if self.t > 0 and self.t % self.timestep_per_train == 0:
             observations = self.memory.retreive()
             states = [np.hstack(observation.state) for observation in observations]
             actions = [observation.action for observation in observations]
@@ -153,6 +156,10 @@ class A2C(Agent):
 
             self.memory.purge()
 
+        # Save model
+        if self.t % self.iterations_on_save == 0:
+            self.save_model()
+
         self.t += 1
 
         return None
@@ -173,14 +180,14 @@ class A2C(Agent):
         )
 
     def save_model(self) -> None:
-        """ Save models """
+        """ Save a models """
 
-        logger.info(f"Saving Actor Model to: {self.actor_save_path}")
-        # Create path with epoch number
-        path = get_model_path(self.actor_save_path)
-        self.actor_model.save(path, overwrite=True)
+        # Save actor model
+        actor_path = os.path.join(self.save_path, "actor.h5")
+        logger.info(f"Saving actor model to: {actor_path}")
+        self.actor_model.save(actor_path, overwrite=True)
 
-        logger.info(f"Saving Critic Model to: {self.critic_save_path}")
-        # Create path with epoch number
-        path = get_model_path(self.critic_save_path)
-        self.critic_model.save(path, overwrite=True)
+        # Save critic model
+        critic_path = os.path.join(self.save_path, "critic.h5")
+        logger.info(f"Saving critic model to: {critic_path}")
+        self.actor_model.save(critic_path, overwrite=True)

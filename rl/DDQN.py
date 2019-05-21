@@ -46,6 +46,7 @@ class DDQN(Agent):
         self.learning_rate = config["params"]["learning_rate"]
         self.batch_size = config["params"]["batch_size"]
         self.sync_target_interval = config["params"]["sync_target_interval"]
+        self.iterations_on_save = config["params"]["iterations_on_save"]
 
         # If we are not training, set our epsilon to final_epsilon.
         # We want to choose our prediction more than a random policy.
@@ -53,17 +54,14 @@ class DDQN(Agent):
         self.epsilon = self.epsilon if self.train else self.epsilon_min
 
         # Model load and save paths
-        self.load_path = config["load"]
-        self.save_path = config["save"]
+        self.load_path = None if not config.get("load") else config.get("load")
+        self.save_path = None
 
         # Model construction
         self.build_model()
 
         # Counters
         self.t = 0
-
-        self.version = "0.3.0"
-        logger.info(f"Strategy defined for {self._agent_name}: {self.__repr__()}")
 
     def __repr__(self) -> str:
         return f"{self.__str__()} {self.version}"
@@ -77,11 +75,13 @@ class DDQN(Agent):
         model = networks.ddqn(self.state_size, self.learning_rate)
 
         self.model = model
+        self.target_model = model
 
         if self.load_path:
             self.load_model()
 
-        self.target_model = self.model
+        # Set up target model
+        self.target_model.set_weights(self.model.get_weights())
 
         print(self.model.summary())
         return None
@@ -89,7 +89,7 @@ class DDQN(Agent):
     def update_target_model(self) -> None:
         """ Copy weights from model to target_model """
 
-        logger.debug("Sync target model for DDQN")
+        logger.info("Sync target model for DDQN")
         self.target_model.set_weights(self.model.get_weights())
 
     def _epsilon(self) -> None:
@@ -112,7 +112,8 @@ class DDQN(Agent):
             return idx
 
         # Compute rewards for any posible action
-        rewards = self.model.predict(np.array([state]), batch_size=1)[0]
+        flattened_state = np.hstack(state)
+        rewards = self.model.predict(np.array([flattened_state]), batch_size=1)[0]
         assert len(rewards) == self.action_size
 
         idx = np.argmax(rewards)
@@ -155,6 +156,10 @@ class DDQN(Agent):
                     np.array([observation.state]), target, epochs=1, verbose=0
                 )
 
+        # Save model
+        if self.t % self.iterations_on_save == 0:
+            self.save_model()
+
         self.t += 1
 
         return None
@@ -171,9 +176,7 @@ class DDQN(Agent):
     def save_model(self) -> None:
         """ Save a model """
 
-        logger.info(f"Saving model to: {self.save_path}")
-
         # Create path with epoch number
-        head, ext = os.path.splitext(self.save_path)
-        path = get_model_path(self.save_path)
+        path = os.path.join(self.save_path, "ddqn.h5")
+        logger.info(f"Saving model to: {self.save_path}")
         self.model.save(path, overwrite=True)

@@ -48,6 +48,7 @@ class c51(Agent):
         self.frame_per_action = config["params"]["frame_per_action"]
         self.update_target_freq = config["params"]["update_target_freq"]
         self.timestep_per_train = config["params"]["timestep_per_train"]
+        self.iterations_on_save = config["params"]["iterations_on_save"]
 
         # Initialize Atoms
         self.num_atoms = config["params"]["num_atoms"]  # Defaults to 51 for C51
@@ -69,14 +70,11 @@ class c51(Agent):
         self.t = 0
 
         # Model load and save paths
-        self.load_path = config["load"]
-        self.save_path = config["save"]
+        self.load_path = None if not config.get("load") else config.get("load")
+        self.save_path = None
 
         # Model construction
         self.build_model()
-
-        self.version = "0.2.0"
-        logger.info(f"Strategy defined for {self._agent_name}: {self.__repr__()}")
 
     def __repr__(self) -> str:
         return f"{self.__str__()} {self.version}"
@@ -90,11 +88,13 @@ class c51(Agent):
         model = networks.c51(self.state_size, self.action_size, self.learning_rate)
 
         self.model = model
+        self.target_model = model
 
         if self.load_path:
             self.load_model()
 
-        self.target_model = self.model
+        # Set up target model
+        self.target_model.set_weights(self.model.get_weights())
 
         print(self.model.summary())
         return model
@@ -105,7 +105,7 @@ class c51(Agent):
         # Update the target model to be same with model
         if self.t > 0 and self.t % self.update_target_freq == 0:
 
-            logger.debug("Sync target model for c51")
+            logger.info("Sync target model for c51")
             self.target_model.set_weights(self.model.get_weights())
 
         return None
@@ -152,7 +152,7 @@ class c51(Agent):
         self.update_target_model()
 
         # Update model in intervals
-        if self.t > self.observe and self.t % self.timestep_per_train == 0:
+        if self.t > 0 and self.t % self.timestep_per_train == 0:
 
             logger.info(f"Updating c51 model")
 
@@ -221,6 +221,10 @@ class c51(Agent):
                 state_inputs, m_prob, batch_size=self.batch_size, epochs=1, verbose=0
             )
 
+        # Save model
+        if self.t % self.iterations_on_save == 0:
+            self.save_model()
+
         self.t += 1
 
         return None
@@ -237,9 +241,7 @@ class c51(Agent):
     def save_model(self) -> None:
         """ Save a model """
 
-        logger.info(f"Saving model to: {self.save_path}")
-
         # Create path with epoch number
-        head, ext = os.path.splitext(self.save_path)
-        path = get_model_path(self.save_path)
+        path = os.path.join(self.save_path, "c51.h5")
+        logger.info(f"Saving model to: {self.save_path}")
         self.model.save(path, overwrite=True)

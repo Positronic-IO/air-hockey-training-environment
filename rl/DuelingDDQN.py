@@ -47,6 +47,7 @@ class DuelingDDQN(Agent):
         self.frame_per_action = config["params"]["frame_per_action"]
         self.update_target_freq = config["params"]["update_target_freq"]
         self.timestep_per_train = config["params"]["timestep_per_train"]
+        self.iterations_on_save = config["params"]["iterations_on_save"]
 
         # If we are not training, set our epsilon to final_epsilon.
         # We want to choose our prediction more than a random policy.
@@ -58,17 +59,14 @@ class DuelingDDQN(Agent):
         self.memory = MemoryBuffer(self.max_memory)
 
         # Model load and save paths
-        self.load_path = config["load"]
-        self.save_path = config["save"]
+        self.load_path = None if not config.get("load") else config.get("load")
+        self.save_path = None
 
         # Model construction
         self.build_model()
 
         # Keep up with the iterations
         self.t = 0
-
-        self.version = "0.3.0"
-        logger.info(f"Strategy defined for {self._agent_name}: {self.__repr__()}")
 
     def __repr__(self) -> str:
         return f"{self.__str__()} {self.version}"
@@ -84,11 +82,14 @@ class DuelingDDQN(Agent):
         )
 
         self.model = model
+        self.target_model = model
 
         if self.load_path:
             self.load_model()
 
-        self.target_model = self.model
+        # Set up target model
+        self.target_model.set_weights(self.model.get_weights())
+
         print(self.model.summary())
         return None
 
@@ -98,7 +99,7 @@ class DuelingDDQN(Agent):
         # Update the target model to be same with model
         if self.t % self.update_target_freq == 0:
 
-            logger.debug("Sync target model for Dueling DDQN")
+            logger.info("Sync target model for Dueling DDQN")
             self.target_model.set_weights(self.model.get_weights())
 
         return None
@@ -164,7 +165,9 @@ class DuelingDDQN(Agent):
             )
 
             update_input = np.array([np.hstack(sample[0]) for sample in replay_samples])
-            update_target = np.array([np.hstack(sample[4]) for sample in replay_samples])
+            update_target = np.array(
+                [np.hstack(sample[4]) for sample in replay_samples]
+            )
 
             assert update_input.shape == ((num_samples,) + self.state_size)
             assert update_target.shape == ((num_samples,) + self.state_size)
@@ -190,6 +193,10 @@ class DuelingDDQN(Agent):
                 update_input, target, batch_size=self.batch_size, epochs=1, verbose=0
             )
 
+        # Save model
+        if self.t % self.iterations_on_save == 0:
+            self.save_model()
+
         self.t += 1
 
         return None
@@ -206,9 +213,7 @@ class DuelingDDQN(Agent):
     def save_model(self) -> None:
         """ Save a model """
 
-        logger.info(f"Saving model to: {self.save_path}")
-
         # Create path with epoch number
-        head, ext = os.path.splitext(self.save_path)
-        path = get_model_path(self.save_path)
+        path = os.path.join(self.save_path, "dueling.h5")
+        logger.info(f"Saving model to: {self.save_path}")
         self.model.save(path, overwrite=True)
