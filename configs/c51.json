@@ -17,5 +17,5 @@
         "v_min": -10,
         "iterations_on_save": 10000
     },
-    "load": "model/1/opponent/c51.h5"
+    "load": ""
 }

@@ -103,7 +103,7 @@ def c51(state_size: Tuple[int, int], action_size: int, learning_rate: float) -> 
 
 
 def a2c(
-    state_size: Tuple[int, int, int],
+    state_size: Tuple[int, int],
     action_size: int,
     value_size: int,
     actor_learning_rate: float,

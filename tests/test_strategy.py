@@ -4,7 +4,6 @@ from environment import AirHockey
 from rl.Agent import Agent
 from rl.c51 import c51
 from rl.DDQN import DDQN
-from rl.DQN import DQN
 from rl.DuelingDDQN import DuelingDDQN
 from rl.QLearner import QLearner
 from rl.Strategy import Strategy
@@ -28,12 +27,6 @@ class TestStrategy:
 
         strategy = Strategy().make(self.env, "ddqn", self.capacity, self.train)
         assert isinstance(strategy, DDQN)
-
-    def test_dqn_agent(self):
-        """ Test to see if created agent is dqn """
-
-        strategy = Strategy().make(self.env, "dqn", self.capacity, self.train)
-        assert isinstance(strategy, DQN)
 
     def test_dueling_agent(self):
         """ Test to see if created agent is dueling """

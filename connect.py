@@ -40,11 +40,11 @@ class BaseConnection(ABC):
         return data
 
     @abstractmethod
-    def get(self):
+    def get(self, key: Union[str, List[str]]):
         pass
 
     @abstractmethod
-    def post(self):
+    def post(self, payload: Any):
         pass
 
 
@@ -99,7 +99,7 @@ class RedisConnection(BaseConnection):
 
         return ""
 
-    def post(self, payload: Dict[str, Union[str, int, List[Any]]]):
+    def post(self, payload: Any):
         """ Save data to Redis """
 
         for key, value in payload.items():
@@ -148,9 +148,9 @@ class ServerConnection(BaseConnection):
 
         return ""
 
-    def post(self, data: Dict[str, Union[str, int, List[Any]]]):
+    def post(self, payload: Any):
         """ Save data to Server """
-        r = requests.post(self.endpoint, data=data)
+        r = requests.post(self.endpoint, data=payload)
         if r.status_code >= 400:
             print(f"Error")
             return False

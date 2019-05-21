@@ -4,6 +4,5 @@ from .c51 import c51
 from .DDQN import DDQN
 from .DuelingDDQN import DuelingDDQN
 from .MemoryBuffer import MemoryBuffer
-from .networks import *
 from .QLearner import QLearner
 from .Strategy import Strategy

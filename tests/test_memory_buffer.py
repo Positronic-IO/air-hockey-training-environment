@@ -46,9 +46,8 @@ class TestMemoryBuffer:
 
         buffer = MemoryBuffer(4)
         data = [(3, 4), (5, 6), (4, 6), (2, 1)]
-        
+
         for item in data:
             buffer.append(item)
-        
-        assert buffer.retreive(average=True) == (3, 4)
 
+        assert buffer.retreive(average=True) == ((3, 4),)

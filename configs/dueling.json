@@ -14,5 +14,5 @@
         "timestep_per_train": 10000,
         "iterations_on_save": 10000
     },
-    "load": "model/1/robot/dueling.h5"
+    "load": ""
 }

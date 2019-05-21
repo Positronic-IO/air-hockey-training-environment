@@ -42,6 +42,7 @@ def get_config_strategy(strategy: str) -> Dict[str, Union[str, int]]:
         filename = strategies[strategy]
     except KeyError:
         logger.error("Strategy not defined")
+        raise KeyError
     else:
         with open(filename, "r") as f:
             config = json.load(f)

@@ -12,4 +12,3 @@ class Goal(object):
 
         self.x = int(self.left_corner_x + self.w / 2)
         self.y = int(self.left_corner_y + self.h / 2)
-

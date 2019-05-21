@@ -28,7 +28,7 @@ class AirHockeyGui:
     green = (0, 255, 0)
     red = (255, 0, 0)
     blue = (0, 0, 255)
-    
+
     rink_size = (840, 440)
 
     # Offest for drawing the center line of table
@@ -71,10 +71,7 @@ class AirHockeyGui:
 
         # Base of rink
         pygame.draw.rect(
-            screen,
-            self.white,
-            (25, 25, self.rink_size[0], self.rink_size[1]),
-            0,
+            screen, self.white, (25, 25, self.rink_size[0], self.rink_size[1]), 0
         )
 
         # middle section
@@ -97,10 +94,7 @@ class AirHockeyGui:
 
         # rink frame
         pygame.draw.rect(
-            screen,
-            self.black,
-            (25, 25, self.rink_size[0], self.rink_size[1]),
-            5,
+            screen, self.black, (25, 25, self.rink_size[0], self.rink_size[1]), 5
         )
 
     def draw_screen(self) -> None:

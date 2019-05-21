@@ -44,8 +44,8 @@ class QLearner:
     def location(self) -> Union[None, Tuple[int, int]]:
         """ Return agent's location """
 
-        if self.agent_name == "main":
-            return self.env.agent.location()
+        if self.agent_name == "robot":
+            return self.env.robot.location()
         elif self.agent_name == "opponent":
             return self.env.opponent.location()
         else:
