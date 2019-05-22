@@ -37,23 +37,15 @@ class Predict:
 
         # Set up our robot
         self.robot = Strategy().make(
-            env=self.env,
-            strategy=self.args["robot"],
-            capacity=self.args["capacity"],
-            train=False,
+            env=self.env, strategy=self.args["robot"], capacity=self.args["capacity"], train=False
         )
         self.robot.agent_name = "robot"
 
         # Set up our opponent. The opponent can also be a human player.
         self.opponent = Strategy().make(
-            env=self.env,
-            strategy=self.args["opponent"],
-            capacity=self.args["capacity"],
-            train=False,
+            env=self.env, strategy=self.args["opponent"], capacity=self.args["capacity"], train=False
         )
-        self.opponent.agent_name = (
-            "human" if self.args["opponent"] == "human" else "opponent"
-        )
+        self.opponent.agent_name = "human" if self.args["opponent"] == "human" else "opponent"
 
         # Interesting and important constants
         self.iterations = 1
@@ -94,11 +86,7 @@ class Predict:
 
         puck_velocity = data["puck"]["velocity"]
         robot_velocity = data["robot"]["velocity"]
-        opponent_velocity = (
-            (0, 0)
-            if self.opponent.agent_name == "human"
-            else data["opponent"]["velocity"]
-        )
+        opponent_velocity = (0, 0) if self.opponent.agent_name == "human" else data["opponent"]["velocity"]
 
         self.robot_location_buffer.append(tuple(robot_location))
         self.puck_location_buffer.append(tuple(puck_location))
@@ -207,16 +195,12 @@ class Predict:
 
         # Compute scores
         if self.env.opponent_score == 10:
-            logger.info(
-                f"Robot {self.env.robot_score}, Computer {self.env.opponent_score}"
-            )
+            logger.info(f"Robot {self.env.robot_score}, Computer {self.env.opponent_score}")
             logger.info("Computer wins!")
             self.env.reset(total=True)
 
         if self.env.robot_score == 10:
-            logger.info(
-                f"Robot {self.env.robot_score}, Computer {self.env.opponent_score} "
-            )
+            logger.info(f"Robot {self.env.robot_score}, Computer {self.env.opponent_score} ")
             logger.info("Robot wins!")
             self.env.reset(total=True)
 
@@ -242,9 +226,7 @@ if __name__ == "__main__":
 
     parser.add_argument("-r", "--robot", help="Robot strategy")
     parser.add_argument("-o", "--opponent", help="Opponent strategy")
-    parser.add_argument(
-        "-c", "--capacity", default=5, help="Number of past expierences to store"
-    )
+    parser.add_argument("-c", "--capacity", default=5, help="Number of past expierences to store")
     args = vars(parser.parse_args())
 
     # Valid
@@ -260,9 +242,7 @@ if __name__ == "__main__":
     try:
         predict = Predict(args)
     except ConnectionError:
-        logger.error(
-            "Cannot connect to Redis. Please make sure Redis is up and active."
-        )
+        logger.error("Cannot connect to Redis. Please make sure Redis is up and active.")
         sys.exit()
 
     predict.run()
