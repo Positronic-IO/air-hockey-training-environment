@@ -1,13 +1,7 @@
 import pytest
 
 from environment import AirHockey
-from rl.Agent import Agent
-from rl.c51 import c51
-from rl.DDQN import DDQN
-from rl.DuelingDDQN import DuelingDDQN
-from rl.QLearner import QLearner
-from rl.Strategy import Strategy
-from rl.A2C import A2C
+from lib import A2C, DDQN, Agent, DuelingDDQN, QLearner, Strategy, c51
 
 
 class TestStrategy:

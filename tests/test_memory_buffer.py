@@ -1,6 +1,6 @@
 import random
 
-from rl.MemoryBuffer import MemoryBuffer
+from lib import MemoryBuffer
 
 
 class TestMemoryBuffer:

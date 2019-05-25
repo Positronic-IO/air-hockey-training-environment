@@ -1,6 +1,6 @@
 import pytest
 
-from utils import get_config_strategy
+from lib.utils import get_config_strategy
 
 
 class TestStrategyConfig:
