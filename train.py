@@ -39,28 +39,18 @@ class Train:
 
         # Set up our robot
         self.robot = Strategy().make(
-            env=self.env,
-            strategy=self.args["robot"],
-            capacity=self.args["capacity"],
-            train=True,
+            env=self.env, strategy=self.args["robot"], capacity=self.args["capacity"], train=True
         )
         self.robot.agent_name = "robot"
 
-        # Set up our opponent. The opponent can also be a human player.
+        # # Set up our opponent. The opponent can also be a human player.
         self.opponent = Strategy().make(
-            env=self.env,
-            strategy=self.args["opponent"],
-            capacity=self.args["capacity"],
-            train=True,
+            env=self.env, strategy=self.args["opponent"], capacity=self.args["capacity"], train=True
         )
-        self.opponent.agent_name = (
-            "human" if self.args["opponent"] == "human" else "opponent"
-        )
+        self.opponent.agent_name = "human" if self.args["opponent"] == "human" else "opponent"
 
         # Save model architectures with an unique run id
-        robot_path, opponent_path = record_model_info(
-            self.args["robot"], self.args["opponent"]
-        )
+        robot_path, opponent_path = record_model_info(self.args["robot"], self.args["opponent"])
 
         # Paths to save models
         self.robot.save_path = robot_path
@@ -287,16 +277,12 @@ class Train:
 
         # Compute scores
         if self.env.opponent_score == 10:
-            logger.info(
-                f"Robot {self.env.robot_score}, Computer {self.env.opponent_score}"
-            )
+            logger.info(f"Robot {self.env.robot_score}, Computer {self.env.opponent_score}")
             logger.info("Computer wins!")
             self.env.reset(total=True)
 
         if self.env.robot_score == 10:
-            logger.info(
-                f"Robot {self.env.robot_score}, Computer {self.env.opponent_score} "
-            )
+            logger.info(f"Robot {self.env.robot_score}, Computer {self.env.opponent_score} ")
             logger.info("Robot wins!")
             self.env.reset(total=True)
 
@@ -323,18 +309,9 @@ if __name__ == "__main__":
 
     parser.add_argument("-r", "--robot", help="Robot strategy")
     parser.add_argument("-o", "--opponent", help="Opponent strategy")
-    parser.add_argument(
-        "-c", "--capacity", default=5, help="Number of past expierences to store"
-    )
-    parser.add_argument(
-        "-s", "--stats", default="test", help="MongoDB to store training data"
-    )
-    parser.add_argument(
-        "-t",
-        "--time",
-        default=3,
-        help="Time per train. Units in hours. (Default to 3 hours)",
-    )
+    parser.add_argument("-c", "--capacity", default=5, help="Number of past expierences to store")
+    parser.add_argument("-s", "--stats", default="test", help="MongoDB to store training data")
+    parser.add_argument("-t", "--time", default=3, help="Time per train. Units in hours. (Default to 3 hours)")
     args = vars(parser.parse_args())
 
     # Validation
@@ -350,9 +327,7 @@ if __name__ == "__main__":
     try:
         train = Train(args)
     except ConnectionError:
-        logger.error(
-            "Cannot connect to Redis. Please make sure Redis is up and active."
-        )
+        logger.error("Cannot connect to Redis. Please make sure Redis is up and active.")
         sys.exit()
 
     train.run()
