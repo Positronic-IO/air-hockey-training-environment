@@ -186,11 +186,7 @@ class Train:
 
             # Observation of the game at the moment
             observation = Observation(
-                state=state,
-                action=action,
-                reward=self.env.reward,
-                done=self.env.done,
-                new_state=new_state,
+                state=state, action=action, reward=self.env.robot_reward, done=self.env.robot_done, new_state=new_state
             )
 
             # Update model
@@ -253,8 +249,8 @@ class Train:
             observation = Observation(
                 state=state,
                 action=action,
-                reward=self.env.reward,  # Opposite reward of our agent, only works for current reward settings
-                done=self.env.done,
+                reward=self.env.opponent_reward,  # Opposite reward of our agent, only works for current reward settings
+                done=self.env.opponent_done,
                 new_state=new_state,
             )
 
