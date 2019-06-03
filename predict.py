@@ -3,6 +3,7 @@ import argparse
 import logging
 import os
 import sys
+import time
 from typing import Dict, Union
 
 import numpy as np
@@ -207,17 +208,13 @@ class Predict:
     def run(self) -> None:
         """ Main guts of training """
 
-        clock = pygame.time.Clock()
-
         # Game loop
         while True:
 
             # Play a frame
             self.play()
 
-            clock.tick(60)
-
-        pygame.quit()
+            time.sleep(1 / self.args["fps"])
 
 
 if __name__ == "__main__":
@@ -227,6 +224,7 @@ if __name__ == "__main__":
     parser.add_argument("-r", "--robot", help="Robot strategy")
     parser.add_argument("-o", "--opponent", help="Opponent strategy")
     parser.add_argument("-c", "--capacity", default=5, help="Number of past expierences to store")
+    parser.add_argument( "--fps", default=60, help="Frame per second")
     args = vars(parser.parse_args())
 
     # Valid
