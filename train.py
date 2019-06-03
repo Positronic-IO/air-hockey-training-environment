@@ -82,7 +82,7 @@ class Train:
 
         # Initial time
         self.time = time.time()
-        self.wait = (60 ** 2) * int(self.args["time"])  # Defaults to 3 hours
+        self.wait = (60 ** 2) * float(self.args["time"])  # Defaults to 3 hours
         logger.info(f"Training time: {self.args['time']} hours")
 
     def _update_buffers(self) -> None:
