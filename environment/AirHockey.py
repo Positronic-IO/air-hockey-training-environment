@@ -10,8 +10,8 @@ from redis import Redis
 
 from connect import RedisConnection
 from environment.components import Goal, Mallet, Puck, Table
-from lib import RewardTracker
-from lib.utils import Action, Observation, State
+from rl import RewardTracker
+from rl.utils import Action, Observation, State
 
 # Initiate Logger
 logging.basicConfig(level=logging.INFO)

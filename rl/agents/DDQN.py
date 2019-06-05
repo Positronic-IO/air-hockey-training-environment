@@ -8,11 +8,11 @@ from keras.models import load_model
 
 from environment import AirHockey
 
-from lib import networks
-from lib.Agent import Agent
-from lib.helpers import huber_loss
-from lib.MemoryBuffer import MemoryBuffer
-from lib.utils import Observation, State
+from rl import networks
+from rl.Agent import Agent
+from rl.helpers import huber_loss
+from rl.MemoryBuffer import MemoryBuffer
+from rl.utils import Observation, State
 
 # Initiate Logger
 logger = logging.getLogger(__name__)

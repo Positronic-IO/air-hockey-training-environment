@@ -1,0 +1,54 @@
+def a2c(
+    state_size: Tuple[int, int],
+    action_size: int,
+    value_size: int,
+    actor_learning_rate: float,
+    critic_learning_rate: float,
+) -> Model:
+    """ A2C Actor and Critic Neural Networks """
+
+    # Actor Network
+    actor = Sequential()
+
+    actor.add(Dense(state_size[1], kernel_initializer="random_uniform", input_shape=state_size))
+    actor.add(Activation("relu"))
+    actor.add(BatchNormalization())
+
+    actor.add(Dense(state_size[1] // 2, kernel_initializer="random_uniform"))
+    actor.add(Activation("relu"))
+    actor.add(BatchNormalization())
+
+    actor.add(Dense(state_size[1], kernel_initializer="random_uniform"))
+    actor.add(Activation("relu"))
+    actor.add(BatchNormalization())
+
+    actor.add(Flatten())
+
+    actor.add(Dense(action_size, kernel_initializer="random_uniform"))
+    actor.add(Activation("softmax"))
+
+    actor.compile(loss=huber_loss, optimizer=Adam(lr=actor_learning_rate))
+
+    # Critic Network
+    critic = Sequential()
+
+    critic.add(Dense(state_size[1], kernel_initializer="random_uniform", input_shape=state_size))
+    critic.add(Activation("relu"))
+    critic.add(BatchNormalization())
+
+    critic.add(Dense(state_size[1] // 2, kernel_initializer="random_uniform"))
+    critic.add(Activation("relu"))
+    critic.add(BatchNormalization())
+
+    critic.add(Dense(state_size[1], kernel_initializer="random_uniform"))
+    critic.add(Activation("relu"))
+    critic.add(BatchNormalization())
+
+    critic.add(Flatten())
+
+    critic.add(Dense(value_size, kernel_initializer="random_uniform"))
+    critic.add(Activation("linear"))
+
+    critic.compile(loss=huber_loss, optimizer=Adam(lr=critic_learning_rate))
+
+    return actor, critic

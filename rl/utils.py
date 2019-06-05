@@ -58,7 +58,7 @@ def unique_directory(directory: str) -> str:
 def record_model_info(robot: str, opponent: str) -> None:
     """ Record model information """
 
-    from lib import networks
+    from rl import networks
 
     strategies = {"ddqn": networks.ddqn, "dueling": networks.dueling_ddqn, "c51": networks.c51, "a2c": networks.a2c}
 

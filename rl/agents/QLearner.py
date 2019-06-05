@@ -6,8 +6,8 @@ import numpy as np
 
 from environment import AirHockey
 
-from lib.Agent import Agent
-from lib.utils import Action, Observation, State
+from rl.Agent import Agent
+from rl.utils import Action, Observation, State
 
 # Initiate Logger
 logger = logging.getLogger(__name__)

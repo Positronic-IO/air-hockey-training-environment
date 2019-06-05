@@ -11,8 +11,8 @@ from redis import ConnectionError
 
 from connect import RedisConnection
 from environment import AirHockey
-from lib import MemoryBuffer, Strategy
-from lib.utils import Observation, State
+from rl import MemoryBuffer, Strategy
+from rl.utils import Observation, State
 
 # Initiate logger
 logging.basicConfig(level=logging.INFO)
