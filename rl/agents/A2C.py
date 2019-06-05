@@ -136,7 +136,6 @@ class A2C(Agent):
             episode_length = len(self.memory)
 
             discounted_rewards = self.discount_rewards(rewards)
-            print("Discount rewards", discounted_rewards)
 
             update_inputs = np.zeros(((episode_length,) + self.state_size))
 
@@ -146,15 +145,11 @@ class A2C(Agent):
 
             # Prediction of state values for each state appears in the episode
             values = self.critic_model.predict(update_inputs)
-            print("values", values)
 
             # Similar to one-hot target but the "1" is replaced by Advantage Function i.e. discounted_rewards R_t - Value
             advantages = np.zeros((episode_length, self.action_size))
 
             for i in range(episode_length):
-                print("Discount rewards i", discounted_rewards[i])
-                print("values i", values[i])
-
                 advantages[i][actions[i]] = discounted_rewards[i] - values[i]
 
             self.actor_model.fit(update_inputs, advantages, epochs=1, verbose=0)
