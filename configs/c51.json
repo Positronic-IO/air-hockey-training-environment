@@ -1,12 +1,12 @@
 {
     "params": {
-        "max_memory": 5000,
+        "max_memory": 50000,
         "learning_rate": 0.0001,
-        "gamma": 0.99,
+        "gamma": 0.95,
         "epsilon": 1,
         "initial_epsilon": 1,
         "final_epsilon": 0.0001,
-        "batch_size": 100,
+        "batch_size": 1000,
         "observe": 2000,
         "explore": 50000,
         "frame_per_action": 4,
