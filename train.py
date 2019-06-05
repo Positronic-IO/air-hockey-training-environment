@@ -11,6 +11,7 @@ from typing import Dict, Union
 
 import numpy as np
 from pymongo import MongoClient
+from pymongo.errors import ServerSelectionTimeoutError
 from redis import ConnectionError
 
 from connect import RedisConnection
@@ -32,7 +33,14 @@ class Train:
 
         # Set up Redis
         self.redis = RedisConnection()
-        self.mongo = MongoClient()["stats"]
+        self.mongo = MongoClient()
+        self.mongo_error = False
+        
+        try:
+            # Test if connection exists
+            self.mongo.server_info()
+        except ServerSelectionTimeoutError:
+            self.mongo_error = True
 
         # Load Environment
         self.env = AirHockey()
@@ -138,7 +146,9 @@ class Train:
             self.robot_cumulative_score = 0
             self.opponent_cumulative_score = 0
 
-        self.mongo[self.args["stats"]].insert(results)
+        # Test if connection exists
+        if not self.mongo_error:
+            self.mongo["stats"][self.args["stats"]].insert(results)
 
         return None
 
