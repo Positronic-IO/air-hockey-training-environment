@@ -9,11 +9,11 @@ from keras.models import load_model
 
 from environment import AirHockey
 
-from lib import networks
-from lib.Agent import Agent
-from lib.helpers import huber_loss
-from lib.MemoryBuffer import MemoryBuffer
-from lib.utils import Observation, State
+from rl import networks
+from rl.Agent import Agent
+from rl.helpers import huber_loss
+from rl.MemoryBuffer import MemoryBuffer
+from rl.utils import Observation, State
 
 # Initiate Logger
 logger = logging.getLogger(__name__)
@@ -59,6 +59,9 @@ class A2C(Agent):
 
         self.train = train
 
+        # Parameter Noise
+        self.param_noise = True
+
         # Keep up with the iterations
         self.t = 0
 
@@ -82,12 +85,31 @@ class A2C(Agent):
         print(self.critic_model.summary())
         return None
 
+    def transfer_weights(self) -> None:
+        """ Transfer model weights to target model with a factor of Tau """
+
+        if self.param_noise:
+            tau = np.random.uniform(-0.15, 0.15)
+            W_actor, target_W_actor = self.actor_model.get_weights(), self.actor_model.get_weights()
+            W_critic, target_W_critic = self.critic_model.get_weights(), self.critic_model.get_weights()
+
+            for i in range(len(W_actor)):
+                target_W_actor[i] = tau * W_actor[i] + (1 - tau) * target_W_actor[i]
+
+            for i in range(len(W_actor)):
+                target_W_critic[i] = tau * W_critic[i] + (1 - tau) * target_W_critic[i]
+
+            self.actor_model.set_weights(target_W_actor)
+            self.critic_model.set_weights(target_W_critic)
+
     def get_action(self, state: State) -> int:
         """ Using the output of policy network, pick action stochastically (Boltzmann Policy) """
         flattened_state = np.hstack(state)
         policy = self.actor_model.predict(np.array([flattened_state]))[0]
-        # if not self.train:
-        #     return np.argmax(policy)  # Greedy policy
+        assert policy.shape == (self.action_size,)
+
+        if not self.train:
+            return np.argmax(policy)  # Greedy policy
         return np.random.choice(np.arange(self.action_size), 1, p=policy)[0]
 
     def discount_rewards(self, rewards: List[int]):
@@ -137,6 +159,8 @@ class A2C(Agent):
 
             self.actor_model.fit(update_inputs, advantages, epochs=1, verbose=0)
             self.critic_model.fit(update_inputs, discounted_rewards, epochs=1, verbose=0)
+
+            self.transfer_weights()
 
             self.memory.purge()
 
