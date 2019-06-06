@@ -1,5 +1,5 @@
 from environment import AirHockey
-from lib import Agent
+from rl import Agent
 
 
 class TestAgent:
