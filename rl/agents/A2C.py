@@ -79,9 +79,9 @@ class A2C(Agent):
         if self.actor_load_path and self.critic_load_path:
             self.load_model()
 
-        print("Actor Model")
+        logger.info("Actor Model")
         print(self.actor_model.summary())
-        print("Critic Model")
+        logger.info("Critic Model")
         print(self.critic_model.summary())
         return None
 
@@ -129,34 +129,34 @@ class A2C(Agent):
 
         # Update model in intervals
         if self.t > 0 and self.t % self.timestep_per_train == 0:
-            observations = self.memory.retreive()
-            states = [np.hstack(observation.state) for observation in observations]
-            actions = [observation.action for observation in observations]
-            rewards = [observation.reward for observation in observations]
-            episode_length = len(self.memory)
 
+            logger.info("Update models")
+
+            observations = self.memory.retreive()
+            states = np.array([np.hstack(observation.state) for observation in observations])
+            actions = np.array([observation.action for observation in observations])
+            rewards = np.array([observation.reward for observation in observations])
+            episode_length = len(self.memory)
             discounted_rewards = self.discount_rewards(rewards)
 
-            update_inputs = np.zeros(((episode_length,) + self.state_size))
-
-            # Episode length is like the minibatch size in DQN
-            for i in range(episode_length):
-                update_inputs[i, :] = states[i]
-
             # Prediction of state values for each state appears in the episode
-            values = self.critic_model.predict(update_inputs)
+            values = np.array(self.critic_model.predict(states))
 
-            # Similar to one-hot target but the "1" is replaced by Advantage Function i.e. discounted_rewards R_t - Value
+            # Similar to one-hot target but the "1" is replaced by Advantage Function
+            # (i.e. discounted_rewards R_t - value)
             advantages = np.zeros((episode_length, self.action_size))
 
             for i in range(episode_length):
                 advantages[i][actions[i]] = discounted_rewards[i] - values[i]
 
-            self.actor_model.fit(update_inputs, advantages, epochs=1, verbose=0)
-            self.critic_model.fit(update_inputs, discounted_rewards, epochs=1, verbose=0)
+            # Train models
+            self.actor_model.fit(states, advantages, epochs=1, verbose=0)
+            self.critic_model.fit(states, discounted_rewards, epochs=1, verbose=0)
 
+            # Update target model
             self.transfer_weights()
 
+            # Empty buffer (treat as a cache for the minibatch)
             self.memory.purge()
 
         # Save model
@@ -171,11 +171,9 @@ class A2C(Agent):
         """ Load a model"""
 
         logger.info(f"Loading model from: {self.actor_load_path}")
-
         self.actor_model = load_model(self.actor_load_path, custom_objects={"huber_loss": huber_loss})
 
         logger.info(f"Loading model from: {self.critic_load_path}")
-
         self.critic_model = load_model(self.critic_load_path, custom_objects={"huber_loss": huber_loss})
 
     def save_model(self) -> None:
