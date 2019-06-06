@@ -187,4 +187,4 @@ class A2C(Agent):
         # Save critic model
         critic_path = os.path.join(self.save_path, "critic.h5")
         logger.info(f"Saving critic model to: {critic_path}")
-        self.actor_model.save(critic_path, overwrite=True)
+        self.critic_model.save(critic_path, overwrite=True)
