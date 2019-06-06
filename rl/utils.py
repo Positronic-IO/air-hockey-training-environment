@@ -60,7 +60,12 @@ def record_model_info(robot: str, opponent: str) -> None:
 
     from rl import networks
 
-    strategies = {"ddqn": networks.ddqn, "dueling": networks.dueling_ddqn, "c51": networks.c51, "a2c": networks.a2c}
+    strategies = {
+        "ddqn": networks.ddqn,
+        "dueling": networks.dueling_ddqn,
+        "c51": networks.c51,
+        "a2c": networks.a2c,
+    }
 
     directory = unique_directory(os.path.join(os.getcwd(), "model"))
 
@@ -79,7 +84,6 @@ def record_model_info(robot: str, opponent: str) -> None:
         os.mkdir(opponent_path)
         with open(os.path.join(opponent_path, strategies.get(opponent).__name__), "w+") as file:
             file.write(inspect.getsource(strategies.get(opponent)))
-
     except KeyError:
         logger.error("Strategy not defined.")
 
