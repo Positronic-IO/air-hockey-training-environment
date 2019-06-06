@@ -52,23 +52,23 @@ class OrnsteinUhlenbeckProcess:
 
 
 class LayerNormalization(keras.layers.Layer):
-    
+
     """ Reference:
         + https://github.com/CyberZHG/keras-layer-normalization
         + https://arxiv.org/pdf/1607.06450.pdf
-    """"
-    
+    """
+
     def __init__(
         self,
         center=True,
         scale=True,
-        epsilon=None,
         gamma_initializer="ones",
         beta_initializer="zeros",
         gamma_regularizer=None,
         beta_regularizer=None,
         gamma_constraint=None,
         beta_constraint=None,
+        epsilon=None,
         **kwargs
     ):
         """Layer normalization layer
