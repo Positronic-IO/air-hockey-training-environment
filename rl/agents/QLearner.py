@@ -9,6 +9,9 @@ from environment import AirHockey
 from rl.Agent import Agent
 from rl.utils import Action, Observation, State
 
+# Set random seed
+np.random.seed(1)
+
 # Initiate Logger
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)

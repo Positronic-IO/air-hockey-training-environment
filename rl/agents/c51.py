@@ -5,15 +5,19 @@ import os
 from typing import Any, Dict, Tuple, Union
 
 import numpy as np
+import tensorflow as tf
 from keras.models import load_model
 
 from environment import AirHockey
-
 from rl import networks
 from rl.Agent import Agent
 from rl.helpers import huber_loss
 from rl.MemoryBuffer import MemoryBuffer
 from rl.utils import Observation, State
+
+# Set random seeds
+np.random.seed(1)
+tf.set_random_seed(2)
 
 # Initiate Logger
 logger = logging.getLogger(__name__)
@@ -50,7 +54,7 @@ class c51(Agent):
         self.iterations_on_save = config["params"]["iterations_on_save"]
 
         # Initialize Atoms
-        self.num_atoms = self.state_size[1]  #config["params"]["num_atoms"]  # Defaults to 51 for C51
+        self.num_atoms = config["params"]["num_atoms"]  # Defaults to 51 for C51
         self.v_max = config["params"]["v_max"]  # Max possible score for agents is 10
         self.v_min = config["params"]["v_min"]
         self.delta_z = (self.v_max - self.v_min) / float(self.num_atoms - 1)
@@ -151,7 +155,7 @@ class c51(Agent):
         z_concat = np.vstack(z)
         q = np.sum(np.multiply(z_concat, np.array(self.z)), axis=1)
         # Pick action with the biggest Q value
-        idx = np.argmax(q)        
+        idx = np.argmax(q)
         return idx
 
     def update(self, data: Observation) -> None:

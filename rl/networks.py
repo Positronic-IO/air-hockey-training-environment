@@ -2,13 +2,17 @@
 
 from typing import Tuple
 
+import tensorflow as tf
 from keras import backend as K
-from keras.layers import Dense, Flatten, Input, Lambda, add, BatchNormalization, GaussianNoise
+from keras.layers import BatchNormalization, Dense, Flatten, GaussianNoise, Input, Lambda, add
 from keras.layers.core import Activation
 from keras.models import Model, Sequential, load_model
 from keras.optimizers import Adam, RMSprop
 
-from .helpers import huber_loss
+from .helpers import LayerNormalization, huber_loss
+
+# Set random seed
+tf.set_random_seed(2)
 
 
 def dueling_ddqn(state_size: Tuple[int, int], action_size: int, learning_rate: float) -> Model:
@@ -127,6 +131,10 @@ def a2c(
     actor.add(Activation("relu"))
     actor.add(BatchNormalization())
 
+    actor.add(Dense(state_size[1] // 2, kernel_initializer="random_uniform"))
+    actor.add(Activation("relu"))
+    actor.add(BatchNormalization())
+
     actor.add(Dense(state_size[1], kernel_initializer="random_uniform"))
     actor.add(Activation("relu"))
     actor.add(BatchNormalization())
@@ -136,12 +144,20 @@ def a2c(
     actor.add(Dense(action_size, kernel_initializer="random_uniform"))
     actor.add(Activation("softmax"))
 
-    actor.compile(loss=huber_loss, optimizer=Adam(lr=actor_learning_rate))
+    actor.compile(loss="categorical_crossentropy", optimizer=Adam(lr=actor_learning_rate))
 
     # Critic Network
     critic = Sequential()
 
     critic.add(Dense(state_size[1], kernel_initializer="random_uniform", input_shape=state_size))
+    critic.add(Activation("relu"))
+    critic.add(BatchNormalization())
+
+    critic.add(Dense(state_size[1] // 2, kernel_initializer="random_uniform"))
+    critic.add(Activation("relu"))
+    critic.add(BatchNormalization())
+
+    critic.add(Dense(state_size[1], kernel_initializer="random_uniform"))
     critic.add(Activation("relu"))
     critic.add(BatchNormalization())
 

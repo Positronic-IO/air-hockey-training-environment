@@ -5,15 +5,19 @@ import os
 from typing import Any, Dict, List, Tuple, Union
 
 import numpy as np
+import tensorflow as tf
 from keras.models import load_model
 
 from environment import AirHockey
-
 from rl import networks
 from rl.Agent import Agent
-from rl.helpers import huber_loss
+from rl.helpers import LayerNormalization, huber_loss
 from rl.MemoryBuffer import MemoryBuffer
 from rl.utils import Observation, State
+
+# Set random seeds
+np.random.seed(1)
+tf.set_random_seed(2)
 
 # Initiate Logger
 logger = logging.getLogger(__name__)
@@ -171,10 +175,14 @@ class A2C(Agent):
         """ Load a model"""
 
         logger.info(f"Loading model from: {self.actor_load_path}")
-        self.actor_model = load_model(self.actor_load_path, custom_objects={"huber_loss": huber_loss})
+        self.actor_model = load_model(
+            self.actor_load_path, custom_objects={"huber_loss": huber_loss, "LayerNormalization": LayerNormalization}
+        )
 
         logger.info(f"Loading model from: {self.critic_load_path}")
-        self.critic_model = load_model(self.critic_load_path, custom_objects={"huber_loss": huber_loss})
+        self.critic_model = load_model(
+            self.critic_load_path, custom_objects={"huber_loss": huber_loss, "LayerNormalization": LayerNormalization}
+        )
 
     def save_model(self) -> None:
         """ Save a models """
