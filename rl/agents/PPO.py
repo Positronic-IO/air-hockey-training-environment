@@ -5,7 +5,6 @@ import os
 from typing import Any, Dict, List, Tuple, Union
 
 import numpy as np
-from keras.models import load_model
 
 from environment import AirHockey
 from rl import networks
@@ -76,6 +75,9 @@ class PPO(Agent):
         # Initialize
         self.action_matrix, self.policy = None, None
 
+    def __repr__(self):
+        return f"{self.__class__.__name__} Continuous" if self.continuous else self.__class__.__name__
+
     def build_model(self) -> None:
         """ Create our Actor/Critic Models """
 
@@ -115,7 +117,6 @@ class PPO(Agent):
             action = np.argmax(policy)
         action_matrix = np.zeros(self.action_size)
         action_matrix[action] = 1
-        print(action_matrix)
         self.action_matrix, self.policy = action_matrix, policy
         return action
 
