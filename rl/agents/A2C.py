@@ -5,7 +5,6 @@ import os
 from typing import Any, Dict, List, Tuple, Union
 
 import numpy as np
-import tensorflow as tf
 from keras.models import load_model
 
 from environment import AirHockey
@@ -17,7 +16,6 @@ from rl.utils import Observation, State
 
 # Set random seeds
 np.random.seed(1)
-tf.set_random_seed(2)
 
 # Initiate Logger
 logger = logging.getLogger(__name__)
