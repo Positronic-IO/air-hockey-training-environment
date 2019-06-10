@@ -4,11 +4,11 @@ This project is a simulated air hockey gaming environment.
 
 Either one can use this to play for fun, capture state, or train reinforcement learning models.
 
-Currently, this project supports 5 types of reinforcement learning techniques: Q-learning, Deep Q-learning (DQN), and Double DQN (DDQN), c51-DDQN, and Dueling DDQN.
+Currently, this project supports 5 types of reinforcement learning techniques: Q-learning, Deep Q-learning (DQN), and Double DQN (DDQN), c51-DDQN, Dueling DDQN, Synchronous Actor/Critic (A2C), and Proximal Policy Optisation (PPO).
 
 Many examples of reinforcement learning capture the state from video frames; thus, their architecture involves CNNs. This project captures the state of the board via the coordinates of agent and the puck.
 
-Our model uses the [Huber Loss](https://en.wikipedia.org/wiki/Huber_loss) as the loss function for training. For reinforcement learning, this loss function is recommended.
+Our model uses the [Huber Loss](https://en.wikipedia.org/wiki/Huber_loss) as the loss function for training instead of Mean-Squared Error. For reinforcement learning, this loss function is recommended.
 
 
 ## Installation
@@ -36,9 +36,9 @@ If we want to have our model play, we can set the train field to false and run `
 If you want to edit the rewards of the game, the rewards dictionary can be found in `environment/AirHockey.py`. You can also edit the environment and define custom reward functions.
 
 
-The 	`gui.py` brings up a `pygame` gui windown, and the puck, robot's and opponent's mallets are tracked via Redis. If we have `--human` entered, then it will let the gui know to let the opponent use their mouse to move the opponent's mallet. This data is sent to Redis. You can set the fps of `gui.py` with the `--fps` flag. This defaults to `-1` which turns off the fps setting for `pygame`.
+The `gui.py` brings up a `pygame` gui windown, and the puck, robot's and opponent's mallets are tracked via Redis. If we have `--human` entered, then it will let the gui know to let the opponent use their mouse to move the opponent's mallet. This data is sent to Redis. You can set the fps of `gui.py` with the `--fps` flag. This defaults to `-1` which turns off the fps setting for `pygame`.
 
-The neural network architectures for these learning strategies can be found in the `rl/Networks.py` file.
+The neural network architectures for these learning strategies can be found in the `rl/networks.py` file.
 
 ## Warnings
 + Beware of how you set your rewards because these settings drastically effect the exploitation/exploration tradeoff. 
