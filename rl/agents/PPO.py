@@ -124,15 +124,13 @@ class PPO(Agent):
         """ Return a random action (continuous space) """
         policy = self.actor_model.predict(
             [np.expand_dims(np.hstack(state), axis=0), np.zeros(shape=(1, 1)), np.zeros(shape=(1, self.action_size))]
-        )
+        )[0]
         if not self.train:
-            # TODO - Look into using the OU Process for random noise
-            action = action_matrix = policy[0] + np.random.normal(loc=0, scale=self.noise, size=policy[0].shape)
+            action = action_matrix = policy + np.random.normal(0, scale=self.noise, size=policy.shape)
         else:
-            action = action_matrix = policy[0]
-
+            action = action_matrix = policy
         self.action_matrix, self.policy = action_matrix, policy
-        return action
+        return action.tolist()[0]
 
     def discount_rewards(self, rewards: List[float]):
         """ Compute discount rewards """
