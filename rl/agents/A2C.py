@@ -24,7 +24,7 @@ class A2C(Agent):
 
     """ Reference: https://github.com/flyyufelix/VizDoom-Keras-RL/blob/master/a2c.py """
 
-    def __init__(self, env: AirHockey, capacity: int, train: bool, config: Dict[str, Any]):
+    def __init__(self, env: AirHockey, train: bool, config: Dict[str, Any]):
         super().__init__(env)
 
         self.version = "0.1.0"

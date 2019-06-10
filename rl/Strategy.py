@@ -20,7 +20,7 @@ class Strategy:
     def __init__(self):
         pass
 
-    def make(self, env: AirHockey, strategy: str, capacity: int = 0, train: bool = False):
+    def make(self, env: AirHockey, strategy: str, train: bool = False):
         """ Return instance of learner """
 
         if strategy == "human":
@@ -31,4 +31,4 @@ class Strategy:
         if strategy == "q-learner":
             return self.strategies[strategy](env, config)
 
-        return self.strategies[strategy](env, capacity, train, config)
+        return self.strategies[strategy](env, train, config)

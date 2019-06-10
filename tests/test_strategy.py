@@ -19,29 +19,29 @@ class TestStrategy:
     def test_ddqn_agent(self):
         """ Test to see if created agent is ddqn """
 
-        strategy = Strategy().make(self.env, "ddqn", self.capacity, self.train)
+        strategy = Strategy().make(self.env, "ddqn", self.train)
         assert isinstance(strategy, DDQN)
 
     def test_dueling_agent(self):
         """ Test to see if created agent is dueling """
 
-        strategy = Strategy().make(self.env, "dueling", self.capacity, self.train)
+        strategy = Strategy().make(self.env, "dueling", self.train)
         assert isinstance(strategy, DuelingDDQN)
 
     def test_c51_agent(self):
         """ Test to see if created agent is c51 """
 
-        strategy = Strategy().make(self.env, "c51", self.capacity, self.train)
+        strategy = Strategy().make(self.env, "c51", self.train)
         assert isinstance(strategy, c51)
 
     def test_q_learner_agent(self):
         """ Test to see if created agent is q-learner """
 
-        strategy = Strategy().make(self.env, "q-learner", self.capacity, self.train)
+        strategy = Strategy().make(self.env, "q-learner", self.train)
         assert isinstance(strategy, QLearner)
 
     def test_a2c_agent(self):
         """ Test to see if created agent is A2C """
 
-        strategy = Strategy().make(self.env, "a2c", self.capacity, self.train)
+        strategy = Strategy().make(self.env, "a2c", self.train)
         assert isinstance(strategy, A2C)

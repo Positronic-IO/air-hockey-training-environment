@@ -24,7 +24,7 @@ class c51(Agent):
 
     """ Reference: https://github.com/flyyufelix/C51-DDQN-Keras """
 
-    def __init__(self, env: AirHockey, capacity: int, train: bool, config: Dict[str, Any]):
+    def __init__(self, env: AirHockey, train: bool, config: Dict[str, Any]):
         super().__init__(env)
 
         self.version = "0.2.0"

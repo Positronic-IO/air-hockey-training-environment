@@ -25,7 +25,7 @@ class PPO(Agent):
 
     """ Reference: https://github.com/LuEE-C/PPO-Keras """
 
-    def __init__(self, env: AirHockey, capacity: int, train: bool, config: Dict[str, Any]):
+    def __init__(self, env: AirHockey, train: bool, config: Dict[str, Any]):
         super().__init__(env)
 
         # Get size of state and action

@@ -47,13 +47,13 @@ class Train:
 
         # Set up our robot
         self.robot = Strategy().make(
-            env=self.env, strategy=self.args["robot"], capacity=self.args["capacity"], train=True
+            env=self.env, strategy=self.args["robot"], train=True
         )
         self.robot.agent_name = "robot"
 
         # # Set up our opponent. The opponent can also be a human player.
         self.opponent = Strategy().make(
-            env=self.env, strategy=self.args["opponent"], capacity=self.args["capacity"], train=True
+            env=self.env, strategy=self.args["opponent"], train=True
         )
         self.opponent.agent_name = "human" if self.args["opponent"] == "human" else "opponent"
 
