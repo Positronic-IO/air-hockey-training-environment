@@ -168,27 +168,23 @@ class A2C(Agent):
         return None
 
     def load_model(self) -> None:
-        """ Load a model"""
+        """ Load a model's weights"""
 
         logger.info(f"Loading model from: {self.actor_load_path}")
-        self.actor_model = load_model(
-            self.actor_load_path, custom_objects={"huber_loss": huber_loss, "LayerNormalization": LayerNormalization}
-        )
+        self.actor_model.load_weights(self.actor_load_path)
 
         logger.info(f"Loading model from: {self.critic_load_path}")
-        self.critic_model = load_model(
-            self.critic_load_path, custom_objects={"huber_loss": huber_loss, "LayerNormalization": LayerNormalization}
-        )
+        self.critic_model.load_weights(self.critic_load_path)
 
     def save_model(self) -> None:
-        """ Save a models """
+        """ Save a model's weights """
 
         # Save actor model
         actor_path = os.path.join(self.save_path, "actor.h5")
         logger.info(f"Saving actor model to: {actor_path}")
-        self.actor_model.save(actor_path, overwrite=True)
+        self.actor_model.save_weights(actor_path, overwrite=True)
 
         # Save critic model
         critic_path = os.path.join(self.save_path, "critic.h5")
         logger.info(f"Saving critic model to: {critic_path}")
-        self.critic_model.save(critic_path, overwrite=True)
+        self.critic_model.save_weights(critic_path, overwrite=True)

@@ -5,7 +5,6 @@ import os
 from typing import Any, Dict, Tuple, Union
 
 import numpy as np
-from keras.models import load_model
 
 from environment import AirHockey
 from rl import networks
@@ -229,14 +228,14 @@ class c51(Agent):
     def load_model(self) -> None:
         """ Load a model"""
 
-        logger.info(f"Loading model from: {self.load_path}")
+        logger.info(f"Loading model's weights from: {self.load_path}")
 
-        self.model = load_model(self.load_path, custom_objects={"huber_loss": huber_loss})
+        self.model.load_weights(self.load_path)
 
     def save_model(self) -> None:
-        """ Save a model """
+        """ Save a model's weights """
 
         # Create path with epoch number
-        path = os.path.join(self.save_path, "c51.h5")
+        path = os.path.join(self.save_path, "dueling.h5")
         logger.info(f"Saving model to: {self.save_path}")
-        self.model.save(path, overwrite=True)
+        self.model.save_weights(path, overwrite=True)
