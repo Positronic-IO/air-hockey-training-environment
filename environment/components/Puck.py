@@ -151,12 +151,12 @@ class Puck:
     def location(self) -> Tuple[int, int]:
         """ Cartesian coordinates """
 
-        return self.x, self.y
+        return int(self.x), int(self.y)
 
     def prev_location(self) -> Tuple[int, int]:
         """ Previous location """
 
-        return self.last_x, self.last_y
+        return int(self.last_x), int(self.last_y)
 
     def velocity(self) -> Tuple[int, int]:
         """ Velocity of Puck """
