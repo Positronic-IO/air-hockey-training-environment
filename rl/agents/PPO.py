@@ -70,8 +70,14 @@ class PPO(Agent):
         # Initialize
         self.action_matrix, self.policy = None, None
 
-    def __repr__(self):
+        self.version = "0.1.0"
+        logger.info(f"Strategy defined for {self.agent_name}: {self.__repr__()}")
+
+    def __str__(self):
         return f"{self.__class__.__name__} Continuous" if self.continuous else self.__class__.__name__
+
+    def __repr__(self):
+        return f"{self.__str__()} {self.version}"
 
     def build_model(self) -> None:
         """ Create our Actor/Critic Models """
@@ -105,8 +111,8 @@ class PPO(Agent):
         """ Return a random action (discrete space) """
         policy = self.actor_model.predict(
             [np.expand_dims(np.hstack(state), axis=0), np.zeros(shape=(1, 1)), np.zeros(shape=(1, self.action_size))]
-        )[0]
-        if not self.train:
+        )[0][0]
+        if self.train:
             action = np.random.choice(self.action_size, p=np.nan_to_num(policy))  # Boltzmann Policy
         else:
             action = np.argmax(policy)
