@@ -37,8 +37,8 @@ class PPO(Agent):
         # Get size of state and action
         # State grows by the amount of frames we want to hold in our memory
         self.state_size = (1, 8)
-        self.action_size = 4
-        self.continuous = False
+        self.action_size = 2
+        self.continuous = config["continuous"]
 
         # These are hyper parameters for the Policy Gradient
         self.gamma = config["params"]["gamma"]
@@ -68,7 +68,7 @@ class PPO(Agent):
         self.train = train
 
         # Noise (Continuous)
-        self.noise = 1.0
+        self.noise = config.get("noise", 10)
 
         # Keep up with the iterations
         self.t = 0
