@@ -9,7 +9,12 @@ from keras.layers.core import Activation
 from keras.models import Model, Sequential, load_model
 from keras.optimizers import Adam, RMSprop
 
-from .helpers import LayerNormalization, huber_loss
+from .helpers import (
+    LayerNormalization,
+    huber_loss,
+    proximal_policy_optimization_loss,
+    proximal_policy_optimization_loss_continuous,
+)
 
 # Set random seed
 tf.set_random_seed(2)
@@ -175,5 +180,94 @@ def a2c(
     critic.add(Activation("linear"))
 
     critic.compile(loss=huber_loss, optimizer=Adam(lr=critic_learning_rate))
+
+    return actor, critic
+
+
+def ppo(
+    state_size: Tuple[int, int],
+    action_size: Union[int, Tuple[int, int]],
+    actor_learning_rate: float,
+    critic_learning_rate: float,
+    continuous: bool = False,
+) -> Tuple[Model, Model]:
+    def build_actor_discrete(
+        state_size: Tuple[int, int], action_size: Union[int, Tuple[int, int]], actor_learning_rate: float
+    ) -> Model:
+        state_input = Input(shape=state_size)
+        advantage_input = Input(shape=(1,))
+        old_prediction_input = Input(shape=(action_size,))
+
+        x = Dense(state_size[1], kernel_initializer="normal", activation="relu")(state_input)
+        x = BatchNormalization()(x)
+
+        x = Dense(state_size[1] // 2, kernel_initializer="normal", activation="relu")(x)
+        x = BatchNormalization()(x)
+
+        x = Dense(state_size[1] // 2, kernel_initializer="normal", activation="relu")(x)
+        x = BatchNormalization()(x)
+
+        out_actions = Dense(action_size, kernel_initializer="normal", activation="softmax", name="output")(x)
+
+        model = Model(inputs=[state_input, advantage_input, old_prediction_input], outputs=[out_actions])
+        model.compile(
+            optimizer=Adam(lr=actor_learning_rate),
+            loss=proximal_policy_optimization_loss(advantage=advantage_input, old_prediction=old_prediction_input),
+        )
+        return model
+
+    def build_actor_continuous(
+        state_size: Tuple[int, int], action_size: Union[int, Tuple[int, int]], actor_learning_rate: float
+    ) -> Model:
+        state_input = Input(shape=state_size)
+        advantage_input = Input(shape=(1,))
+        old_prediction_input = Input(shape=(action_size,))
+
+        x = Dense(state_size[1], kernel_initializer="normal", activation="tanh")(state_input)
+        x = BatchNormalization()(x)
+
+        x = Dense(state_size[1] // 2, kernel_initializer="normal", activation="tanh")(x)
+        x = BatchNormalization()(x)
+
+        x = Dense(state_size[1] // 2, kernel_initializer="normal", activation="tanh")(x)
+        x = BatchNormalization()(x)
+
+        out_actions = Dense(action_size, kernel_initializer="normal", activation="tanh", name="output")(x)
+
+        model = Model(inputs=[state_input, advantage_input, old_prediction_input], outputs=[out_actions])
+        model.compile(
+            optimizer=Adam(lr=actor_learning_rate),
+            loss=proximal_policy_optimization_loss_continuous(
+                advantage=advantage_input, old_prediction=old_prediction_input
+            ),
+        )
+        return model
+
+    def build_critic(state_size: Tuple[int, int], critic_learning_rate: float) -> Model:
+
+        state_input = Input(shape=state_size)
+        x = Dense(state_size[1], kernel_initializer="normal", activation="tanh")(state_input)
+        x = BatchNormalization()(x)
+
+        x = Dense(state_size[1] // 2, kernel_initializer="normal", activation="tanh")(x)
+        x = BatchNormalization()(x)
+
+        x = Dense(state_size[1] // 2, kernel_initializer="normal", activation="tanh")(x)
+        x = BatchNormalization()(x)
+
+        out_value = Dense(1, kernel_initializer="random_uniform", activation="linear", name="output")(x)
+
+        model = Model(inputs=[state_input], outputs=[out_value])
+        model.compile(optimizer=Adam(lr=critic_learning_rate), loss=huber_loss)
+
+        return model
+
+    actor = object
+    if continuous:
+        actor = build_actor_continuous(state_size, action_size, actor_learning_rate)
+    else:
+        actor = build_actor_discrete(state_size, action_size, actor_learning_rate)
+
+    critic = build_critic(state_size, critic_learning_rate)
 
     return actor, critic
