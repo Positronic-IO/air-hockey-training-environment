@@ -4,6 +4,7 @@ import inspect
 import json
 import logging
 import os
+import shutil
 import sys
 from collections import namedtuple
 from typing import Any, Dict, List, Tuple, Union
@@ -69,6 +70,15 @@ def record_model_info(robot: str, opponent: str) -> None:
         "ppo": networks.ppo,
     }
 
+    configs = {
+        "q-learner": os.path.join(os.getcwd(), "configs", "q-learner.json"),
+        "ddqn": os.path.join(os.getcwd(), "configs", "ddqn.json"),
+        "dueling": os.path.join(os.getcwd(), "configs", "dueling.json"),
+        "c51": os.path.join(os.getcwd(), "configs", "c51.json"),
+        "a2c": os.path.join(os.getcwd(), "configs", "a2c.json"),
+        "ppo": os.path.join(os.getcwd(), "configs", "ppo.json"),
+    }
+
     directory = unique_directory(os.path.join(os.getcwd(), "model"))
 
     try:
@@ -77,7 +87,8 @@ def record_model_info(robot: str, opponent: str) -> None:
         os.mkdir(robot_path)
 
         with open(os.path.join(robot_path, strategies.get(robot).__name__), "w+") as file:
-            file.write(inspect.getsource(strategies.get(robot)))
+            file.write(inspect.getsource(strategies.get(robot)))  # Record model info
+            shutil.copy(configs[robot], robot_path)  # Record hyperparameters for model
 
         # Deal with opponent's models
         if opponent == "human":
@@ -87,7 +98,8 @@ def record_model_info(robot: str, opponent: str) -> None:
         os.mkdir(opponent_path)
 
         with open(os.path.join(opponent_path, strategies.get(opponent).__name__), "w+") as file:
-            file.write(inspect.getsource(strategies.get(opponent)))
+            file.write(inspect.getsource(strategies.get(opponent)))  # Record model info
+            shutil.copy(configs[opponent], opponent_path)  # Record hyperparameters for model
 
     except KeyError:
         logger.error("Strategy not defined.")
