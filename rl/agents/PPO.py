@@ -185,26 +185,10 @@ class PPO(Agent):
         """ Load a model"""
 
         logger.info(f"Loading model from: {self.actor_load_path}")
-        self.actor_model = load_model(
-            self.actor_load_path,
-            custom_objects={
-                "huber_loss": huber_loss,
-                "LayerNormalization": LayerNormalization,
-                "proximal_policy_optimization_loss": proximal_policy_optimization_loss,
-                "proximal_policy_optimization_loss_continuous": proximal_policy_optimization_loss_continuous,
-            },
-        )
+        self.actor_model.load_weights(self.actor_load_path)
 
         logger.info(f"Loading model from: {self.critic_load_path}")
-        self.critic_model = load_model(
-            self.critic_load_path,
-            custom_objects={
-                "huber_loss": huber_loss,
-                "LayerNormalization": LayerNormalization,
-                "proximal_policy_optimization_loss": proximal_policy_optimization_loss,
-                "proximal_policy_optimization_loss_continuous": proximal_policy_optimization_loss_continuous,
-            },
-        )
+        self.critic_model.load_weights(self.critic_load_path)
 
     def save_model(self) -> None:
         """ Save a models """
@@ -214,9 +198,9 @@ class PPO(Agent):
         # Save actor model
         actor_path = os.path.join(self.save_path, f"actor{path}.h5")
         logger.info(f"Saving actor model to: {actor_path}")
-        self.actor_model.save(actor_path, overwrite=True)
+        self.actor_model.save_weights(actor_path, overwrite=True)
 
         # Save critic model
         critic_path = os.path.join(self.save_path, f"critic{path}.h5")
         logger.info(f"Saving critic model to: {critic_path}")
-        self.critic_model.save(critic_path, overwrite=True)
+        self.critic_model.save_weights(critic_path, overwrite=True)
