@@ -103,8 +103,8 @@ class AirHockey:
         """ Move agent's mallet """
 
         # Update action
-        if isinstance(action, tuple) or isinstance(action, list):  # Cartesian Coordinates
-            agent.x, agent.y = action[0], action[1]
+        if isinstance(action, (tuple, list)):  # Cartesian Coordinates
+            agent.dx, agent.dy = action[0], action[1]
 
         # Integers
         if isinstance(action, int) and action == 0:
