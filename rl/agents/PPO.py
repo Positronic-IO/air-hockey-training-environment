@@ -36,7 +36,7 @@ class PPO(Agent):
         # Get size of state and action
         # State grows by the amount of frames we want to hold in our memory
         self.state_size = (1, 8)
-        self.action_size = 2
+        self.action_size = 4
         self.continuous = config["continuous"]
 
         # These are hyper parameters for the Policy Gradient
@@ -126,7 +126,8 @@ class PPO(Agent):
             [np.expand_dims(np.hstack(state), axis=0), np.zeros(shape=(1, 1)), np.zeros(shape=(1, self.action_size))]
         )[0]
         if not self.train:
-            action = action_matrix = policy + np.random.normal(0, scale=self.noise, size=policy.shape)
+            noise = np.random.normal(0, scale=self.noise, size=policy.shape)
+            action = action_matrix = policy + noise
         else:
             action = action_matrix = policy
         self.action_matrix, self.policy = action_matrix, policy
@@ -195,10 +196,10 @@ class PPO(Agent):
 
         # Save actor model
         actor_path = os.path.join(self.save_path, f"actor{path}.h5")
-        logger.info(f"Saving actor model to: {actor_path}")
+        logger.info(f"Saving actor weights to: {actor_path}")
         self.actor_model.save_weights(actor_path, overwrite=True)
 
         # Save critic model
         critic_path = os.path.join(self.save_path, f"critic{path}.h5")
-        logger.info(f"Saving critic model to: {critic_path}")
+        logger.info(f"Saving critic weights to: {critic_path}")
         self.critic_model.save_weights(critic_path, overwrite=True)
