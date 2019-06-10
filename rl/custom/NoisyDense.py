@@ -7,7 +7,7 @@ import numpy as np
 class NoisyDense(Layer):
     """
     Reference:
-        + https://github.com/LuEE-C/Noisy-A3C-Keras/blob/master/NoisyDense.py
+        + https://github.com/LuEE-C/NoisyDenseKeras
         + https://arxiv.org/pdf/1706.10295.pdf
     """
 
