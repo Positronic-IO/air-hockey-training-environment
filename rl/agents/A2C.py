@@ -5,12 +5,10 @@ import os
 from typing import Any, Dict, List, Tuple, Union
 
 import numpy as np
-from keras.models import load_model
 
 from environment import AirHockey
 from rl import networks
 from rl.Agent import Agent
-from rl.helpers import LayerNormalization, huber_loss
 from rl.MemoryBuffer import MemoryBuffer
 from rl.utils import Observation, State
 

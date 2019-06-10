@@ -9,12 +9,7 @@ import numpy as np
 from environment import AirHockey
 from rl import networks
 from rl.Agent import Agent
-from rl.helpers import (
-    LayerNormalization,
-    huber_loss,
-    proximal_policy_optimization_loss,
-    proximal_policy_optimization_loss_continuous,
-)
+from rl.helpers import huber_loss, proximal_policy_optimization_loss, proximal_policy_optimization_loss_continuous
 from rl.MemoryBuffer import MemoryBuffer
 from rl.utils import Observation, State
 
