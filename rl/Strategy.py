@@ -11,11 +11,11 @@ from .agents.DDQN import DDQN
 from .agents.DuelingDDQN import DuelingDDQN
 from .agents.QLearner import QLearner
 from .utils import get_config_strategy
-
+from .agents.PPO import PPO
 
 class Strategy:
 
-    strategies = {"q-learner": QLearner, "ddqn": DDQN, "dueling": DuelingDDQN, "c51": c51, "a2c": A2C}
+    strategies = {"q-learner": QLearner, "ddqn": DDQN, "dueling": DuelingDDQN, "c51": c51, "a2c": A2C, "ppo": PPO}
 
     def __init__(self):
         pass

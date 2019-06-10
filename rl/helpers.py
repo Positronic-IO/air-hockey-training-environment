@@ -150,3 +150,40 @@ class LayerNormalization(keras.layers.Layer):
         if self.center:
             outputs += self.beta
         return outputs
+
+
+def proximal_policy_optimization_loss(advantage, old_prediction):
+    def loss(y_true, y_pred):
+        LOSS_CLIPPING = 0.2  # Only implemented clipping for the surrogate loss, paper said it was best
+        ENTROPY_LOSS = 1e-3
+
+        prob = y_true * y_pred
+        old_prob = y_true * old_prediction
+        r = prob / (old_prob + 1e-10)
+        return -K.mean(
+            K.minimum(r * advantage, K.clip(r, min_value=1 - LOSS_CLIPPING, max_value=1 + LOSS_CLIPPING) * advantage)
+            + ENTROPY_LOSS * -(prob * K.log(prob + 1e-10))
+        )
+
+    return loss
+
+
+def proximal_policy_optimization_loss_continuous(advantage, old_prediction):
+    def loss(y_true, y_pred):
+        LOSS_CLIPPING = 0.2  # Only implemented clipping for the surrogate loss, paper said it was best
+        NOISE = 1.0  # Exploration noise
+
+        var = K.square(NOISE)
+        denom = K.sqrt(2 * np.pi * var)
+        prob_num = K.exp(-K.square(y_true - y_pred) / (2 * var))
+        old_prob_num = K.exp(-K.square(y_true - old_prediction) / (2 * var))
+
+        prob = prob_num / denom
+        old_prob = old_prob_num / denom
+        r = prob / (old_prob + 1e-10)
+
+        return -K.mean(
+            K.minimum(r * advantage, K.clip(r, min_value=1 - LOSS_CLIPPING, max_value=1 + LOSS_CLIPPING) * advantage)
+        )
+
+    return loss

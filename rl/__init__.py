@@ -3,6 +3,7 @@ from .agents.A2C import A2C
 from .agents.c51 import c51
 from .agents.DDQN import DDQN
 from .agents.DuelingDDQN import DuelingDDQN
+from .agents.PPO import PPO
 from .agents.QLearner import QLearner
 from .MemoryBuffer import MemoryBuffer
 from .RewardTracker import RewardTracker

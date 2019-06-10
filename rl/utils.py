@@ -30,6 +30,7 @@ def get_config_strategy(strategy: str) -> Dict[str, Union[str, int]]:
         "dueling": os.path.join(os.getcwd(), "configs", "dueling.json"),
         "c51": os.path.join(os.getcwd(), "configs", "c51.json"),
         "a2c": os.path.join(os.getcwd(), "configs", "a2c.json"),
+        "ppo": os.path.join(os.getcwd(), "configs", "ppo.json"),
     }
 
     try:
@@ -65,6 +66,7 @@ def record_model_info(robot: str, opponent: str) -> None:
         "dueling": networks.dueling_ddqn,
         "c51": networks.c51,
         "a2c": networks.a2c,
+        "ppo": networks.ppo,
     }
 
     directory = unique_directory(os.path.join(os.getcwd(), "model"))
@@ -73,6 +75,7 @@ def record_model_info(robot: str, opponent: str) -> None:
         # Deal with robot's models
         robot_path = os.path.join(directory, "robot")
         os.mkdir(robot_path)
+
         with open(os.path.join(robot_path, strategies.get(robot).__name__), "w+") as file:
             file.write(inspect.getsource(strategies.get(robot)))
 
@@ -82,8 +85,10 @@ def record_model_info(robot: str, opponent: str) -> None:
 
         opponent_path = os.path.join(directory, "opponent")
         os.mkdir(opponent_path)
+
         with open(os.path.join(opponent_path, strategies.get(opponent).__name__), "w+") as file:
             file.write(inspect.getsource(strategies.get(opponent)))
+
     except KeyError:
         logger.error("Strategy not defined.")
 
