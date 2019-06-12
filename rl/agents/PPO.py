@@ -111,7 +111,12 @@ class PPO(Agent):
         """ Return a random action (discrete space) """
         policy = self.actor_model.predict(
             [np.expand_dims(np.hstack(state), axis=0), np.zeros(shape=(1, 1)), np.zeros(shape=(1, self.action_size))]
-        )[0][0]
+        )[0]
+        # Sanity check
+        assert policy.shape == (
+            self.action_size,
+        ), f"Policy is of shape {policy.shape} instead of {(self.action_size,)}"
+        
         if self.train:
             action = np.random.choice(self.action_size, p=np.nan_to_num(policy))  # Boltzmann Policy
         else:
