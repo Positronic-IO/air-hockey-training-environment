@@ -39,7 +39,7 @@ class OrnsteinUhlenbeckProcess:
         self.dt = dt
         self.size = size
 
-    def generate(self, step):
+    def __call__(self, step):
         sigma = max(0, self.sigma_step * step + self.sigma)
         x = (
             self.x0
