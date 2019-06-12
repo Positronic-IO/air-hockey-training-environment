@@ -104,7 +104,8 @@ class AirHockey:
 
         # Update action
         if isinstance(action, (tuple, list)):  # Cartesian Coordinates
-            agent.dx, agent.dy = action[0], action[1]
+            agent.dx += action[0]
+            agent.dy += action[1]
 
         # Integers
         if isinstance(action, int) and action == 0:
