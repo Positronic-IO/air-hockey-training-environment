@@ -35,7 +35,7 @@ class Train:
         self.redis = RedisConnection()
         self.mongo = MongoClient()
         self.mongo_error = False
-        
+
         try:
             # Test if connection exists
             self.mongo.server_info()
@@ -46,15 +46,11 @@ class Train:
         self.env = AirHockey()
 
         # Set up our robot
-        self.robot = Strategy().make(
-            env=self.env, strategy=self.args["robot"], train=True
-        )
+        self.robot = Strategy().make(env=self.env, strategy=self.args["robot"], train=True)
         self.robot.agent_name = "robot"
 
         # # Set up our opponent. The opponent can also be a human player.
-        self.opponent = Strategy().make(
-            env=self.env, strategy=self.args["opponent"], train=True
-        )
+        self.opponent = Strategy().make(env=self.env, strategy=self.args["opponent"], train=True)
         self.opponent.agent_name = "human" if self.args["opponent"] == "human" else "opponent"
 
         # Save model architectures with an unique run id
