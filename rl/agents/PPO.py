@@ -28,11 +28,13 @@ class PPO(Agent):
     def __init__(self, env: AirHockey, train: bool, config: Dict[str, Any]):
         super().__init__(env)
 
+        # Are we doing continuous or discrete PPO?
+        self.continuous = config["continuous"]
+        
         # Get size of state and action
         # State grows by the amount of frames we want to hold in our memory
         self.state_size = (1, 8)
-        self.action_size = 4
-        self.continuous = config["continuous"]
+        self.action_size = 2 if self.continuous else 4
 
         # These are hyper parameters for the Policy Gradient
         self.gamma = config["params"]["gamma"]
@@ -53,6 +55,7 @@ class PPO(Agent):
         self.memory = MemoryBuffer(self.max_memory)
         self.batch_size = config["params"]["batch_size"]
 
+        # Training epochs
         self.epochs = config["params"]["epochs"]
 
         # Model construction
@@ -62,7 +65,7 @@ class PPO(Agent):
         self.train = train
 
         # Noise (Continuous)
-        self.noise = config.get("noise", 10)
+        self.noise = config.get("noise", 1)
 
         # Keep up with the iterations
         self.t = 0
@@ -131,8 +134,8 @@ class PPO(Agent):
         policy = self.actor_model.predict(
             [np.expand_dims(np.hstack(state), axis=0), np.zeros(shape=(1, 1)), np.zeros(shape=(1, self.action_size))]
         )[0]
-        if not self.train:
-            noise = np.random.normal(0, scale=self.noise, size=policy.shape)
+        if self.train:
+            noise = np.random.normal(0, self.noise, size=policy.shape)
             action = action_matrix = policy + noise
         else:
             action = action_matrix = policy
