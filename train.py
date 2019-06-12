@@ -311,7 +311,7 @@ if __name__ == "__main__":
 
     parser.add_argument("-r", "--robot", help="Robot strategy")
     parser.add_argument("-o", "--opponent", help="Opponent strategy")
-    parser.add_argument("-c", "--capacity", default=5, help="Number of past expierences to store")
+    parser.add_argument("-c", "--capacity", default=1, help="Number of past expierences to store")
     parser.add_argument("-s", "--stats", default="test", help="MongoDB to store training data")
     parser.add_argument("-t", "--time", default=3, help="Time per train. Units in hours. (Default to 3 hours)")
     args = vars(parser.parse_args())
