@@ -54,6 +54,9 @@ class A2C(Agent):
         self.max_memory = config["params"]["max_memory"]
         self.memory = MemoryBuffer(self.max_memory)
 
+        # Training epochs
+        self.epochs = config["params"]["epochs"]
+        
         # Model construction
         self.build_model()
 
@@ -89,14 +92,14 @@ class A2C(Agent):
         """ Transfer model weights to target model with a factor of Tau """
 
         if self.param_noise:
-            tau = np.random.uniform(-0.15, 0.15)
+            tau = np.random.uniform(0, 0.2  )
             W_actor, target_W_actor = self.actor_model.get_weights(), self.actor_model.get_weights()
             W_critic, target_W_critic = self.critic_model.get_weights(), self.critic_model.get_weights()
 
             for i in range(len(W_actor)):
                 target_W_actor[i] = tau * W_actor[i] + (1 - tau) * target_W_actor[i]
 
-            for i in range(len(W_actor)):
+            for i in range(len(W_critic)):
                 target_W_critic[i] = tau * W_critic[i] + (1 - tau) * target_W_critic[i]
 
             self.actor_model.set_weights(target_W_actor)
@@ -150,8 +153,8 @@ class A2C(Agent):
                 advantages[i][actions[i]] = discounted_rewards[i] - values[i]
 
             # Train models
-            self.actor_model.fit(states, advantages, epochs=1, verbose=0)
-            self.critic_model.fit(states, discounted_rewards, epochs=1, verbose=0)
+            self.actor_model.fit(states, advantages, epochs=self.epochs, verbose=0)
+            self.critic_model.fit(states, discounted_rewards, epochs=self.epochs, verbose=0)
 
             # Update target model
             self.transfer_weights()

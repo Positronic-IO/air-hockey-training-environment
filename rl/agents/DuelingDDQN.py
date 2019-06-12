@@ -164,7 +164,7 @@ class DuelingDDQN(Agent):
             logger.info(f"Updating Dueling DDQN model")
 
             # Get samples from replay
-            num_samples = min(self.batch_size * self.timestep_per_train, len(self.memory))
+            num_samples = min(self.batch_size, len(self.memory))
             replay_samples = self.memory.sample(num_samples)
 
             # Convert Observations/trajectories into tensors
