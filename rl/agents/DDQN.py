@@ -133,7 +133,8 @@ class DDQN(Agent):
             logger.info(f"Updating DDQN model")
 
             # Sample observations from memory for experience replay
-            minibatch = self.memory.sample(self.batch_size)
+            num_samples = min(self.batch_size, len(self.memory))
+            minibatch = self.memory.sample(num_samples)
             for observation in minibatch:
                 target = self.model.predict(np.array([observation.new_state]))
 
