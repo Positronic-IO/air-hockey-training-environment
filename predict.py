@@ -58,14 +58,14 @@ class Predict:
         self.robot_cumulative_win, self.opponent_cumulative_win = 0, 0
 
         # Set up buffers for agent position and puck position
-        self.robot_location_buffer = MemoryBuffer(self.args["capacity"], (0, 0))
-        self.puck_location_buffer = MemoryBuffer(self.args["capacity"], (0, 0))
-        self.opponent_location_buffer = MemoryBuffer(self.args["capacity"], (0, 0))
+        self.robot_location_buffer = MemoryBuffer(self.args["capacity"])
+        self.puck_location_buffer = MemoryBuffer(self.args["capacity"])
+        self.opponent_location_buffer = MemoryBuffer(self.args["capacity"])
 
         # Set up buffers for agent velocity and puck velocity
-        self.robot_velocity_buffer = MemoryBuffer(self.args["capacity"], (0, 0))
-        self.puck_velocity_buffer = MemoryBuffer(self.args["capacity"], (0, 0))
-        self.opponent_velocity_buffer = MemoryBuffer(self.args["capacity"], (0, 0))
+        self.robot_velocity_buffer = MemoryBuffer(self.args["capacity"])
+        self.puck_velocity_buffer = MemoryBuffer(self.args["capacity"])
+        self.opponent_velocity_buffer = MemoryBuffer(self.args["capacity"])
 
         # Update buffers
         self._update_buffers()
@@ -115,10 +115,10 @@ class Predict:
 
             # Current state
             state = State(
-                robot_location=self.robot_location_buffer.retreive(average=True),
-                puck_location=self.puck_location_buffer.retreive(average=True),
-                robot_velocity=self.robot_velocity_buffer.retreive(average=True),
-                puck_velocity=self.puck_velocity_buffer.retreive(average=True),
+                robot_location=self.robot_location_buffer.retreive(average=False),
+                puck_location=self.puck_location_buffer.retreive(average=False),
+                robot_velocity=self.robot_velocity_buffer.retreive(average=False),
+                puck_velocity=self.puck_velocity_buffer.retreive(average=False),
             )
 
             # Determine next action
@@ -160,10 +160,10 @@ class Predict:
 
             # Current state
             state = State(
-                robot_location=self.opponent_location_buffer.retreive(average=True),
-                puck_location=self.puck_location_buffer.retreive(average=True),
-                robot_velocity=self.opponent_velocity_buffer.retreive(average=True),
-                puck_velocity=self.puck_velocity_buffer.retreive(average=True),
+                robot_location=self.opponent_location_buffer.retreive(average=False),
+                puck_location=self.puck_location_buffer.retreive(average=False),
+                robot_velocity=self.opponent_velocity_buffer.retreive(average=False),
+                puck_velocity=self.puck_velocity_buffer.retreive(average=False),
             )
 
             # Determine next action
