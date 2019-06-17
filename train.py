@@ -296,6 +296,9 @@ class Train:
 
             # Train for an alotted amount of time
             if time.time() - self.time < self.wait:
+                
+                # Alert the positions are different
+                self.redis.publish("update")
 
                 # Play a frame
                 self.play()

@@ -207,10 +207,13 @@ class Predict:
         # Game loop
         while True:
 
+            # Alert the positions are different
+            self.redis.publish("update")
+
             # Play a frame
             self.play()
 
-            time.sleep(1 / self.args["fps"])
+            time.sleep(1 / int(self.args["fps"]))
 
 
 if __name__ == "__main__":
