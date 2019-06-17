@@ -1,33 +1,19 @@
 """ Puck object """
 import json
-import random
+import numpy as np
 from typing import Tuple, Any
 
-from connect import RedisConnection
 from environment.components import Table
 
 
 class Puck:
     """ Puck object """
 
-    def __init__(
-        self,
-        x: int,
-        y: int,
-        dx: int = -5,
-        dy: int = 3,
-        radius: int = 0,
-        redis: RedisConnection = None,
-    ):
+    def __init__(self, x: int, y: int, dx: int = -5, dy: int = 3, radius: int = 0):
         """ Create a goal """
 
         self.name = "puck"
         self.radius = radius
-
-        # Set up Redis connection
-        if not redis:
-            redis = RedisConnection()
-        self.redis = redis
 
         # Puck position
         self.x = x
@@ -47,11 +33,6 @@ class Puck:
 
         # Default puck speed
         self.puck_speed = 10
-
-        # Update Redis
-        self.redis.post(
-            payload={"puck": {"location": self.location(), "velocity": self.velocity()}}
-        )
 
     def update_puck(self) -> None:
         """ Update puck position """
@@ -79,11 +60,6 @@ class Puck:
         self.x += self.dx
         self.y += self.dy
 
-        # Update Redis
-        self.redis.post(
-            payload={"puck": {"location": self.location(), "velocity": self.velocity()}}
-        )
-
         return None
 
     def friction_on_puck(self) -> None:
@@ -100,11 +76,6 @@ class Puck:
             self.dy -= 1
         elif self.dy < -1:
             self.dy += 1
-
-        # Update Redis
-        self.redis.post(
-            payload={"puck": {"location": self.location(), "velocity": self.velocity()}}
-        )
 
         return None
 
@@ -127,24 +98,14 @@ class Puck:
         self.last_x = self.x
         self.last_y = self.y
 
-        # Update Redis
-        self.redis.post(
-            payload={"puck": {"location": self.location(), "velocity": self.velocity()}}
-        )
-
         return None
 
     def reset(self) -> None:
         """ Rest puck to a ranfom initial position, makes sure AI does learn a fast start """
         self.x = self.puck_start_x
         self.y = self.puck_start_y
-        self.dx = random.randint(-3, 3)
-        self.dy = random.randint(-3, 3)
-
-        # Update Redis
-        self.redis.post(
-            payload={"puck": {"location": self.location(), "velocity": self.velocity()}}
-        )
+        self.dx = np.random.uniform(-5, 5)
+        self.dy = np.random.uniform(-5, 5)
 
         return None
 
@@ -168,10 +129,7 @@ class Puck:
 
         if component.__class__.__name__.lower() == "table":
             # Check to see if there is any intersection in the x-axis
-            if (
-                abs(self.x - component.left_wall) <= 50
-                or abs(component.right_wall - self.x) <= 50
-            ):
+            if abs(self.x - component.left_wall) <= 50 or abs(component.right_wall - self.x) <= 50:
                 return True
         else:
             # Check to see if there is any intersection in the x-axis

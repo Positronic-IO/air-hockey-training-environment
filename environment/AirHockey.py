@@ -46,7 +46,7 @@ class AirHockey:
         puck_radius = 15
 
         # Create puck
-        self.puck = Puck(x=self.table.midpoints[0], y=self.table.midpoints[1], radius=puck_radius, redis=self.redis)
+        self.puck = Puck(x=self.table.midpoints[0], y=self.table.midpoints[1], radius=puck_radius)
 
         # Define left and right mallet positions
         mallet_l = self.table.midpoints[0] - 100, self.table.midpoints[1]
@@ -59,7 +59,6 @@ class AirHockey:
             mallet_l[1],
             right_lim=self.table.midpoints[0] - puck_radius,
             table_size=self.table.size,
-            redis=self.redis,
         )
 
         # Makes Computer Mallet
@@ -69,7 +68,6 @@ class AirHockey:
             mallet_r[1],
             left_lim=self.table.midpoints[0] + puck_radius,
             table_size=self.table.size,
-            redis=self.redis,
         )
 
         # Default scores
@@ -161,6 +159,9 @@ class AirHockey:
         self.puck.limit_puck_speed()
         self.puck.update_puck()
 
+        # Update Redis
+        self.redis.post({"puck": {"location": self.puck.location(), "velocity": self.puck.velocity()}})
+
         # Update puck position
         while self.ticks_to_friction == 0:
             self.puck.friction_on_puck()
@@ -171,9 +172,17 @@ class AirHockey:
         self.robot.last_y = self.robot.y
         self.robot.update_mallet()
 
+        # Update Redis
+        self.redis.post({self.robot.name: {"location": self.robot.location(), "velocity": self.robot.velocity()}})
+
         self.opponent.last_x = self.opponent.x
         self.opponent.last_y = self.opponent.y
         self.opponent.update_mallet()
+
+        # Update Redis
+        self.redis.post(
+            {self.opponent.name: {"location": self.opponent.location(), "velocity": self.opponent.velocity()}}
+        )
 
         # Update score
         self.update_score()
