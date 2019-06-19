@@ -34,6 +34,10 @@ class Mallet:
         # Set mallet position
         self.mallet_start_x = self.x
         self.mallet_start_y = self.y
+        
+        # Mass
+        self.mass = 50
+        self.radius = 20
 
     def update_mallet(self) -> None:
         """ Update mallet position """

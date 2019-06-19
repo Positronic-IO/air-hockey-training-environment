@@ -1,9 +1,12 @@
 """ Puck object """
 import json
-import numpy as np
-from typing import Tuple, Any
+from typing import Any, Tuple, Union
 
-from environment.components import Table
+import numpy as np
+
+from .Mallet import Mallet
+from .Goal import Goal
+from .Table import Table
 
 
 class Puck:
@@ -26,6 +29,9 @@ class Puck:
         # Puck velocity
         self.dx = dx
         self.dy = dy
+
+        # Mass
+        self.mass = 15
 
         # Initial puck position
         self.puck_start_x = self.x
@@ -124,43 +130,49 @@ class Puck:
 
         return self.dx, self.dy
 
-    def __and__(self, component: Any) -> bool:
+    def __and__(self, component: Union[Mallet, Goal, Table]) -> bool:
         """ Determine if the puck and other objects overlap """
 
         if component.__class__.__name__.lower() == "table":
             # Check to see if there is any intersection in the x-axis
-            if abs(self.x - component.left_wall) <= 50 or abs(component.right_wall - self.x) <= 50:
+            if abs(self.x - component.left_wall) <= 35 or abs(component.right_wall - self.x) <= 35:
                 return True
         else:
             # Check to see if there is any intersection in the x-axis
-            if abs(self.x - component.x) <= 50:
+            if abs(self.x - component.x) <= 35:
                 return True
 
         # No intersection
         return False
 
-    def __or__(self, component: Any) -> bool:
+    def __or__(self, component: Union[Mallet, Goal]) -> bool:
         """ Determine if the puck and other objects overlap (y-axis) """
-
-        if abs(self.y - component.y) <= 50:
-            return True
+        
+        if component.__class__.__name__.lower() == "goal":
+            # Check to see if there is any intersection in the x-axis
+            if abs(self.y - component.y) <= 87:
+                return True
+        
+        else:
+            if abs(self.y - component.y) <= 35:
+                return True
 
         # No intersection
         return False
 
-    def __lshift__(self, component: Table) -> bool:
+    def __lshift__(self, table: Table) -> bool:
         """ Determine if the puck and the left side of table overlap """
 
-        if abs(self.x - component.left_wall) <= 50:
+        if abs(self.x - table.left_wall) <= 35:
             return True
 
         # No intersection
         return False
 
-    def __rshift__(self, component: Table) -> bool:
+    def __rshift__(self, table: Table) -> bool:
         """ Determine if the puck and the right side of table overlap """
 
-        if abs(self.x - component.right_wall) <= 50:
+        if abs(self.x - table.right_wall) <= 35:
             return True
 
         # No intersection
