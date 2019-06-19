@@ -79,7 +79,14 @@ class Predict:
         robot_location = data["robot"]["location"]
 
         # This is an attribute because it is referenced when there exists a human player.
-        self.opponent_location = data["opponent"]["location"]
+
+        # Pull from browser instead of pygame
+        _opponent_location = self.redis.get("new-opponent-location")
+        self.opponent_location = tuple(
+            [_opponent_location["new-opponent-location"]["x"], _opponent_location["new-opponent-location"]["y"]]
+        )
+
+        # self.opponent_location = data["opponent"]["location"]
 
         puck_velocity = data["puck"]["velocity"]
         robot_velocity = data["robot"]["velocity"]
