@@ -78,7 +78,6 @@ class RedisConnection(BaseConnection):
             except ConnectionError:
                 print(f"Object {key} not in Redis")
                 return ""
-            print(obj)
             return {key: self.deserialize(obj)}
 
         # Search for items in a list
