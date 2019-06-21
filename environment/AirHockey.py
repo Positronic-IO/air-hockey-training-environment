@@ -159,30 +159,14 @@ class AirHockey:
         self.puck.limit_puck_speed()
         self.puck.update_puck()
 
-        # Update Redis
-        self.redis.post({"puck": {"location": self.puck.location(), "velocity": self.puck.velocity()}})
-
         # Update puck position
         while self.ticks_to_friction == 0:
             self.puck.friction_on_puck()
             self.ticks_to_friction = 60
 
-        # Update agent position
-        self.robot.last_x = self.robot.x
-        self.robot.last_y = self.robot.y
+        # Update agent and oppponent positions
         self.robot.update_mallet()
-
-        # Update Redis
-        self.redis.post({self.robot.name: {"location": self.robot.location(), "velocity": self.robot.velocity()}})
-
-        self.opponent.last_x = self.opponent.x
-        self.opponent.last_y = self.opponent.y
         self.opponent.update_mallet()
-
-        # Update Redis
-        self.redis.post(
-            {self.opponent.name: {"location": self.opponent.location(), "velocity": self.opponent.velocity()}}
-        )
 
         # Update score
         self.update_score()
@@ -190,15 +174,28 @@ class AirHockey:
         self.ticks_to_friction -= 1
         self.ticks_to_ai -= 1
 
+        # Update Redis
+        self.redis.post(
+            {
+                "components": {
+                    "puck": {"location": self.puck.location(), "velocity": self.puck.velocity()},
+                    self.robot.name: {"location": self.robot.location(), "velocity": self.robot.velocity()},
+                    self.opponent.name: {"location": self.opponent.location(), "velocity": self.opponent.velocity()},
+                }
+            }
+        )
+
         return None
 
     def update_score(self) -> Union[int, None]:
         """ Get current score """
 
         # Get reward stats from reward trackers
-        self.robot_reward, robot_scored, self.robot_done = self.robot_reward_tracker(self.puck, self.robot)
+        self.robot_reward, robot_scored, self.robot_done = self.robot_reward_tracker(
+            self.puck, self.robot, self.stats_db
+        )
         self.opponent_reward, opponent_scored, self.opponent_done = self.opponent_reward_tracker(
-            self.puck, self.opponent
+            self.puck, self.opponent, self.stats_db
         )
 
         # When then agent scores on the computer
@@ -206,7 +203,7 @@ class AirHockey:
             self.robot_score += 1
 
             self.redis.post({"scores": {"robot_score": self.robot_score, "opponent_score": self.opponent_score}})
-
+            self.redis.publish("score-update")
             logger.info(f"Robot {self.robot_score}, Computer {self.opponent_score}")
             self.reset()
             return None
@@ -217,7 +214,7 @@ class AirHockey:
 
             # Push to redis
             self.redis.post({"scores": {"robot_score": self.robot_score, "opponent_score": self.opponent_score}})
-
+            self.redis.publish("score-update")
             logger.info(f"Robot {self.robot_score}, Computer {self.opponent_score}")
             self.reset()
             return None
@@ -233,6 +230,7 @@ class AirHockey:
 
             # Push to redis
             self.redis.post({"scores": {"robot_score": self.robot_score, "opponent_score": self.opponent_score}})
+            self.redis.publish("score-update")
             logger.info("Total Game reset")
 
         self.puck.reset()

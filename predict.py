@@ -74,19 +74,18 @@ class Predict:
     def _update_buffers(self) -> None:
         """ Update redis buffers """
 
-        data = self.redis.get()
+        data = self.redis.get("components")["components"]
         puck_location = data["puck"]["location"]
         robot_location = data["robot"]["location"]
 
-        # This is an attribute because it is referenced when there exists a human player.
-
         # Pull from browser instead of pygame
-        _opponent_location = self.redis.get("new-opponent-location")
-        self.opponent_location = tuple(
-            [_opponent_location["new-opponent-location"]["x"], _opponent_location["new-opponent-location"]["y"]]
-        )
-
-        # self.opponent_location = data["opponent"]["location"]
+        if self.args["opponent"] == "human":
+            _opponent_location = self.redis.get("new-opponent-location")
+            self.opponent_location = tuple(
+                [_opponent_location["new-opponent-location"]["x"], _opponent_location["new-opponent-location"]["y"]]
+            )
+        else:
+            self.opponent_location = data["opponent"]["location"]
 
         puck_velocity = data["puck"]["velocity"]
         robot_velocity = data["robot"]["velocity"]
@@ -215,7 +214,7 @@ class Predict:
         while True:
 
             # Alert the positions are different
-            self.redis.publish("update")
+            self.redis.publish("position-update")
 
             # Play a frame
             self.play()

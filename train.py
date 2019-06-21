@@ -92,22 +92,30 @@ class Train:
     def _update_buffers(self) -> None:
         """ Update redis buffers """
 
-        data = self.redis.get()
-        self.puck_location = data["puck"]["location"]
-        self.robot_location = data["robot"]["location"]
-        self.opponent_location = data["opponent"]["location"]
+        data = self.redis.get("components")["components"]
+        puck_location = data["puck"]["location"]
+        robot_location = data["robot"]["location"]
 
-        self.puck_velocity = data["puck"]["velocity"]
-        self.robot_velocity = data["robot"]["velocity"]
-        self.opponent_velocity = data["opponent"]["velocity"]
+        # Pull from browser instead of pygame
+        if self.args["opponent"] == "human":
+            _opponent_location = self.redis.get("new-opponent-location")
+            self.opponent_location = tuple(
+                [_opponent_location["new-opponent-location"]["x"], _opponent_location["new-opponent-location"]["y"]]
+            )
+        else:
+            self.opponent_location = data["opponent"]["location"]
 
-        self.robot_location_buffer.append(tuple(self.robot_location))
-        self.puck_location_buffer.append(tuple(self.puck_location))
+        puck_velocity = data["puck"]["velocity"]
+        robot_velocity = data["robot"]["velocity"]
+        opponent_velocity = (0, 0) if self.opponent.agent_name == "human" else data["opponent"]["velocity"]
+
+        self.robot_location_buffer.append(tuple(robot_location))
+        self.puck_location_buffer.append(tuple(puck_location))
         self.opponent_location_buffer.append(tuple(self.opponent_location))
 
-        self.robot_velocity_buffer.append(tuple(self.robot_velocity))
-        self.puck_velocity_buffer.append(tuple(self.puck_velocity))
-        self.opponent_velocity_buffer.append(tuple(self.opponent_velocity))
+        self.robot_velocity_buffer.append(tuple(robot_velocity))
+        self.puck_velocity_buffer.append(tuple(puck_velocity))
+        self.opponent_velocity_buffer.append(tuple(opponent_velocity))
 
         return None
 
@@ -296,9 +304,9 @@ class Train:
 
             # Train for an alotted amount of time
             if time.time() - self.time < self.wait:
-                
+
                 # Alert the positions are different
-                self.redis.publish("update")
+                self.redis.publish("position-update")
 
                 # Play a frame
                 self.play()
