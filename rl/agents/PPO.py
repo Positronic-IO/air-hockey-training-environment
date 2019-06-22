@@ -184,6 +184,7 @@ class PPO(Agent):
         # Save model
         if self.t % self.iterations_on_save == 0:
             self.save_model()
+            self.env.redis.publish("save-checkpoint", self.agent_name)
 
         self.t += 1
 
