@@ -181,10 +181,10 @@ class Train:
 
             # Current state
             state = State(
-                robot_location=self.robot_location_buffer.retreive(average=False),
-                puck_location=self.puck_location_buffer.retreive(average=False),
-                robot_velocity=self.robot_velocity_buffer.retreive(average=False),
-                puck_velocity=self.puck_velocity_buffer.retreive(average=False),
+                robot_location=self.robot_location_buffer.retreive(),
+                puck_location=self.puck_location_buffer.retreive(),
+                robot_velocity=self.robot_velocity_buffer.retreive(),
+                puck_velocity=self.puck_velocity_buffer.retreive(),
             )
 
             # Determine next action
@@ -198,10 +198,10 @@ class Train:
 
             # New state
             new_state = State(
-                robot_location=self.robot_location_buffer.retreive(average=False),
-                puck_location=self.puck_location_buffer.retreive(average=False),
-                robot_velocity=self.robot_velocity_buffer.retreive(average=False),
-                puck_velocity=self.puck_velocity_buffer.retreive(average=False),
+                robot_location=self.robot_location_buffer.retreive(),
+                puck_location=self.puck_location_buffer.retreive(),
+                robot_velocity=self.robot_velocity_buffer.retreive(),
+                puck_velocity=self.puck_velocity_buffer.retreive(),
             )
 
             # Observation of the game at the moment
@@ -247,10 +247,10 @@ class Train:
 
             # Current state
             state = State(
-                robot_location=self.opponent_location_buffer.retreive(average=False),
-                puck_location=self.puck_location_buffer.retreive(average=False),
-                robot_velocity=self.opponent_velocity_buffer.retreive(average=False),
-                puck_velocity=self.puck_velocity_buffer.retreive(average=False),
+                robot_location=self.opponent_location_buffer.retreive(),
+                puck_location=self.puck_location_buffer.retreive(),
+                robot_velocity=self.opponent_velocity_buffer.retreive(),
+                puck_velocity=self.puck_velocity_buffer.retreive(),
             )
 
             # Determine next action
@@ -264,10 +264,10 @@ class Train:
 
             # New state
             new_state = State(
-                robot_location=self.opponent_location_buffer.retreive(average=False),
-                puck_location=self.puck_location_buffer.retreive(average=False),
-                robot_velocity=self.opponent_velocity_buffer.retreive(average=False),
-                puck_velocity=self.puck_velocity_buffer.retreive(average=False),
+                robot_location=self.opponent_location_buffer.retreive(),
+                puck_location=self.puck_location_buffer.retreive(),
+                robot_velocity=self.opponent_velocity_buffer.retreive(),
+                puck_velocity=self.puck_velocity_buffer.retreive(),
             )
 
             # Observation of the game at the moment
