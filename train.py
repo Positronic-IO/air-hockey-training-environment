@@ -161,7 +161,13 @@ class Train:
 
         # For first move, move in a random direction
         if self.init:
-            action = np.random.randint(0, 4)
+
+            # Continuous actions
+            if getattr(self.robot, "continuous", False):
+                action = np.random.uniform(-3, 3), np.random.uniform(-3, 3)
+            else:
+                # Disrete actions
+                action = np.random.randint(0, 4)
 
             # Update game state
             self.robot.move(action)
@@ -222,7 +228,12 @@ class Train:
         # For first move, move in a random direction
         if self.init_opponent:
 
-            action = np.random.randint(0, 4)
+            # Continuous actions
+            if getattr(self.opponent, "continuous", False):
+                action = np.random.uniform(-3, 3), np.random.uniform(-3, 3)
+            else:
+                # Disrete actions
+                action = np.random.randint(0, 4)
 
             # Update game state
             self.opponent.move(action)
