@@ -56,14 +56,11 @@ class A2C(Agent):
 
         # Training epochs
         self.epochs = config["params"]["epochs"]
-        
+
         # Model construction
         self.build_model()
 
         self.train = train
-
-        # Parameter Noise
-        self.param_noise = True
 
         # Keep up with the iterations
         self.t = 0
@@ -88,23 +85,6 @@ class A2C(Agent):
         print(self.critic_model.summary())
         return None
 
-    def transfer_weights(self) -> None:
-        """ Transfer model weights to target model with a factor of Tau """
-
-        if self.param_noise:
-            tau = np.random.uniform(0, 0.2  )
-            W_actor, target_W_actor = self.actor_model.get_weights(), self.actor_model.get_weights()
-            W_critic, target_W_critic = self.critic_model.get_weights(), self.critic_model.get_weights()
-
-            for i in range(len(W_actor)):
-                target_W_actor[i] = tau * W_actor[i] + (1 - tau) * target_W_actor[i]
-
-            for i in range(len(W_critic)):
-                target_W_critic[i] = tau * W_critic[i] + (1 - tau) * target_W_critic[i]
-
-            self.actor_model.set_weights(target_W_actor)
-            self.critic_model.set_weights(target_W_critic)
-
     def get_action(self, state: State) -> int:
         """ Using the output of policy network, pick action stochastically (Boltzmann Policy) """
         flattened_state = np.hstack(state)
@@ -113,7 +93,7 @@ class A2C(Agent):
 
         if not self.train:
             return np.argmax(policy)  # Greedy policy
-        return np.random.choice(np.arange(self.action_size), 1, p=policy)[0]
+        return np.random.choice(np.arange(self.action_size), 1, p=np.nan_to_num(policy))[0]
 
     def discount_rewards(self, rewards: List[int]):
         """ Instead agent uses sample returns for evaluating policy
@@ -155,9 +135,6 @@ class A2C(Agent):
             # Train models
             self.actor_model.fit(states, advantages, epochs=self.epochs, verbose=0)
             self.critic_model.fit(states, discounted_rewards, epochs=self.epochs, verbose=0)
-
-            # Update target model
-            self.transfer_weights()
 
             # Empty buffer (treat as a cache for the minibatch)
             self.memory.purge()
