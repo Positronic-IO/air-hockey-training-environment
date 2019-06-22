@@ -30,7 +30,7 @@ class PPO(Agent):
 
         # Are we doing continuous or discrete PPO?
         self.continuous = config["continuous"]
-        
+
         # Get size of state and action
         # State grows by the amount of frames we want to hold in our memory
         self.state_size = (1, 8)
@@ -119,7 +119,7 @@ class PPO(Agent):
         assert policy.shape == (
             self.action_size,
         ), f"Policy is of shape {policy.shape} instead of {(self.action_size,)}"
-        
+
         if self.train:
             action = np.random.choice(self.action_size, p=np.nan_to_num(policy))  # Boltzmann Policy
         else:
@@ -133,14 +133,14 @@ class PPO(Agent):
         """ Return a random action (continuous space) """
         policy = self.actor_model.predict(
             [np.expand_dims(np.hstack(state), axis=0), np.zeros(shape=(1, 1)), np.zeros(shape=(1, self.action_size))]
-        )[0]
+        )[0][0]
         if self.train:
             noise = np.random.normal(0, self.noise, size=policy.shape)
             action = action_matrix = policy + noise
         else:
             action = action_matrix = policy
         self.action_matrix, self.policy = action_matrix, policy
-        return action.tolist()[0]
+        return action.tolist()
 
     def discount_rewards(self, rewards: List[float]):
         """ Compute discount rewards """
@@ -202,14 +202,12 @@ class PPO(Agent):
     def save_model(self) -> None:
         """ Save a models """
 
-        path = "_continuous" if self.continuous else ""
-
         # Save actor model
-        actor_path = os.path.join(self.save_path, f"actor{path}.h5")
+        actor_path = os.path.join(self.save_path, "actor.h5")
         logger.info(f"Saving actor weights to: {actor_path}")
         self.actor_model.save_weights(actor_path, overwrite=True)
 
         # Save critic model
-        critic_path = os.path.join(self.save_path, f"critic{path}.h5")
+        critic_path = os.path.join(self.save_path, "critic.h5")
         logger.info(f"Saving critic weights to: {critic_path}")
         self.critic_model.save_weights(critic_path, overwrite=True)
