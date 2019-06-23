@@ -77,9 +77,8 @@ class AirHockey:
         # Push to redis
         self.redis.post({"scores": {"robot_score": self.robot_score, "opponent_score": self.opponent_score}})
 
-        # Physics
+        # Drift
         self.ticks_to_friction = 60
-        self.ticks_to_ai = 10
 
         # Define step size of mallet
         self.step_size = 10
@@ -155,6 +154,10 @@ class AirHockey:
             self.puck.dx = -3 * self.puck.dx + self.opponent.dx
             self.puck.dy = -3 * self.puck.dy + self.opponent.dy
 
+        # Update agent and oppponent positions
+        self.robot.update_mallet()
+        self.opponent.update_mallet()
+
         # Update puck position
         self.puck.limit_puck_speed()
         self.puck.update_puck()
@@ -163,16 +166,11 @@ class AirHockey:
         while self.ticks_to_friction == 0:
             self.puck.friction_on_puck()
             self.ticks_to_friction = 60
+        self.ticks_to_friction -= 1
 
-        # Update agent and oppponent positions
-        self.robot.update_mallet()
-        self.opponent.update_mallet()
 
         # Update score
         self.update_score()
-
-        self.ticks_to_friction -= 1
-        self.ticks_to_ai -= 1
 
         # Update Redis
         self.redis.post(

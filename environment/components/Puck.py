@@ -31,14 +31,14 @@ class Puck:
         self.dy = dy
 
         # Mass
-        self.mass = 15
+        self.mass = 0.0425243  # kg, converted from oz
 
         # Initial puck position
         self.puck_start_x = self.x
         self.puck_start_y = self.y
 
         # Default puck speed
-        self.puck_speed = 10
+        self.puck_speed = 7
 
     def update_puck(self) -> None:
         """ Update puck position """
@@ -89,15 +89,15 @@ class Puck:
         """ Limit speed of puck """
 
         # Horizontal
-        if self.dx > 10:
+        if self.dx > self.puck_speed:
             self.dx = self.puck_speed
-        if self.dx < -10:
+        if self.dx < -self.puck_speed:
             self.dx = -self.puck_speed
 
         # Vertical
-        if self.dy > 10:
+        if self.dy > self.puck_speed:
             self.dy = self.puck_speed
-        if self.dy < -10:
+        if self.dy < -self.puck_speed:
             self.dy = self.puck_speed
 
         # Record last known position (within the constraints of the table)
@@ -110,8 +110,8 @@ class Puck:
         """ Rest puck to a ranfom initial position, makes sure AI does learn a fast start """
         self.x = self.puck_start_x
         self.y = self.puck_start_y
-        self.dx = np.random.uniform(-5, 5)
-        self.dy = np.random.uniform(-5, 5)
+        self.dx = np.random.uniform(-10, 10)
+        self.dy = np.random.uniform(-10, 10)
 
         return None
 
