@@ -133,3 +133,5 @@ todo
 
 # Tensorboard
 logs/
+# Models
+model/

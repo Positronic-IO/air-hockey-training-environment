@@ -141,4 +141,4 @@ class RewardTracker:
             )
             self.average_stats.purge()
 
-        return rewards, 0, done
+        return rewards, point, done

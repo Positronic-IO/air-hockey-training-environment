@@ -321,7 +321,7 @@ if __name__ == "__main__":
     # Run program
     try:
         train = Train(args)
-    except ConnectionError:
+    except redis.ConnectionError:
         logger.error("Cannot connect to Redis. Please make sure Redis is up and active.")
         sys.exit()
 

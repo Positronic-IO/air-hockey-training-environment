@@ -87,7 +87,7 @@ class A2C(Agent):
 
     def get_action(self, state: State) -> int:
         """ Using the output of policy network, pick action stochastically (Boltzmann Policy) """
-        flattened_state = np.hstack(state)
+        flattened_state = np.expand_dims(np.hstack(state), axis=0)
         policy = self.actor_model.predict(np.array([flattened_state]))[0]
         assert policy.shape == (self.action_size,)
 
@@ -116,7 +116,7 @@ class A2C(Agent):
             logger.info("Update models")
 
             observations = self.memory.retreive()
-            states = np.array([np.hstack(observation.state) for observation in observations])
+            states = np.array([np.expand_dims(np.hstack(observation.state), axis=0) for observation in observations])
             actions = np.array([observation.action for observation in observations])
             rewards = np.array([observation.reward for observation in observations])
             episode_length = len(self.memory)
