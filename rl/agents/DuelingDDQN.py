@@ -134,9 +134,10 @@ class DuelingDDQN(Agent):
         """ Apply an espilon-greedy policy to pick next action """
 
         # Helps over fitting, encourages to exploration
-        if np.random.uniform(0, 1) < self.epsilon:
-            idx = np.random.randint(0, self.action_size)
-            return idx
+        if self.train:
+            if np.random.uniform(0, 1) < self.epsilon:
+                idx = np.random.randint(0, self.action_size)
+                return idx
 
         # Compute rewards for any posible action
         flattened_state = np.hstack(state)
