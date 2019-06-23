@@ -30,6 +30,9 @@ class AirHockey:
         # Set up Redis Connection
         self.redis = RedisConnection()
 
+        # Directory to save csv data
+        self.stats_dir = ""
+
         # Some constants for air hockey components
         width_offset = (27, 40)
         x_offset = 38
@@ -168,7 +171,6 @@ class AirHockey:
             self.ticks_to_friction = 60
         self.ticks_to_friction -= 1
 
-
         # Update score
         self.update_score()
 
@@ -190,10 +192,10 @@ class AirHockey:
 
         # Get reward stats from reward trackers
         self.robot_reward, robot_scored, self.robot_done = self.robot_reward_tracker(
-            self.puck, self.robot, self.stats_db
+            self.puck, self.robot, self.stats_dir
         )
         self.opponent_reward, opponent_scored, self.opponent_done = self.opponent_reward_tracker(
-            self.puck, self.opponent, self.stats_db
+            self.puck, self.opponent, self.stats_dir
         )
 
         # When then agent scores on the computer

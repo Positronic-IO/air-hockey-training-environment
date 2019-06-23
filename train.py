@@ -10,14 +10,13 @@ from datetime import datetime
 from typing import Dict, Union
 
 import numpy as np
-from pymongo import MongoClient
-from pymongo.errors import ServerSelectionTimeoutError
-from redis import ConnectionError
+from pytz import timezone
+import redis
 
 from connect import RedisConnection
 from environment import AirHockey
 from rl import MemoryBuffer, Strategy
-from rl.utils import Observation, State, record_model_info
+from rl.utils import Observation, State, record_model_info, record_data_csv
 
 # Initiate Logger
 logging.basicConfig(level=logging.INFO)
@@ -33,14 +32,6 @@ class Train:
 
         # Set up Redis
         self.redis = RedisConnection()
-        self.mongo = MongoClient()
-        self.mongo_error = False
-
-        try:
-            # Test if connection exists
-            self.mongo.server_info()
-        except ServerSelectionTimeoutError:
-            self.mongo_error = True
 
         # Load Environment
         self.env = AirHockey()
@@ -54,7 +45,7 @@ class Train:
         self.opponent.agent_name = "human" if self.args["opponent"] == "human" else "opponent"
 
         # Save model architectures with an unique run id
-        robot_path, opponent_path = record_model_info(self.args["robot"], self.args["opponent"])
+        robot_path, opponent_path, counter = record_model_info(self.args["robot"], self.args["opponent"])
 
         # Paths to save models
         self.robot.save_path = robot_path
@@ -78,6 +69,9 @@ class Train:
         self.time = time.time()
         self.wait = (60 ** 2) * float(self.args["time"])  # Defaults to 3 hours
         logger.info(f"Training time: {self.args['time']} hours")
+
+        # Useful when saving to csv
+        self.env.stats_dir = str(counter)
 
     def _update_buffers(self) -> None:
         """ Update redis buffers """
@@ -107,36 +101,33 @@ class Train:
         results = dict()
 
         results = {
-            "created_at": datetime.utcnow(),
-            "robot_goal": False,
-            "opponent_goal": False,
-            "robot_win": False,
-            "opponent_win": False,
+            "created_at": datetime.now(timezone("America/Chicago")),
+            "robot_goal": 0,
+            "opponent_goal": 0,
+            "robot_win": 0,
+            "opponent_win": 0,
         }
 
         if self.env.robot_score > self.robot_cumulative_score:
-            results["robot_goal"] = True
+            results["robot_goal"] = 1
             self.robot_cumulative_score += 1
 
         if self.env.opponent_score > self.opponent_cumulative_score:
-            results["opponent_goal"] = True
+            results["opponent_goal"] = 1
             self.opponent_cumulative_score += 1
 
         if self.env.robot_score == 10:
-            results["robot_win"] = True
+            results["robot_win"] = 1
             self.robot_cumulative_score = 0
             self.opponent_cumulative_score = 0
 
         if self.env.opponent_score == 10:
-            results["opponent_win"] = True
+            results["opponent_win"] = 1
             self.robot_cumulative_score = 0
             self.opponent_cumulative_score = 0
 
-        # Test if connection exists
-        if not self.mongo_error:
-            self.mongo["stats"][self.args["stats"]].insert(results)
-
-        return None
+        # Save to csv
+        record_data_csv(self.env.stats_dir, "scores", results)
 
     def robot_player(self) -> None:
         """ Main player """

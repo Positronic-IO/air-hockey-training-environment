@@ -1,5 +1,6 @@
 """ Helpful utility functions """
 
+import csv
 import inspect
 import json
 import logging
@@ -54,7 +55,7 @@ def unique_directory(directory: str) -> str:
         path = os.path.join(directory, str(counter))
         if not os.path.exists(path):
             os.makedirs(path)
-            return path
+            return path, counter
 
 
 def record_model_info(robot: str, opponent: str) -> None:
@@ -76,10 +77,11 @@ def record_model_info(robot: str, opponent: str) -> None:
         "dueling": os.path.join(os.getcwd(), "configs", "dueling.json"),
         "c51": os.path.join(os.getcwd(), "configs", "c51.json"),
         "a2c": os.path.join(os.getcwd(), "configs", "a2c.json"),
+        "a2c_1": os.path.join(os.getcwd(), "configs", "a2c_1.json"),
         "ppo": os.path.join(os.getcwd(), "configs", "ppo.json"),
     }
 
-    directory = unique_directory(os.path.join(os.getcwd(), "model"))
+    directory, counter = unique_directory(os.path.join(os.getcwd(), "model"))
 
     try:
         # Deal with robot's models
@@ -92,7 +94,7 @@ def record_model_info(robot: str, opponent: str) -> None:
 
         # Deal with opponent's models
         if opponent == "human":
-            return robot_path, None
+            return robot_path, None, counter
 
         opponent_path = os.path.join(directory, "opponent")
         os.mkdir(opponent_path)
@@ -104,5 +106,19 @@ def record_model_info(robot: str, opponent: str) -> None:
     except KeyError:
         logger.error("Strategy not defined.")
 
+    from rl.RewardTracker import RewardTracker
+
+    with open(os.path.join(directory, "RewardTracker"), "w+") as file:
+        file.write(inspect.getsource(RewardTracker))  # Record reward info
+
     # Return base paths of models
-    return robot_path, opponent_path
+    return robot_path, opponent_path, counter
+
+
+def record_data_csv(folder: str, name: str, payload: Any) -> None:
+    """ Save data in csv """
+
+    with open(os.path.join("model", folder, name + ".csv"), "a") as file:
+        fieldnames = payload.keys()
+        writer = csv.DictWriter(file, fieldnames=fieldnames)
+        writer.writerow(payload)

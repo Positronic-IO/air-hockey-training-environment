@@ -1,12 +1,16 @@
 """ Track rewards """
 
+from datetime import datetime
 from typing import List, Tuple
 
 import numpy as np
 
 from environment.components import Goal, Mallet, Puck, Table
+from .MemoryBuffer import MemoryBuffer
+from .utils import record_data_csv
 
 from .helpers import gaussian
+from pytz import timezone
 
 
 class RewardTracker:
@@ -23,7 +27,7 @@ class RewardTracker:
         self.std = 50
 
         self.reward = 0
-        self.running_average = 0
+        self.average_stats = MemoryBuffer(capacity=50000)
 
         self.puck = None
         self.mallet = None
@@ -114,7 +118,7 @@ class RewardTracker:
 
         return -0.3
 
-    def __call__(self, puck: Puck, mallet: Mallet):
+    def __call__(self, puck: Puck, mallet: Mallet, folder: str = ""):
         """ Compute rewards """
 
         # rewards, point, done = self.compute_score_reward(puck)
@@ -122,5 +126,19 @@ class RewardTracker:
         # rewards += self.compute_puck_to_goal_velocity(puck)
         rewards, done = self.compute_mallet_hit_puck(puck, mallet)
         rewards += self.compute_mallet_to_puck_distance(puck, mallet)
+        self.average_stats.append(rewards)
+        if done and folder:
+            stats = np.array(self.average_stats.retreive())
+            mean_average = np.mean(stats)
+            record_data_csv(
+                folder,
+                f"rewards_{self.agent_name}",
+                {
+                    "created_at": datetime.now(timezone("America/Chicago")),
+                    "mean_reward": mean_average,
+                    "reward_per_episode": rewards,
+                },
+            )
+            self.average_stats.purge()
 
         return rewards, 0, done
