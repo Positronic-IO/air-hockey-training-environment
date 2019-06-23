@@ -70,16 +70,6 @@ class Train:
         # Cumulative wins
         self.robot_cumulative_win, self.opponent_cumulative_win = 0, 0
 
-        # Set up buffers for agent position and puck position
-        self.robot_location_buffer = MemoryBuffer(self.args["capacity"])
-        self.puck_location_buffer = MemoryBuffer(self.args["capacity"])
-        self.opponent_location_buffer = MemoryBuffer(self.args["capacity"])
-
-        # Set up buffers for agent velocity and puck velocity
-        self.robot_velocity_buffer = MemoryBuffer(self.args["capacity"])
-        self.puck_velocity_buffer = MemoryBuffer(self.args["capacity"])
-        self.opponent_velocity_buffer = MemoryBuffer(self.args["capacity"])
-
         # Update buffers
         self._update_buffers()
         logger.info("Connected to Redis")
@@ -93,8 +83,8 @@ class Train:
         """ Update redis buffers """
 
         data = self.redis.get("components")["components"]
-        puck_location = data["puck"]["location"]
-        robot_location = data["robot"]["location"]
+        self.puck_location = data["puck"]["location"]
+        self.robot_location = data["robot"]["location"]
 
         # Pull from browser instead of pygame
         if self.args["opponent"] == "human":
@@ -105,17 +95,9 @@ class Train:
         else:
             self.opponent_location = data["opponent"]["location"]
 
-        puck_velocity = data["puck"]["velocity"]
-        robot_velocity = data["robot"]["velocity"]
-        opponent_velocity = (0, 0) if self.opponent.agent_name == "human" else data["opponent"]["velocity"]
-
-        self.robot_location_buffer.append(tuple(robot_location))
-        self.puck_location_buffer.append(tuple(puck_location))
-        self.opponent_location_buffer.append(tuple(self.opponent_location))
-
-        self.robot_velocity_buffer.append(tuple(robot_velocity))
-        self.puck_velocity_buffer.append(tuple(puck_velocity))
-        self.opponent_velocity_buffer.append(tuple(opponent_velocity))
+        self.puck_velocity = data["puck"]["velocity"]
+        self.robot_velocity = data["robot"]["velocity"]
+        self.opponent_velocity = (0, 0) if self.opponent.agent_name == "human" else data["opponent"]["velocity"]
 
         return None
 
@@ -181,10 +163,10 @@ class Train:
 
             # Current state
             state = State(
-                robot_location=self.robot_location_buffer.retreive(),
-                puck_location=self.puck_location_buffer.retreive(),
-                robot_velocity=self.robot_velocity_buffer.retreive(),
-                puck_velocity=self.puck_velocity_buffer.retreive(),
+                robot_location=self.robot_location,
+                puck_location=self.puck_location,
+                robot_velocity=self.robot_velocity,
+                puck_velocity=self.puck_velocity,
             )
 
             # Determine next action
@@ -198,10 +180,10 @@ class Train:
 
             # New state
             new_state = State(
-                robot_location=self.robot_location_buffer.retreive(),
-                puck_location=self.puck_location_buffer.retreive(),
-                robot_velocity=self.robot_velocity_buffer.retreive(),
-                puck_velocity=self.puck_velocity_buffer.retreive(),
+                robot_location=self.robot_location,
+                puck_location=self.puck_location,
+                robot_velocity=self.robot_velocity,
+                puck_velocity=self.puck_velocity,
             )
 
             # Observation of the game at the moment
@@ -247,10 +229,10 @@ class Train:
 
             # Current state
             state = State(
-                robot_location=self.opponent_location_buffer.retreive(),
-                puck_location=self.puck_location_buffer.retreive(),
-                robot_velocity=self.opponent_velocity_buffer.retreive(),
-                puck_velocity=self.puck_velocity_buffer.retreive(),
+                robot_location=self.opponent_location,
+                puck_location=self.puck_location,
+                robot_velocity=self.opponent_velocity,
+                puck_velocity=self.puck_velocity,
             )
 
             # Determine next action
@@ -264,10 +246,10 @@ class Train:
 
             # New state
             new_state = State(
-                robot_location=self.opponent_location_buffer.retreive(),
-                puck_location=self.puck_location_buffer.retreive(),
-                robot_velocity=self.opponent_velocity_buffer.retreive(),
-                puck_velocity=self.puck_velocity_buffer.retreive(),
+                robot_location=self.opponent_location,
+                puck_location=self.puck_location,
+                robot_velocity=self.opponent_velocity,
+                puck_velocity=self.puck_velocity,
             )
 
             # Observation of the game at the moment
