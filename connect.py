@@ -100,6 +100,6 @@ class RedisConnection(BaseConnection):
         for key, value in payload.items():
             self.redis.set(key, self.serialize(value))
 
-    def publish(self, channel: str):
+    def publish(self, channel: str, payload: Any = True):
         """ Publish message """
-        self.redis.publish(channel, self.serialize(True))
+        self.redis.publish(channel, self.serialize(payload))
