@@ -45,7 +45,7 @@ class Predict:
         self.opponent.agent_name = "human" if self.args["opponent"] == "human" else "opponent"
 
         # We begin..
-        self.new, self.init, self.init_opponent = False, True, True
+        self.init, self.init_opponent = True, True
 
         # Cumulative scores
         self.robot_cumulative_score, self.opponent_cumulative_score = 0, 0
