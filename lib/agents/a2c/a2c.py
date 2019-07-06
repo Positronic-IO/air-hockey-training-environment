@@ -30,7 +30,6 @@ class A2C(Agent):
     def __init__(self, env: "AirHockey", train: bool):
         super().__init__(env)
 
-        self.version = "0.1.0"
         logger.info(f"Strategy defined for {self.name}: {self.__repr__()}")
 
         # Get size of state and action
@@ -72,6 +71,9 @@ class A2C(Agent):
 
         # Exploration Strategy
         self.exploration_strategy = SoftmaxPolicy(action_size=self.action_size)
+        
+    def __repr__(self):
+        return "A2C"
 
     def build_model(self) -> None:
         """ Create our Actor/Critic Models """

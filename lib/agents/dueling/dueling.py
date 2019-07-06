@@ -29,7 +29,6 @@ class Dueling(Agent):
     def __init__(self, env: "AirHockey", train: bool):
         super().__init__(env)
 
-        self.version = "0.3.0"
         logger.info(f"Strategy defined for {self.name}: {self.__repr__()}")
 
         # Get size of state and action
@@ -71,9 +70,6 @@ class Dueling(Agent):
         self.exploration_strategy = EpsilonGreedy(actions_size=self.action_size)
 
     def __repr__(self) -> str:
-        return f"{self.__str__()} {self.version}"
-
-    def __str__(self) -> str:
         return "Dueling DDQN"
 
     def transfer_weights(self) -> None:

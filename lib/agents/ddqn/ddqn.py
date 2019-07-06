@@ -26,7 +26,6 @@ class DDQN(Agent):
     def __init__(self, env: "AirHockey", train: bool, **kwargs):
         super().__init__(env)
 
-        self.version = "0.3.0"
         logger.info(f"Strategy defined for {self.name}: {self.__repr__()}")
 
         # Get size of state and action
@@ -47,7 +46,7 @@ class DDQN(Agent):
         self.train = train
 
         # Model load and save paths
-        self.load_path = None if not config["load"] else config["load"]
+        self.load_path = config.get("load")
         self.save_path = None
 
         # Model construction
@@ -60,9 +59,6 @@ class DDQN(Agent):
         self.exploration_strategy = EpsilonGreedy(action_size=self.action_size)
 
     def __repr__(self) -> str:
-        return f"{self.__str__()} {self.version}"
-
-    def __str__(self) -> str:
         return "DDQN"
 
     def build_model(self) -> None:

@@ -30,7 +30,6 @@ class c51(Agent):
     def __init__(self, env: "AirHockey", train: bool):
         super().__init__(env)
 
-        self.version = "0.2.0"
         logger.info(f"Strategy defined for {self.name}: {self.__repr__()}")
 
         # Get size of state and action
@@ -81,9 +80,6 @@ class c51(Agent):
         self.exploration_strategy = EpsilonGreedy(action_size=self.action_size)
 
     def __repr__(self) -> str:
-        return f"{self.__str__()} {self.version}"
-
-    def __str__(self) -> str:
         return "c51 DDQN"
 
     def transfer_weights(self) -> None:

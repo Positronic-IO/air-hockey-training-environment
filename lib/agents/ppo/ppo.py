@@ -32,7 +32,6 @@ class PPO(Agent):
         super().__init__(env)
 
         logger.info(f"Strategy defined for {self.name}: {self.__repr__()}")
-        self.version = "0.1.0"
 
         # Are we doing continuous or discrete PPO?
         self.continuous = config["continuous"]
@@ -83,11 +82,8 @@ class PPO(Agent):
         self.exploration_strategy = SoftmaxPolicy(action_size=self.action_size)
         self.noise_strategy = GaussianWhiteNoiseProcess(size=self.action_size)
 
-    def __str__(self):
-        return f"{self.__class__.__name__} Continuous" if self.continuous else self.__class__.__name__
-
     def __repr__(self):
-        return f"{self.__str__()} {self.version}"
+        return f"{self.__class__.__name__} Continuous" if self.continuous else self.__class__.__name__
 
     def build_model(self) -> None:
         """ Create our Actor/Critic Models """
