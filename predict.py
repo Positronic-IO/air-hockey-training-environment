@@ -81,20 +81,18 @@ class Predict:
         # Update buffers
         self._update_buffers()
 
-        # Current state
-        state = State(
-            robot_location=self.robot_location,
-            puck_location=self.puck_location,
-            robot_velocity=self.robot_velocity,
-            puck_velocity=self.puck_velocity,
-        )
-
         # Determine next action
-        action = self.robot.get_action(state)
+        action = self.robot.get_action()
         logger.debug(f"Robot took action: {action}")
 
         # Update game state
         self.robot.move(action)
+
+        # Take a new step in the MDP
+        score, _ = self.robot.step(action)
+
+        # Update environment if the action we took was one that scores
+        self.env.update_score(score)
 
         # Update buffers
         self._update_buffers()
@@ -105,6 +103,15 @@ class Predict:
         # Human opponent
         if self.opponent.name == "human":
             self.opponent.move(self.opponent_location)
+            score = 0
+            if self.env.puck in self.env.left_goal:
+                score = -1
+
+            if self.env.puck in self.env.right_goal:
+                score = 1
+
+            # Update environment if the action we took was one that scores
+            self.env.update_score(score)
             return None
 
         # ---RL opponent----
@@ -112,20 +119,18 @@ class Predict:
         # Update buffers
         self._update_buffers()
 
-        # Current state
-        state = State(
-            robot_location=self.opponent_location,
-            puck_location=self.puck_location,
-            robot_velocity=self.opponent_velocity,
-            puck_velocity=self.puck_velocity,
-        )
-
         # Determine next action
-        action = self.opponent.get_action(state)
+        action = self.opponent.get_action()
         logger.debug(f"Opponent took action: {action}")
 
         # Update game state
         self.opponent.move(action)
+
+        # Take a new step in the MDP
+        score, _ = self.opponent.step(action)
+
+        # Update environment if the action we took was one that scores
+        self.env.update_score(score)
 
         # Update buffers
         self._update_buffers()
