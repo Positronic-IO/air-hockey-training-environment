@@ -146,7 +146,7 @@ class A2C(Agent):
             self.memory.purge()
 
         # Save model
-        if self.t % self.iterations_on_save == 0:
+        if self.train and self.t % self.timestep_per_train == 0:
             self.save_model()
             self.env.redis.publish("save-checkpoint", self.name)
 

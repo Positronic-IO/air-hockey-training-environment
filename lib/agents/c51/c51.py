@@ -197,7 +197,7 @@ class c51(Agent):
             self.model.fit(state_inputs, m_prob, batch_size=self.batch_size, epochs=self.epochs, verbose=0)
 
         # Save model
-        if self.t % self.timestep_per_train == 0:
+        if self.train and self.t % self.timestep_per_train == 0:
             self.save_model()
             self.env.redis.publish("save-checkpoint", self.name)
 

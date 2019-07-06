@@ -124,7 +124,7 @@ class DDQN(Agent):
                 self.model.fit(flattend_state, target, batch_size=self.batch_size, epochs=1, verbose=0)
 
         # Save model
-        if self.t % self.timestep_per_train == 0:
+        if self.train and self.t % self.timestep_per_train == 0:
             self.save_model()
             self.env.redis.publish("save-checkpoint", self.name)
 
