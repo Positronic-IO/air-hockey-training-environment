@@ -216,6 +216,6 @@ class c51(Agent):
         """ Save a model's weights """
 
         # Create path with epoch number
-        path = os.path.join(self.save_path, "c51.h5")
+        path = os.path.join(self.save_path, "model.h5")
         logger.info(f"Saving model to: {self.save_path}")
         self.model.save_weights(path, overwrite=True)
