@@ -43,13 +43,6 @@ class DDQN(Agent):
         self.sync_target_interval = config["params"]["sync_target_interval"]
         self.timestep_per_train = config["params"]["timestep_per_train"]
 
-        self.actions = kwargs.get("action_size", 4)
-        self.epsilon = kwargs.get("epsilon", 1)
-        self.initial_epsilon = kwargs.get("initial_epsilon", 1)
-        self.final_epsilon = kwargs.get("final_epsilon", 0.001)
-        self.observe = kwargs.get("observe", 2000)
-        self.explore = kwargs.get("explore", 50000)
-
         # Are we training?
         self.train = train
 
