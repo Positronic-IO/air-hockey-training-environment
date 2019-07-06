@@ -258,6 +258,9 @@ class Train:
 
                 # Play a frame
                 self.play()
+                
+                if int(self.args["fps"]) > 0:
+                    time.sleep(1 / int(self.args["fps"]))
 
             else:
                 logger.info("Training time elasped")
@@ -271,6 +274,7 @@ if __name__ == "__main__":
     parser.add_argument("-r", "--robot", help="Robot strategy")
     parser.add_argument("-o", "--opponent", help="Opponent strategy")
     parser.add_argument("-t", "--time", default=3, help="Time per train. Units in hours. (Default to 3 hours)")
+    parser.add_argument("--fps", default=-1, help="Frame per second")
     args = vars(parser.parse_args())
 
     # Validation
