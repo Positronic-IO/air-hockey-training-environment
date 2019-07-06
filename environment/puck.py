@@ -140,6 +140,10 @@ class Puck:
                 return True
         else:
             # Check to see if there is any intersection in the x-axis
+            if hasattr(component, "radius") and abs(self.x - component.x) < self.radius + component.radius:
+                return True
+
+            # Check to see if there is any intersection in the x-axis
             if abs(self.x - component.x) < self.radius:
                 return True
 
@@ -155,6 +159,11 @@ class Puck:
                 return True
 
         else:
+            # Check to see if there is any intersection in the x-axis
+            if hasattr(component, "radius") and abs(self.y - component.y) < self.radius + component.radius:
+                return True
+
+            # Check to see if there is any intersection in the x-axis
             if abs(self.y - component.y) < self.radius:
                 return True
 
@@ -164,7 +173,7 @@ class Puck:
     def __lshift__(self, table: Table) -> bool:
         """ Determine if the puck and the left side of table overlap """
 
-        if abs(self.x - table.left_wall) <= self.radius:
+        if abs(self.x - table.left_wall) < self.radius:
             return True
 
         # No intersection
@@ -173,7 +182,7 @@ class Puck:
     def __rshift__(self, table: Table) -> bool:
         """ Determine if the puck and the right side of table overlap """
 
-        if abs(self.x - table.right_wall) <= self.radius:
+        if abs(self.x - table.right_wall) < self.radius:
             return True
 
         # No intersection
