@@ -1,5 +1,4 @@
 """ Environment Config """
-import types
 
 # Table config
 table = {"size": (900, 480), "width_offset": (27, 40), "x_offset": 38}
