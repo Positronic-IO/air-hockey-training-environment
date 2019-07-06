@@ -48,21 +48,21 @@ class Rewards:
     def compute_wall_reward(self, puck: Puck) -> float:
         """ Compute reward for puck hitting opponent's wall """
 
-        score = 0
+        reward = 0
 
         # Hit robot's wall
         if puck << self.table:
-            # score = -1 * gaussian(puck.y, self.left_goal.y, self.std)
-            score = -1 * 2
+            # reward = -1 * gaussian(puck.y, self.left_goal.y, self.std)
+            reward = -1 * 2
 
         # Hit opponent's wall
         if puck >> self.table:
-            # score = gaussian(puck.y, self.right_goal.y, self.std)
-            score = 2
+            # reward = gaussian(puck.y, self.right_goal.y, self.std)
+            reward = 2
 
         # If we are tracking the reward of the opponent, then flip things around
-        score = score if self.agent_name == "robot" else -1 * score
-        return score
+        reward = reward if self.agent_name == "robot" else -1 * reward
+        return reward
 
     def compute_score_reward(self, puck: "Puck") -> Tuple[int, int, bool]:
         """ Compute reward for puck hitting opponent's wall """
