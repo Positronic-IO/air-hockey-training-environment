@@ -10,13 +10,14 @@ from datetime import datetime
 from typing import Dict, Union
 
 import numpy as np
-from pytz import timezone
 import redis
+from pytz import timezone
 
-from connect import RedisConnection
 from environment import AirHockey
-from rl import MemoryBuffer, Strategy
-from rl.utils import Observation, State, record_model_info, record_data_csv
+from lib.strategy import Strategy
+from lib.connect import RedisConnection
+from lib.types import Observation, State
+from lib.utils.io import record_data_csv, record_model_info
 
 # Initiate Logger
 logging.basicConfig(level=logging.INFO)
@@ -37,19 +38,19 @@ class Train:
         self.env = AirHockey()
 
         # Set up our robot
-        self.robot = Strategy().make(env=self.env, strategy=self.args["robot"], train=True)
-        self.robot.agent_name = "robot"
+        self.robot = Strategy.make(env=self.env, strategy=self.args["robot"], train=True)
+        self.robot.name = "robot"
 
         # # Set up our opponent. The opponent can also be a human player.
-        self.opponent = Strategy().make(env=self.env, strategy=self.args["opponent"], train=True)
-        self.opponent.agent_name = "human" if self.args["opponent"] == "human" else "opponent"
+        self.opponent = Strategy.make(env=self.env, strategy=self.args["opponent"], train=True)
+        self.opponent.name = "human" if self.args["opponent"] == "human" else "opponent"
 
         # Save model architectures with an unique run id
         robot_path, opponent_path, counter = record_model_info(self.args["robot"], self.args["opponent"])
 
         # Paths to save models
         self.robot.save_path = robot_path
-        if self.opponent.agent_name != "human":
+        if self.opponent.name != "human":
             self.opponent.save_path = opponent_path
 
         # We begin..
@@ -91,7 +92,7 @@ class Train:
 
         self.puck_velocity = data["puck"]["velocity"]
         self.robot_velocity = data["robot"]["velocity"]
-        self.opponent_velocity = (0, 0) if self.opponent.agent_name == "human" else data["opponent"]["velocity"]
+        self.opponent_velocity = (0, 0) if self.opponent.name == "human" else data["opponent"]["velocity"]
 
         return None
 
@@ -152,40 +153,25 @@ class Train:
             # Update buffers
             self._update_buffers()
 
-            # Current state
-            state = State(
-                robot_location=self.robot_location,
-                puck_location=self.puck_location,
-                robot_velocity=self.robot_velocity,
-                puck_velocity=self.puck_velocity,
-            )
-
             # Determine next action
-            action = self.robot.get_action(state)
+            action = self.robot.get_action()
 
             # Update game state
             self.robot.move(action)
 
+            # Take a new step in the MDP
+            score, observation = self.robot.step(action)
+
             # Update buffers
             self._update_buffers()
+            
+            # Update environment if the action we took was one that scores
+            self.env.update_score(score)
 
-            # New state
-            new_state = State(
-                robot_location=self.robot_location,
-                puck_location=self.puck_location,
-                robot_velocity=self.robot_velocity,
-                puck_velocity=self.puck_velocity,
-            )
+            # Save stats to CSV
+            self.stats()
 
-            # Observation of the game at the moment
-            observation = Observation(
-                state=state, action=action, reward=self.env.robot_reward, done=self.env.robot_done, new_state=new_state
-            )
-
-            # Update model
-            self.robot.update(observation)
-
-        # Save stats to Mongo
+        # Save stats to CSV
         self.stats()
 
         return None
@@ -194,7 +180,7 @@ class Train:
         """ Opponent player """
 
         # If the opponent is human
-        if self.opponent.agent_name == "human":
+        if self.opponent.name == "human":
             self.opponent.move(self.opponent_location)
             return None
 
@@ -218,44 +204,22 @@ class Train:
             # Update buffers
             self._update_buffers()
 
-            # Current state
-            state = State(
-                robot_location=self.opponent_location,
-                puck_location=self.puck_location,
-                robot_velocity=self.opponent_velocity,
-                puck_velocity=self.puck_velocity,
-            )
-
             # Determine next action
-            action = self.opponent.get_action(state)
+            action = self.opponent.get_action()
 
             # Update game state
             self.opponent.move(action)
 
+            # Take a new step in the MDP
+            score, observation = self.opponent.step(action)
+
             # Update buffers
             self._update_buffers()
 
-            # New state
-            new_state = State(
-                robot_location=self.opponent_location,
-                puck_location=self.puck_location,
-                robot_velocity=self.opponent_velocity,
-                puck_velocity=self.puck_velocity,
-            )
+            # Update environment if the action we took was one that scores
+            self.env.update_score(score)
 
-            # Observation of the game at the moment
-            observation = Observation(
-                state=state,
-                action=action,
-                reward=self.env.opponent_reward,  # Opposite reward of our agent, only works for current reward settings
-                done=self.env.opponent_done,
-                new_state=new_state,
-            )
-
-            # Update model
-            self.opponent.update(observation)
-
-            # Save stats to Mongo
+            # Save stats to CSV
             self.stats()
 
         return None

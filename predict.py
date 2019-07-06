@@ -7,21 +7,17 @@ import time
 from typing import Dict, Union
 
 import numpy as np
-from redis import ConnectionError
+import redis
 
-from connect import RedisConnection
 from environment import AirHockey
-from rl import MemoryBuffer, Strategy
-from rl.utils import Observation, State
+from lib.connect import RedisConnection
+from lib.strategy import Strategy
+from lib.types import Observation, State
 
 # Initiate logger
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
-
-import pygame
-
-pygame.init()
 
 
 class Predict:
@@ -37,12 +33,12 @@ class Predict:
         self.env = AirHockey()
 
         # Set up our robot
-        self.robot = Strategy().make(env=self.env, strategy=self.args["robot"], train=False)
-        self.robot.agent_name = "robot"
+        self.robot = Strategy.make(env=self.env, strategy=self.args["robot"], train=False)
+        self.robot.name = "robot"
 
         # Set up our opponent. The opponent can also be a human player.
-        self.opponent = Strategy().make(env=self.env, strategy=self.args["opponent"], train=False)
-        self.opponent.agent_name = "human" if self.args["opponent"] == "human" else "opponent"
+        self.opponent = Strategy.make(env=self.env, strategy=self.args["opponent"], train=False)
+        self.opponent.name = "human" if self.args["opponent"] == "human" else "opponent"
 
         # We begin..
         self.init, self.init_opponent = True, True
@@ -75,7 +71,7 @@ class Predict:
 
         self.puck_velocity = data["puck"]["velocity"]
         self.robot_velocity = data["robot"]["velocity"]
-        self.opponent_velocity = (0, 0) if self.opponent.agent_name == "human" else data["opponent"]["velocity"]
+        self.opponent_velocity = (0, 0) if self.opponent.name == "human" else data["opponent"]["velocity"]
 
         return None
 
@@ -107,7 +103,7 @@ class Predict:
         """ Opponent player """
 
         # Human opponent
-        if self.opponent.agent_name == "human":
+        if self.opponent.name == "human":
             self.opponent.move(self.opponent_location)
             return None
 
@@ -191,7 +187,7 @@ if __name__ == "__main__":
     # Run program
     try:
         predict = Predict(args)
-    except ConnectionError:
+    except redis.ConnectionError:
         logger.error("Cannot connect to Redis. Please make sure Redis is up and active.")
         sys.exit()
 
