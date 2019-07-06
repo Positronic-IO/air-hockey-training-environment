@@ -31,7 +31,21 @@ def unique_directory(directory: str) -> str:
 def record_model_info(robot: str, opponent: str) -> None:
     """ Record model information """
 
-    from lib.strategy import Strategy
+    from lib.agents.a2c import model as a2c_model
+    from lib.agents.a2c_1 import model as a2c_1_model
+    from lib.agents.c51 import model as c51_model
+    from lib.agents.ddqn import model as ddqn_model
+    from lib.agents.dueling import model as dueling_model
+    from lib.agents.ppo import model as ppo_model
+
+    strategies = {
+        "a2c": a2c_1_model,
+        "a2c_1": a2c_1_model,
+        "c51": c51_model,
+        "ddqn": ddqn_model,
+        "dueling": dueling_model,
+        "ppo": ppo_model,
+    }
 
     directory, counter = unique_directory(os.path.join(os.getcwd(), "model"))
 
@@ -40,8 +54,8 @@ def record_model_info(robot: str, opponent: str) -> None:
         robot_path = os.path.join(directory, "robot")
         os.mkdir(robot_path)
 
-        with open(os.path.join(robot_path, f"{Strategy.strategies.get(robot).__name__}.py"), "w+") as file:
-            file.write(inspect.getsource(Strategy.strategies.get(robot)))  # Record model info
+        with open(os.path.join(robot_path, "model.py"), "w+") as file:
+            file.write(inspect.getsource(strategies.get(robot)))  # Record model info
             shutil.copy(
                 os.path.join("lib", "agents", robot, "config.py"), robot_path
             )  # Record hyperparameters for model
@@ -53,8 +67,8 @@ def record_model_info(robot: str, opponent: str) -> None:
         os.mkdir(opponent_path)
 
         # Deal with opponent's models
-        with open(os.path.join(opponent_path, f"{Strategy.strategies.get(opponent).__name__}.py"), "w+") as file:
-            file.write(inspect.getsource(Strategy.strategies.get(opponent)))  # Record model info
+        with open(os.path.join(opponent_path, "model.py"), "w+") as file:
+            file.write(inspect.getsource(strategies.get(opponent)))  # Record model info
             shutil.copy(
                 os.path.join("lib", "agents", opponent, "config.py"), opponent_path
             )  # Record hyperparameters for model
@@ -62,10 +76,10 @@ def record_model_info(robot: str, opponent: str) -> None:
     except KeyError:
         logger.error("Strategy not defined.")
 
-    with open(os.path.join(directory, "Rewards.py"), "w+") as file:
-        from lib.rewards import Rewards
+    with open(os.path.join(directory, "rewards.py"), "w+") as file:
+        from lib import rewards
 
-        file.write(inspect.getsource(Rewards))  # Record reward info
+        file.write(inspect.getsource(rewards))  # Record reward info
 
     # Return base paths of models
     return robot_path, opponent_path, counter
