@@ -28,7 +28,16 @@ def unique_directory(directory: str) -> str:
             return path, counter
 
 
-def record_model_info(robot: str, opponent: str) -> None:
+def record_reward(directory: str) -> None:
+    """ Save reward file """
+    
+    with open(os.path.join(directory, "rewards.py"), "w+") as file:
+        from lib import rewards
+
+        file.write(inspect.getsource(rewards))
+
+
+def record_model(directory: str, robot: str, opponent: str) -> None:
     """ Record model information """
 
     from lib.agents.a2c import model as a2c_model
@@ -47,8 +56,6 @@ def record_model_info(robot: str, opponent: str) -> None:
         "ppo": ppo_model,
     }
 
-    directory, counter = unique_directory(os.path.join(os.getcwd(), "model"))
-
     try:
         # Deal with robot's models
         robot_path = os.path.join(directory, "robot")
@@ -61,7 +68,7 @@ def record_model_info(robot: str, opponent: str) -> None:
             )  # Record hyperparameters for model
 
         if opponent == "human":
-            return robot_path, None, counter
+            return robot_path, None
 
         opponent_path = os.path.join(directory, "opponent")
         os.mkdir(opponent_path)
@@ -76,13 +83,8 @@ def record_model_info(robot: str, opponent: str) -> None:
     except KeyError:
         logger.error("Strategy not defined.")
 
-    with open(os.path.join(directory, "rewards.py"), "w+") as file:
-        from lib import rewards
-
-        file.write(inspect.getsource(rewards))  # Record reward info
-
     # Return base paths of models
-    return robot_path, opponent_path, counter
+    return robot_path, opponent_path, directory
 
 
 def record_data_csv(folder: str, name: str, payload: Any) -> None:

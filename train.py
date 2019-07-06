@@ -17,7 +17,7 @@ from environment import AirHockey
 from lib.strategy import Strategy
 from lib.connect import RedisConnection
 from lib.types import Observation, State
-from lib.utils.io import record_data_csv, record_model_info
+from lib.utils.io import record_data_csv, record_model, unique_directory, record_reward
 
 # Initiate Logger
 logging.basicConfig(level=logging.INFO)
@@ -45,8 +45,10 @@ class Train:
         self.opponent = Strategy.make(env=self.env, strategy=self.args["opponent"], train=True)
         self.opponent.name = "human" if self.args["opponent"] == "human" else "opponent"
 
-        # Save model architectures with an unique run id
-        robot_path, opponent_path, counter = record_model_info(self.args["robot"], self.args["opponent"])
+        # Save model architectures and rewards with an unique run id
+        directory, counter = unique_directory(os.path.join(os.getcwd(), "model"))
+        robot_path, opponent_path = record_model(directory, self.args["robot"], self.args["opponent"])
+        record_reward(directory)
 
         # Paths to save models
         self.robot.save_path = robot_path
@@ -164,7 +166,7 @@ class Train:
 
             # Update buffers
             self._update_buffers()
-            
+
             # Update environment if the action we took was one that scores
             self.env.update_score(score)
 
