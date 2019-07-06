@@ -131,41 +131,15 @@ class Puck:
 
         return self.dx, self.dy
 
-    def __and__(self, component: Union["Mallet", "Goal", "Table"]) -> bool:
+    def __and__(self, mallet: "Mallet") -> bool:
         """ Determine if the puck and other objects overlap """
 
-        if component.__class__.__name__.lower() == "table":
-            # Check to see if there is any intersection in the x-axis
-            if abs(self.x - component.left_wall) < self.radius or abs(component.right_wall - self.x) < self.radius:
-                return True
-        else:
-            # Check to see if there is any intersection in the x-axis
-            if hasattr(component, "radius") and abs(self.x - component.x) < self.radius + component.radius:
-                return True
+        distance = np.sqrt((self.x - mallet.x) ** 2 + (self.y - mallet.y) ** 2)
+        radius = self.radius + mallet.radius
 
-            # Check to see if there is any intersection in the x-axis
-            if abs(self.x - component.x) < self.radius:
-                return True
-
-        # No intersection
-        return False
-
-    def __or__(self, component: Union["Mallet", "Goal"]) -> bool:
-        """ Determine if the puck and other objects overlap (y-axis) """
-
-        if component.__class__.__name__.lower() == "goal":
-            # Check to see if there is any intersection in the x-axis
-            if abs(self.y - component.y) < 95:
-                return True
-
-        else:
-            # Check to see if there is any intersection in the x-axis
-            if hasattr(component, "radius") and abs(self.y - component.y) < self.radius + component.radius:
-                return True
-
-            # Check to see if there is any intersection in the x-axis
-            if abs(self.y - component.y) < self.radius:
-                return True
+        # Check to see if there is any intersection
+        if distance < radius:
+            return True
 
         # No intersection
         return False

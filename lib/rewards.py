@@ -86,7 +86,7 @@ class Rewards:
     def compute_mallet_hit_puck(self, puck: "Puck", mallet: "Mallet") -> float:
         """ Determine if mallet hit puck """
 
-        if puck & mallet and puck | mallet:
+        if puck & mallet:
             return 3, True
 
         return -1, False

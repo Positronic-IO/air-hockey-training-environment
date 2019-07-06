@@ -112,11 +112,11 @@ class AirHockey:
 
         # Determine puck physics
         # If the mallet is in the neighborhood of the puck, do stuff.
-        if self.puck & self.robot and self.puck | self.robot:
+        if self.puck & self.robot:
             self.puck.dx = -3 * self.puck.dx + self.robot.dx
             self.puck.dy = -3 * self.puck.dy + self.robot.dy
 
-        if self.puck & self.opponent and self.puck | self.opponent:
+        if self.puck & self.opponent:
             self.puck.dx = -3 * self.puck.dx + self.opponent.dx
             self.puck.dy = -3 * self.puck.dy + self.opponent.dy
 
