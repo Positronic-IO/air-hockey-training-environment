@@ -16,8 +16,6 @@ from lib.utils.io import record_data_csv
 
 class Rewards:
 
-    scores = {"point": 1, "loss": -1}
-
     def __init__(self, name: str, left_goal: "Goal", right_goal: "Goal", table: "Table"):
 
         self.table = table
@@ -72,17 +70,16 @@ class Rewards:
         score, reward = 0, 0
 
         # Robot Scored
-        if puck & self.right_goal and puck | self.right_goal:
-            score = self.scores["point"]
+        if puck in self.right_goal:
+            score = 1
             reward = 4 if self.agent_name == "robot" else -4
 
         # Opponent Scored
-        if puck & self.left_goal and puck | self.left_goal:
-            score = self.scores["loss"]
+        if puck in self.left_goal:
+            score = -1
             reward = -4 if self.agent_name == "robot" else 4
 
         # If we are tracking the reward of the opponent, then flip things around
-        score = score if self.agent_name == "robot" else -1 * score
         done = True if abs(score) > 0 else False
         return reward, score, done
 
