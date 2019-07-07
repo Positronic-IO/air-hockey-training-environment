@@ -86,7 +86,7 @@ class DDQN(Agent):
         """ Apply an espilon-greedy policy to pick next action """
 
         # Compute rewards for any posible action
-        q_values = self.model.predict(serialize_state(state))[0]
+        q_values = self.model.predict(serialize_state(state)).flatten()
         assert q_values.shape == (self.action_size,), f"Q-values with shape {q_values.shape} have the wrong dimensions"
         return self.exploration_strategy.step(q_values) if self.train else np.argmax(q_values)
 
@@ -107,21 +107,25 @@ class DDQN(Agent):
             for observation in minibatch:
                 flattend_state = serialize_state(observation.state)
                 flattend_new_state = serialize_state(observation.new_state)
-                target = self.model.predict(flattend_new_state)
-
+                target = self.model.predict(flattend_new_state).flatten()
+                assert target.shape == (
+                    self.action_size,
+                ), f"Q-values with shape {target.shape} have the wrong dimensions"
                 if observation.done:
                     # Sync Target Model
                     self.update_target_model()
 
                     # Update action we should take, then break out of loop
-                    target[0][observation.action] = observation.reward
+                    target[observation.action] = observation.reward
                 else:
-                    t = self.target_model.predict(flattend_new_state)
-
+                    t = self.target_model.predict(flattend_new_state).flatten()
+                    assert t.shape == (self.action_size,), f"Q-values with shape {t.shape} have the wrong dimensions"
                     # Update action we should take
-                    target[0][observation.action] = observation.reward + self.gamma * np.argmax(t[0])
+                    target[observation.action] = observation.reward + self.gamma * np.argmax(t)
 
-                self.model.fit(flattend_state, target, batch_size=self.batch_size, epochs=1, verbose=0)
+                self.model.fit(
+                    flattend_state, np.expand_dims(target, axis=0), batch_size=self.batch_size, epochs=1, verbose=0
+                )
 
         # Save model
         if self.train and self.t % self.timestep_per_train == 0:

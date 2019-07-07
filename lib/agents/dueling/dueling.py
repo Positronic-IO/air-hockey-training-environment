@@ -67,7 +67,7 @@ class Dueling(Agent):
         self.t = 0
 
         # Exploration Policy
-        self.exploration_strategy = EpsilonGreedy(actions_size=self.action_size)
+        self.exploration_strategy = EpsilonGreedy(action_size=self.action_size)
 
     def __repr__(self) -> str:
         return "Dueling DDQN"
@@ -76,7 +76,7 @@ class Dueling(Agent):
         """ Transfer model weights to target model with a factor of Tau """
 
         if self.param_noise:
-            tau = np.random.uniform(-0.15, 0.15)
+            tau = np.random.uniform(0, 0.15)
             W, target_W = self.model.get_weights(), self.target_model.get_weights()
             for i in range(len(W)):
                 target_W[i] = tau * W[i] + (1 - tau) * target_W[i]
@@ -116,7 +116,7 @@ class Dueling(Agent):
         """ Apply an espilon-greedy policy to pick next action """
 
         # Compute rewards for any posible action
-        q_values = self.model.predict(serialize_state(state))[0]
+        q_values = self.model.predict(serialize_state(state)).flatten()
         assert q_values.shape == (self.action_size,), f"Q-values with shape {q_values.shape} have the wrong dimensions"
         return self.exploration_strategy.step(q_values) if self.train else np.argmax(q_values)
 
@@ -157,18 +157,25 @@ class Dueling(Agent):
             target_val = self.model.predict(update_target)
             target_val_ = self.target_model.predict(update_target)
 
+            assert target.shape == ((num_samples,) + (1, self.action_size)), f"target shape is {target.shape}"
+            assert target_val.shape == (
+                (num_samples,) + (1, self.action_size)
+            ), f"target_val shape is {target_val.shape}"
+            assert target_val_.shape == (
+                (num_samples,) + (1, self.action_size)
+            ), f"target_val_ shape is {target_val_.shape}"
+
             for i in range(num_samples):
                 # like Q Learning, get maximum Q value at s'
                 # But from target model
-
                 if done[i]:
-                    target[i][action[i]] = reward[i]
+                    target[i][0][action[i]] = reward[i]
                 else:
                     # the key point of Double DQN
                     # selection of action is from model
                     # update is from target model
-                    a = np.argmax(target_val[i])
-                    target[i][action[i]] = reward[i] + self.gamma * (target_val_[i][a])
+                    a = np.argmax(target_val[i][0])
+                    target[i][0][action[i]] = reward[i] + self.gamma * (target_val_[i][0][a])
 
             self.model.fit(update_input, target, batch_size=self.batch_size, epochs=1, verbose=0)
 

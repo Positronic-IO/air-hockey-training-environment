@@ -84,7 +84,7 @@ def record_model(directory: str, robot: str, opponent: str) -> None:
         logger.error("Strategy not defined.")
 
     # Return base paths of models
-    return robot_path, opponent_path, directory
+    return robot_path, opponent_path
 
 
 def record_data_csv(folder: str, name: str, payload: Any) -> None:

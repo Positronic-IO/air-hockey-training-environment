@@ -3,6 +3,7 @@ import numpy as np
 from typing import Tuple
 
 
+
 class SoftmaxPolicy:
     """ Implement softmax policy for multinimial distribution
 
@@ -117,6 +118,6 @@ class MaxBoltzmannQPolicy:
         if np.random.uniform(0, 1) < self.epsilon:
             exp_values = np.exp(np.clip(q_values / self.tau, self.clip[0], self.clip[1]))
             probs = exp_values / np.sum(exp_values)
-        return np.random.choice(self.action_size, p=np.nan_to_num(probs))
+            return np.random.choice(self.action_size, p=np.nan_to_num(probs))
 
         return np.argmax(q_values)

@@ -1,10 +1,10 @@
 """ NoisyNet Dense Layer """
 
 import numpy as np
-from tensorflow.keras import activations
-from tensorflow.keras import backend as K
-from tensorflow.keras import constraints, initializers, regularizers
-from tensorflow.keras.layers import Layer
+from keras import activations
+from keras import backend as K
+from keras import constraints, initializers, regularizers
+from keras.layers import Layer
 
 
 class NoisyDense(Layer):
