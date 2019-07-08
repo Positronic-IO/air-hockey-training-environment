@@ -225,7 +225,7 @@ class AirHockey:
         distance = np.sqrt(distance_squared)
 
         # normal of collision
-        ncoll = d / distance
+        ncoll = (d / distance) if distance > 0 else d
 
         # penetration distance
         dcoll = radius - d
@@ -236,8 +236,8 @@ class AirHockey:
         # separation vector
         if correction:
             # For floating point corrections
-            percent = 0.2  # usually 20% to 80%
-            slop = 0.01  # usually 0.01 to 0.1
+            percent = config.physics["percent"]  # usually 20% to 80%
+            slop = config.physics["slop"]  # usually 0.01 to 0.1
             separation_vector = (np.max(dcoll - slop, 0) / imass_sum) * percent * ncoll
         else:
             separation_vector = (dcoll / imass_sum) * ncoll
@@ -261,7 +261,7 @@ class AirHockey:
             return True  # we did collide
 
         # coefficient of restitution in range [0, 1].
-        cor = 0.98  # air hockey -> high cor
+        cor = config.physics["restitution"]  # air hockey -> high cor
 
         # collision impulse
         j = -(1.0 + cor) * (vn / imass_sum)
