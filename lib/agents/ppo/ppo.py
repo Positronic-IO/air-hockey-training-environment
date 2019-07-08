@@ -31,8 +31,6 @@ class PPO(Agent):
     def __init__(self, env: "AirHockey", train: bool):
         super().__init__(env)
 
-        logger.info(f"Strategy defined for {self.name}: {self.__repr__()}")
-
         # Are we doing continuous or discrete PPO?
         self.continuous = config["continuous"]
         # Are we training?
@@ -70,7 +68,7 @@ class PPO(Agent):
         self.build_model()
 
         # Noise (Continuous)
-        self.noise = config["noise"]
+        self.noise = config["params"]["noise"]
 
         # Keep up with the iterations
         self.t = 0
@@ -81,6 +79,8 @@ class PPO(Agent):
         # Exploration and Noise Strategy
         self.exploration_strategy = SoftmaxPolicy(action_size=self.action_size)
         self.noise_strategy = GaussianWhiteNoiseProcess(size=self.action_size)
+        
+        logger.info(f"Strategy defined for {self.name}: {self.__repr__()}")
 
     def __repr__(self):
         return f"{self.__class__.__name__} Continuous" if self.continuous else self.__class__.__name__
@@ -117,7 +117,7 @@ class PPO(Agent):
         """ Return a random action (discrete space) """
         q_values = self.actor_model.predict(
             [serialize_state(state), np.zeros(shape=(1, 1)), np.zeros(shape=(1, self.action_size))]
-        )[0]
+        )[0][0]
 
         # Sanity check
         assert q_values.shape == (
@@ -185,7 +185,7 @@ class PPO(Agent):
         # Save model
         if self.train and self.t % self.timestep_per_train == 0:
             self.save_model()
-            self.env.redis.publish("save-checkpoint", self.agent_name)
+            self.env.redis.publish("save-checkpoint", self.name)
 
         self.t += 1
 

@@ -2,9 +2,8 @@
 
 from typing import Tuple, Union
 
-import tensorflow as tf
-from tensorflow.keras import backend as K
-from tensorflow.keras.layers import (
+from keras import backend as K
+from keras.layers import (
     LSTM,
     BatchNormalization,
     Dense,
@@ -17,8 +16,8 @@ from tensorflow.keras.layers import (
     add,
     Activation
 )
-from tensorflow.keras.models import Model, Sequential, load_model
-from tensorflow.keras.optimizers import Adam, RMSprop
+from keras.models import Model, Sequential, load_model
+from keras.optimizers import Adam, RMSprop
 
 from lib.utils.helpers import huber_loss
 from lib.utils.noisy_dense import NoisyDense
