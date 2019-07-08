@@ -32,8 +32,9 @@ class Puck:
         self.dy = dy
 
         # Mass
-        self.mass = config.puck["mass"]  # Units are kg, converted from oz
-
+        self.mass = config.puck["mass"]
+        self.imass = 1.0 / self.mass  # Inverse mass
+        
         # Initial puck position
         self.puck_start_x = self.x
         self.puck_start_y = self.y
@@ -74,15 +75,15 @@ class Puck:
 
         # Horizontal
         if self.dx > 1:
-            self.dx -= 1
+            self.dx -= 0.5
         if self.dx < -1:
-            self.dx += 1
+            self.dx += 0.5
 
         # Vertical
         if self.dy > 1:
-            self.dy -= 1
+            self.dy -= 0.5
         elif self.dy < -1:
-            self.dy += 1
+            self.dy += 0.5
 
         return None
 

@@ -53,8 +53,10 @@ class AirHockey:
         # Default scores
         self.opponent_score, self.robot_score = 0, 0
 
+        self.mallets = [self.robot, self.opponent]
+
         # Push to redis
-        # self.redis.post({"scores": {"robot_score": self.robot_score, "opponent_score": self.opponent_score}})
+        self.redis.post({"scores": {"robot_score": self.robot_score, "opponent_score": self.opponent_score}})
 
         # Drift
         self.ticks_to_friction = 60
@@ -110,29 +112,23 @@ class AirHockey:
             logger.error("Invalid agent name")
             raise ValueError
 
-        # Determine puck physics
-        # If the mallet is in the neighborhood of the puck, do stuff.
-        if self.puck & self.robot:
-            self.puck.dx = -3 * self.puck.dx + self.robot.dx
-            self.puck.dy = -3 * self.puck.dy + self.robot.dy
-
-        if self.puck & self.opponent:
-            self.puck.dx = -3 * self.puck.dx + self.opponent.dx
-            self.puck.dy = -3 * self.puck.dy + self.opponent.dy
-
-        # Update agent and oppponent positions
-        self.robot.update()
-        self.opponent.update()
+        # Check for collisions, do physics magic, update objects
+        for mallet in self.mallets:
+            self.collision(self.puck, mallet)
 
         # Update puck position
         self.puck.limit_puck_speed()
         self.puck.update()
 
-        # Update puck position
-        while self.ticks_to_friction == 0:
-            self.puck.friction_on_puck()
-            self.ticks_to_friction = 60
-        self.ticks_to_friction -= 1
+        # Update agent and oppponent positions
+        self.robot.update()
+        self.opponent.update()
+
+        # Implement friction on puck
+        # while self.ticks_to_friction == 0:
+        #     self.puck.friction_on_puck()
+        #     self.ticks_to_friction = 45
+        # self.ticks_to_friction -= 1
 
         # Update Redis
         self.redis.post(
@@ -200,3 +196,84 @@ class AirHockey:
         self.opponent.reset()
 
         return None
+
+    @staticmethod
+    def collision(puck: "Puck", mallet: "Mallet", correction: bool = True) -> bool:
+        """ Collision resolution
+
+        Reference:
+            https://www.gamedev.net/forums/topic/488102-circlecircle-collision-response/
+            https://gamedevelopment.tutsplus.com/tutorials/how-to-create-a-custom-2d-physics-engine-the-basics-and-impulse-resolution--gamedev-6331
+        """
+        # separation vector
+        d_x = mallet.x - puck.x
+        d_y = mallet.y - puck.y
+        d = np.array([d_x, d_y])
+
+        #  distance between circle centres, squared
+        distance_squared = np.dot(d, d)
+
+        # combined radius squared
+        radius = mallet.radius + puck.radius
+        radius_squared = radius ** 2
+
+        # No collision
+        if distance_squared > radius_squared:
+            return False
+
+        # distance between circle centres
+        distance = np.sqrt(distance_squared)
+
+        # normal of collision
+        ncoll = d / distance
+
+        # penetration distance
+        dcoll = radius - d
+
+        # Sum of inverse masses
+        imass_sum = puck.imass + mallet.imass
+
+        # separation vector
+        if correction:
+            # For floating point corrections
+            percent = 0.2  # usually 20% to 80%
+            slop = 0.01  # usually 0.01 to 0.1
+            separation_vector = (np.max(dcoll - slop, 0) / imass_sum) * percent * ncoll
+        else:
+            separation_vector = (dcoll / imass_sum) * ncoll
+
+        # separate the circles
+        puck.x -= separation_vector[0] * puck.imass
+        puck.y -= separation_vector[1] * puck.imass
+        mallet.x += separation_vector[0] * mallet.imass
+        mallet.y += separation_vector[1] * mallet.imass
+
+        # combines velocity
+        vcoll_x = mallet.dx - puck.dx
+        vcoll_y = mallet.dy - puck.dy
+        vcoll = np.array([vcoll_x, vcoll_y])
+
+        # impact speed
+        vn = np.dot(vcoll, ncoll)
+
+        # obejcts are moving away. dont reflect velocity
+        if vn > 0:
+            return True  # we did collide
+
+        # coefficient of restitution in range [0, 1].
+        cor = 0.98  # air hockey -> high cor
+
+        # collision impulse
+        j = -(1.0 + cor) * (vn / imass_sum)
+
+        # collision impusle vector
+        impulse = j * ncoll
+
+        # change momentum of the circles
+        puck.dx -= impulse[0] * puck.imass
+        puck.dy -= impulse[1] * puck.imass
+
+        mallet.dx += impulse[0] * mallet.imass
+        mallet.dy += impulse[1] * mallet.imass
+
+        return True

@@ -23,6 +23,7 @@ class Mallet:
 
         # Physical properties
         self.mass = config.mallet["mass"]
+        self.imass = 1.0 / self.mass  # Inverse mass
         self.radius = config.mallet["radius"]
 
         # Define table size
