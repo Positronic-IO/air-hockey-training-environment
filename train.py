@@ -18,7 +18,7 @@ from lib.agents import Agent
 from lib.strategy import Strategy
 from lib.connect import RedisConnection
 from lib.types import Observation, State
-from lib.utils.io import record_data_csv, record_model, unique_directory, record_reward
+from lib.utils.io import record_data_csv, record_data
 
 # Initiate Logger
 logging.basicConfig(level=logging.INFO)
@@ -48,12 +48,10 @@ class Train:
             self.opponent.name = "human"
 
         # Save model architectures and rewards with an unique run id
-        directory, counter = unique_directory(os.path.join(os.getcwd(), "model"))
-        robot_path = record_model(directory, self.args.get("robot"))
-        record_reward(directory)
+        self.env.path = record_data(os.path.join(os.getcwd(), "model"), self.args.get("robot"))
 
         # Paths to save models
-        self.robot.save_path = robot_path
+        self.robot.save_path = self.env.path
 
         # We begin..
         self.init = True
@@ -68,9 +66,6 @@ class Train:
         self.time = time.time()
         self.wait = (60 ** 2) * float(self.args.get("time"))  # Defaults to 3 hours
         logger.info(f"Training time: {self.args.get('time')} hours")
-
-        # Useful when saving to csv
-        self.env.stats_dir = str(counter)
 
     @property
     def human_location(self) -> Tuple[int, int]:
@@ -110,7 +105,7 @@ class Train:
             self.opponent_cumulative_score = 0
 
         # Save to csv
-        record_data_csv(self.env.stats_dir, "scores", results)
+        record_data_csv(self.env.path, "scores", results)
 
     def robot_player(self) -> None:
         """ Main player """

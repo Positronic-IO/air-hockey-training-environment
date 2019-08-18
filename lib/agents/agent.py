@@ -63,7 +63,7 @@ class Agent:
 
         # Compute rewards of round, whether someone score or not, if the episode is over
         mallet = self.env.robot if self.name == "robot" else self.env.opponent
-        reward, score, done = self.reward_tracker(self.env.puck, mallet)
+        reward, score, done = self.reward_tracker(self.env.puck, mallet, folder=self.env.path)
 
         # New observation and have agent learn from it
         observation = Observation(state=state, action=action, reward=reward, done=done, new_state=new_state)

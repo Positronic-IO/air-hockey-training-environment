@@ -2,6 +2,7 @@
 
 import csv
 import inspect
+import glob
 import json
 import logging
 import os
@@ -16,28 +17,25 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
 
-def unique_directory(directory: str) -> str:
-    """ Create a unique directory  """
-
-    counter = 0
-    while True:
-        counter += 1
-        path = os.path.join(directory, str(counter))
-        if not os.path.exists(path):
-            os.makedirs(path)
-            return path, counter
+def get_runid(path: str) -> Tuple[int, str]:
+    """ Get runid number for training run """
+    listing = glob.glob(f"{path}/*")
+    runid = max([0] + [int(x.split("/")[-1].split(".")[0]) for x in listing]) + 1
+    path = os.path.join(path, str(runid))
+    os.makedirs(path)
+    return runid, path
 
 
-def record_reward(directory: str) -> None:
+def record_reward(path: str) -> None:
     """ Save reward file """
 
-    with open(os.path.join(directory, "rewards.py"), "w+") as file:
+    with open(os.path.join(path, "rewards.py"), "w+") as file:
         from lib import rewards
 
         file.write(inspect.getsource(rewards))
 
 
-def record_model(directory: str, robot: str) -> None:
+def record_model(strategy: str, path: str) -> None:
     """ Record model information """
 
     from lib.agents.a2c import model as a2c_model
@@ -57,27 +55,27 @@ def record_model(directory: str, robot: str) -> None:
     }
 
     try:
-        # Deal with robot's models
-        robot_path = os.path.join(directory, "robot")
-        os.mkdir(robot_path)
-
-        with open(os.path.join(robot_path, "model.py"), "w+") as file:
-            file.write(inspect.getsource(strategies.get(robot)))  # Record model info
-            shutil.copy(
-                os.path.join("lib", "agents", robot, "config.py"), robot_path
-            ) 
+        with open(os.path.join(path, "model.py"), "w+") as file:
+            file.write(inspect.getsource(strategies.get(strategy)))  # Record model info
+            shutil.copy(os.path.join("lib", "agents", strategy, "config.py"), path)
 
     except KeyError:
         logger.error("Strategy not defined.")
 
-    # Return base paths of models
-    return robot_path
+
+def record_data(directory: str, strategy: str) -> str:
+    """ Record data for run """
+    runid, path = get_runid(directory)
+
+    record_model(strategy, path)
+    record_reward(path)
+    return path
 
 
-def record_data_csv(folder: str, name: str, payload: Any) -> None:
+def record_data_csv(path: str, name: str, payload: Any) -> None:
     """ Save data in csv """
 
-    with open(os.path.join("model", folder, name + ".csv"), "a") as file:
+    with open(os.path.join(path, f"{name}.csv"), "a") as file:
         fieldnames = payload.keys()
         writer = csv.DictWriter(file, fieldnames=fieldnames)
         writer.writerow(payload)
