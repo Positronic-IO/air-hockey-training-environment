@@ -95,19 +95,19 @@ class AirHockey:
 
         return None
 
-    def update_state(self, action: "Action", agent_name: str = "robot") -> None:
+    def update_state(self, action: "Action" = "", agent_name: str = "") -> None:
         """ Update state of game """
 
         # Move mallet
         if agent_name == "robot":
             self._move(self.robot, action)
-        elif agent_name == "opponent":
-            self._move(self.opponent, action)
         elif agent_name == "human":
             # Update action
             if isinstance(action, (tuple, list)):  # Cartesian Coordinates
                 self.opponent.x, self.opponent.y = action[0], action[1]
                 self.opponent.update()
+        elif agent_name == "computer":  # Non-human opponent
+            self.computerAI()
         else:
             logger.error("Invalid agent name")
             raise ValueError
@@ -143,7 +143,6 @@ class AirHockey:
 
         return None
 
-    # TODO - Add acceleration?
     def get_state(self, agent_name: str = "robot"):
         """ Get current state """
 
@@ -277,3 +276,43 @@ class AirHockey:
         mallet.dy += impulse[1] * mallet.imass
 
         return True
+
+    def computerAI(self) -> None:
+        """ The 'AI' of the computer """
+
+        if self.puck.x < self.opponent.x:
+            if self.puck.x < self.opponent.left_lim:
+                self.opponent.dx = 1
+            else:
+                self.opponent.dx = -2
+
+        if self.puck.x > self.opponent.x:
+            if self.puck.x > self.opponent.right_lim:
+                self.opponent.dx = -1
+            else:
+                self.opponent.dx = 2
+
+        if self.puck.y < self.opponent.y:
+            if self.puck.y < self.opponent.u_lim:
+                self.opponent.dy = 1
+            else:
+                self.opponent.dy = -6
+
+        if self.puck.y > self.opponent.y:
+            if self.puck.y <= 360:  # was 250
+                self.opponent.dy = 6
+            # elif puck.y<=350:
+            #    left_mallet.dy = 2
+            else:
+                if self.opponent.y > 200:
+                    self.opponent.dy = -2
+                else:
+                    self.opponent.dy = 0
+            # Addresses situation when the puck and the computer are on top of each other.
+            # Breaks loop
+            if abs(self.puck.y - self.opponent.y) < 40 and abs(self.puck.x - self.opponent.x) < 40:
+                self.puck.dx += 2
+                self.puck.dy += 2
+        
+        self.opponent.update()
+        return None

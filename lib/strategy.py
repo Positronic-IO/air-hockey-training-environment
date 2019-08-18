@@ -1,6 +1,6 @@
 """ RL Factory Strategy """
 from environment import AirHockey
-from lib.agents import A2C, A2C_1, DDQN, PPO, Agent, Dueling, QLearner, c51
+from lib.agents import A2C, A2C_1, DDQN, PPO, Dueling, QLearner, c51
 
 
 class Strategy:
@@ -11,8 +11,4 @@ class Strategy:
 
     @classmethod
     def make(self, env: "AirHockey", strategy: str, train: bool = True):
-
-        if strategy == "human":
-            return Agent(env)
-
         return self.strategies.get(strategy)(env, train)
