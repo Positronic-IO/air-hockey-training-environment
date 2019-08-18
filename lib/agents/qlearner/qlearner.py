@@ -5,7 +5,6 @@ from typing import Any, Dict, Tuple, Union
 import numpy as np
 
 from environment import AirHockey
-from lib.agents.qlearner.config import config
 from lib.types import Action, Observation, State
 
 # Set random seed
@@ -19,14 +18,16 @@ logger.setLevel(logging.DEBUG)
 class QLearner:
     """ Uses Q-learning to update/maximize rewards """
 
+    config = {"params": {"gamma": 0.9, "epsilon": 0.9, "learning_rate": 0.7}}
+
     def __init__(self, env: "AirHockey"):
         self.env = env
         self.Q = dict()
         self.last_state = None
         self.last_action = None
-        self.learning_rate = config["params"]["learning_rate"]
-        self.gamma = config["params"]["gamma"]
-        self.epsilon = config["params"]["epsilon"]
+        self.learning_rate = self.config["params"]["learning_rate"]
+        self.gamma = self.config["params"]["gamma"]
+        self.epsilon = self.config["params"]["epsilon"]
         self.agent_name = ""
 
         self.version = "0.1.0"
