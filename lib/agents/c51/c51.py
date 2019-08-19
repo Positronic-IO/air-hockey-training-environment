@@ -199,7 +199,6 @@ class c51(Agent):
         # Save model
         if self.train and self.t % self.timestep_per_train == 0:
             self.save_model()
-            self.env.redis.publish("save-checkpoint", self.name)
 
         self.t += 1
 
