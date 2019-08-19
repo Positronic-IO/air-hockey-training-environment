@@ -124,12 +124,6 @@ class AirHockey:
         self.robot.update()
         self.opponent.update()
 
-        # Implement friction on puck
-        # while self.ticks_to_friction == 0:
-        #     self.puck.friction_on_puck()
-        #     self.ticks_to_friction = 45
-        # self.ticks_to_friction -= 1
-
         # Update Redis
         self.redis.post(
             {
