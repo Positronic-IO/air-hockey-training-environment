@@ -39,7 +39,7 @@ class Train:
         self.env = AirHockey()
 
         # Set up our robot
-        self.robot = Strategy.make(env=self.env, strategy=self.args["robot"], train=True)
+        self.robot = Strategy.make(env=self.env, strategy=self.args.get("model"), train=True)
         self.robot.name = "robot"
 
         # # Set up our opponent. The opponent can also be a human player.
@@ -48,7 +48,7 @@ class Train:
             self.opponent.name = "human"
 
         # Save model architectures and rewards with an unique run id
-        self.env.path = record_data(os.path.join(os.getcwd(), "model"), self.args.get("robot"))
+        _, self.env.path = record_data(os.path.join(os.getcwd(), "model"), self.args.get("model"))
 
         # Paths to save models
         self.robot.save_path = self.env.path
@@ -146,7 +146,7 @@ class Train:
 
     def human_player(self) -> None:
         """ Opponent player """
-        
+
         # If the opponent is human
         self.opponent.move(self.human_location)
         return None
@@ -198,14 +198,14 @@ if __name__ == "__main__":
     """ Start Training """
     parser = argparse.ArgumentParser(description="Process stuff for training.")
 
-    parser.add_argument("-r", "--robot", help="Robot strategy")
+    parser.add_argument("-m", "--model", help="Robot strategy")
     parser.add_argument("-t", "--time", default=3, help="Time per train. Units in hours. (Default to 3 hours)")
     parser.add_argument("--fps", default=-1, help="Frame per second")
     parser.add_argument("--human", action="store_true", help="Opponent strategy")
     args = vars(parser.parse_args())
 
     # Validation
-    if not args.get("robot"):
+    if not args.get("model"):
         logger.error("Robot strategy Undefined")
         sys.exit()
 
