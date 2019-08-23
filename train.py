@@ -16,8 +16,8 @@ from pytz import timezone
 from environment import AirHockey
 from lib.agents import Agent
 from lib.strategy import Strategy
-from lib.connect import RedisConnection
 from lib.types import Observation, State
+from lib.utils.connect import RedisConnection
 from lib.utils.io import record_data_csv, record_data
 
 # Initiate Logger

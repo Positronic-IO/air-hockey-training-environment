@@ -11,7 +11,7 @@ from environment.goal import Goal
 from environment.mallet import Mallet
 from environment.puck import Puck
 from environment.table import Table
-from lib.connect import RedisConnection
+from lib.utils.connect import RedisConnection
 from lib.types import Action, Observation, State
 
 # Initiate Logger

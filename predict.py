@@ -10,9 +10,9 @@ import numpy as np
 import redis
 
 from environment import AirHockey
-from lib.connect import RedisConnection
 from lib.strategy import Strategy
 from lib.types import Observation, State
+from lib.utils.connect import RedisConnection
 
 # Initiate logger
 logging.basicConfig(level=logging.INFO)
