@@ -47,7 +47,6 @@ class DDQN(Agent):
 
         # Model load and save paths
         self.load_path = config.get("load")
-        self.save_path = None
 
         # Model construction
         self.build_model()
@@ -144,8 +143,8 @@ class DDQN(Agent):
 
     def save_model(self) -> None:
         """ Save a model's weights """
+        logger.info(f"Saving model to: {self.path}")
 
         # Create path with epoch number
-        path = os.path.join(self.save_path, "model.h5")
-        logger.info(f"Saving model to: {self.save_path}")
+        path = os.path.join(self.path, "model.h5")
         self.model.save_weights(path, overwrite=True)

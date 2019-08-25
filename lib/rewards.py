@@ -1,21 +1,18 @@
 """ Track rewards """
+import os
 from datetime import datetime
 from typing import List, Tuple
 
 import numpy as np
 from pytz import timezone
 
-from environment import Goal
-from environment import Mallet
-from environment import Puck
-from environment import Table
+from environment import Goal, Mallet, Puck, Table
 from lib.buffer import MemoryBuffer
 from lib.utils.helpers import gaussian
 from lib.utils.io import record_data_csv
 
 
 class Rewards:
-
     def __init__(self, name: str, left_goal: "Goal", right_goal: "Goal", table: "Table"):
 
         self.table = table
@@ -118,8 +115,9 @@ class Rewards:
 
         return -5
 
-    def __call__(self, puck: "Puck", mallet: "Mallet", folder: str = ""):
+    def __call__(self, puck: "Puck", mallet: "Mallet"):
         """ Compute rewards """
+        path = os.getenv("PROJECT")
 
         _, score, _ = self.compute_score_reward(puck)
         # rewards += self.compute_puck_to_goal_velocity(puck)
@@ -127,11 +125,11 @@ class Rewards:
         rewards += self.compute_wall_reward(puck)
         rewards += self.compute_mallet_to_puck_distance(puck, mallet)
         self.average_stats.append(rewards)
-        if done and folder:
+
+        if done and path:
             stats = np.array(self.average_stats.retreive())
             mean_average = np.mean(stats)
             record_data_csv(
-                folder,
                 f"rewards_{self.agent_name}",
                 {
                     "created_at": datetime.now(timezone("America/Chicago")),

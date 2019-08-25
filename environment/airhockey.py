@@ -12,6 +12,7 @@ from environment.mallet import Mallet
 from environment.puck import Puck
 from environment.table import Table
 from lib.utils.connect import RedisConnection
+from lib.utils.exceptions import InvalidAgentError
 from lib.types import Action, Observation, State
 
 # Initiate Logger
@@ -26,9 +27,6 @@ class AirHockey:
 
         # Set up Redis Connection
         self.redis = RedisConnection()
-
-        # Directory to save csv data
-        self.stats_dir = ""
 
         # Create Table
         self.table = Table()
@@ -103,14 +101,13 @@ class AirHockey:
             self._move(self.robot, action)
         elif agent_name == "human":
             # Update action
-            if isinstance(action, (tuple, list)):  # Cartesian Coordinates
-                self.opponent.x, self.opponent.y = action[0], action[1]
-                self.opponent.update()
+            self.opponent.x, self.opponent.y = action[0], action[1]
+            self.opponent.update()
         elif agent_name == "computer":  # Non-human opponent
             self.computerAI()
         else:
             logger.error("Invalid agent name")
-            raise ValueError
+            raise InvalidAgentError
 
         # Check for collisions, do physics magic, update objects
         for mallet in self.mallets:
@@ -121,19 +118,8 @@ class AirHockey:
         self.puck.update()
 
         # Update agent and oppponent positions
-        self.robot.update()
-        self.opponent.update()
-
-        # Update Redis
-        self.redis.post(
-            {
-                "components": {
-                    "puck": {"location": self.puck.location(), "velocity": self.puck.velocity()},
-                    self.robot.name: {"location": self.robot.location(), "velocity": self.robot.velocity()},
-                    self.opponent.name: {"location": self.opponent.location(), "velocity": self.opponent.velocity()},
-                }
-            }
-        )
+        for mallet in self.mallets:
+            mallet.update()
 
         return None
 
@@ -307,6 +293,6 @@ class AirHockey:
             if abs(self.puck.y - self.opponent.y) < 40 and abs(self.puck.x - self.opponent.x) < 40:
                 self.puck.dx += 2
                 self.puck.dy += 2
-        
+
         self.opponent.update()
         return None

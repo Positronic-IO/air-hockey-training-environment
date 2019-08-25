@@ -18,7 +18,7 @@ from lib.agents import Agent
 from lib.strategy import Strategy
 from lib.types import Observation, State
 from lib.utils.connect import RedisConnection
-from lib.utils.io import record_data_csv, record_data
+from lib.utils.io import record_data_csv, record_data, get_runid
 
 # Initiate Logger
 logging.basicConfig(level=logging.INFO)
@@ -38,6 +38,9 @@ class Train:
         # Load Environment
         self.env = AirHockey()
 
+        _, path = get_runid(os.path.join(os.getcwd(), "model"))
+        os.environ["PROJECT"] = path
+
         # Set up our robot
         self.robot = Strategy.make(env=self.env, strategy=self.args.get("model"), train=True)
         self.robot.name = "robot"
@@ -48,18 +51,13 @@ class Train:
             self.opponent.name = "human"
 
         # Save model architectures and rewards with an unique run id
-        _, self.env.path = record_data(os.path.join(os.getcwd(), "model"), self.args.get("model"))
-
-        # Paths to save models
-        self.robot.save_path = self.env.path
+        record_data(self.args.get("model"))
 
         # We begin..
         self.init = True
 
-        # Cumulative scores
+        # Cumulative scores, Cumulative wins
         self.robot_cumulative_score, self.opponent_cumulative_score = 0, 0
-
-        # Cumulative wins
         self.robot_cumulative_win, self.opponent_cumulative_win = 0, 0
 
         # Initial time
@@ -105,7 +103,7 @@ class Train:
             self.opponent_cumulative_score = 0
 
         # Save to csv
-        record_data_csv(self.env.path, "scores", results)
+        record_data_csv("scores", results)
 
     def robot_player(self) -> None:
         """ Main player """
@@ -125,8 +123,6 @@ class Train:
 
             self.init = False
         else:
-            # Now, let the model do all the work
-
             # Determine next action
             action = self.robot.get_action()
 
@@ -190,7 +186,7 @@ class Train:
             # Play a frame
             self.play()
 
-            if int(self.args["fps"]) > 0:
+            if self.args["fps"] > 0:
                 time.sleep(1 / int(self.args["fps"]))
 
 
@@ -198,9 +194,11 @@ if __name__ == "__main__":
     """ Start Training """
     parser = argparse.ArgumentParser(description="Process stuff for training.")
 
-    parser.add_argument("-m", "--model", help="Robot strategy")
-    parser.add_argument("-t", "--time", default=3, help="Time per train. Units in hours. (Default to 3 hours)")
-    parser.add_argument("--fps", default=-1, help="Frame per second")
+    parser.add_argument("-m", "--model", type=str, help="Robot strategy")
+    parser.add_argument(
+        "-t", "--time", default=3, type=float, help="Time per train. Units in hours. (Default to 3 hours)"
+    )
+    parser.add_argument("--fps", default=-1, type=int, help="Frame per second")
     parser.add_argument("--human", action="store_true", help="Opponent strategy")
     args = vars(parser.parse_args())
 

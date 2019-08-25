@@ -79,7 +79,7 @@ class PPO(Agent):
         # Exploration and Noise Strategy
         self.exploration_strategy = SoftmaxPolicy(action_size=self.action_size)
         self.noise_strategy = GaussianWhiteNoiseProcess(size=self.action_size)
-        
+
         logger.info(f"Strategy defined for {self.name}: {self.__repr__()}")
 
     def __repr__(self):
@@ -201,13 +201,12 @@ class PPO(Agent):
 
     def save_model(self) -> None:
         """ Save a models """
+        logger.info(f"Saving model to: {self.path}")
 
         # Save actor model
-        actor_path = os.path.join(self.save_path, "actor.h5")
-        logger.info(f"Saving actor weights to: {actor_path}")
+        actor_path = os.path.join(self.path, "actor.h5")
         self.actor_model.save_weights(actor_path, overwrite=True)
 
         # Save critic model
-        critic_path = os.path.join(self.save_path, "critic.h5")
-        logger.info(f"Saving critic weights to: {critic_path}")
+        critic_path = os.path.join(self.path, "critic.h5")
         self.critic_model.save_weights(critic_path, overwrite=True)

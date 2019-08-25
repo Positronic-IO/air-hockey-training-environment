@@ -79,4 +79,3 @@ def serialize_state(state: "State", dim: int = 2) -> np.ndarray:
         expanded = np.expand_dims(s, axis=0)
 
     return expanded
-

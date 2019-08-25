@@ -1,11 +1,15 @@
 """ Agent Contract """
-import numpy as np
+import os
 from typing import Union
 
+import numpy as np
+
 from environment import AirHockey
-from lib.types import Action, State, Observation
 from lib.rewards import Rewards
+from lib.types import Action, Observation, State
+from lib.utils.exceptions import ProjectNotFoundError
 from lib.utils.helpers import serialize_state
+
 
 class Agent:
     def __init__(self, env: "AirHockey"):
@@ -14,6 +18,10 @@ class Agent:
         self.done = False
         self.name = "robot"
         self.reward_tracker = Rewards(self.name, self.env.left_goal, self.env.right_goal, self.env.table)
+        self.path = os.getenv("PROJECT")
+
+        if not self.path:
+            raise ProjectNotFoundError
 
     def move(self, action: "Action"):
         """ Move agent """
@@ -30,8 +38,7 @@ class Agent:
 
         # Grab current state of game
         state = self.env.get_state(agent_name=self.name)
-        serialized = serialize_state(state)
-        action = self._get_action(serialized)
+        action = self._get_action(serialize_state(state))
         return action
 
     def load(self):
@@ -49,7 +56,7 @@ class Agent:
     def update(self, data: Observation):
         raise NotImplementedError
 
-    def step(self, action: Action)  -> Union[int, "Observation"]:
+    def step(self, action: Action) -> Union[int, "Observation"]:
         """ Next step in the MDP """
 
         # Grab current state of game
@@ -63,7 +70,7 @@ class Agent:
 
         # Compute rewards of round, whether someone score or not, if the episode is over
         mallet = self.env.robot if self.name == "robot" else self.env.opponent
-        reward, score, done = self.reward_tracker(self.env.puck, mallet, folder=self.env.path)
+        reward, score, done = self.reward_tracker(self.env.puck, mallet)
 
         # New observation and have agent learn from it
         observation = Observation(state=state, action=action, reward=reward, done=done, new_state=new_state)

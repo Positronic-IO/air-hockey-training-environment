@@ -12,7 +12,7 @@ class MemoryBuffer:
     """ Hold last n states in memory """
 
     def __init__(self, capacity: int, default: Any = None):
-        
+
         self.capacity = int(capacity)
         self.buffer = deque(maxlen=self.capacity)
 

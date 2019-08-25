@@ -44,7 +44,7 @@ def create(
     actor.add(Dense(action_size, kernel_initializer="normal"))
     actor.add(Activation("softmax"))
 
-    actor.compile(loss="categorical_crossentropy", optimizer=Adam(lr=actor_learning_rate))
+    actor.compile(loss="categorical_crossentropy", optimizer=Adam(lr=actor_learning_rate, epsilon=1e-3))
 
     # Critic Network
     critic = Sequential()
@@ -58,6 +58,6 @@ def create(
     critic.add(Dense(value_size, kernel_initializer="random_uniform"))
     critic.add(Activation("linear"))
 
-    critic.compile(loss=huber_loss, optimizer=Adam(lr=critic_learning_rate))
+    critic.compile(loss=huber_loss, optimizer=Adam(lr=critic_learning_rate, epsilon=1e-3))
 
     return actor, critic

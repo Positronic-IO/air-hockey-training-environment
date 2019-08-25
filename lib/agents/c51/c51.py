@@ -68,7 +68,6 @@ class c51(Agent):
 
         # Model load and save paths
         self.load_path = None if not config["load"] else config["load"]
-        self.save_path = None
 
         # Parameter Noise
         self.param_noise = True
@@ -215,6 +214,6 @@ class c51(Agent):
         """ Save a model's weights """
 
         # Create path with epoch number
-        path = os.path.join(self.save_path, "model.h5")
-        logger.info(f"Saving model to: {self.save_path}")
+        logger.info(f"Saving model to: {self.path}")
+        path = os.path.join(self.path, "model.h5")
         self.model.save_weights(path, overwrite=True)

@@ -34,7 +34,7 @@ class Puck:
         # Mass
         self.mass = config.puck["mass"]
         self.imass = 1.0 / self.mass  # Inverse mass
-        
+
         # Initial puck position
         self.puck_start_x = self.x
         self.puck_start_y = self.y

@@ -30,15 +30,6 @@ class QLearner:
         self.epsilon = self.config["params"]["epsilon"]
         self.agent_name = ""
 
-        self.version = "0.1.0"
-        logger.info(f"Strategy defined for {self.agent_name}: {self.__repr__()}")
-
-    def __repr__(self) -> str:
-        return f"{self.__str__()} {self.version}"
-
-    def __str__(self) -> str:
-        return "Q-Leaner"
-
     def move(self, action: Action) -> None:
         """ Move agent """
 

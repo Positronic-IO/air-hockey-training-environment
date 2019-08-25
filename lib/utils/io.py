@@ -11,6 +11,8 @@ import sys
 from collections import namedtuple
 from typing import Any, Dict, List, Tuple, Union
 
+from lib.utils.exceptions import ProjectNotFoundError
+
 # Initiate logger
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -63,17 +65,20 @@ def record_model(strategy: str, path: str) -> None:
         logger.error("Strategy not defined.")
 
 
-def record_data(directory: str, strategy: str) -> str:
+def record_data(strategy: str, path: str = "") -> None:
     """ Record data for run """
-    runid, path = get_runid(directory)
+    # Push current path's run into the environment
+    path = path or os.getenv("PROJECT")
 
     record_model(strategy, path)
     record_reward(path)
-    return path
+    return None
 
-
-def record_data_csv(path: str, name: str, payload: Any) -> None:
+def record_data_csv(name: str, payload: Any) -> None:
     """ Save data in csv """
+    path = os.getenv("PROJECT")
+    if not path:
+        raise ProjectNotFoundError
 
     with open(os.path.join(path, f"{name}.csv"), "a") as file:
         fieldnames = payload.keys()

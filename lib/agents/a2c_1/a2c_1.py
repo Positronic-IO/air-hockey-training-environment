@@ -51,7 +51,6 @@ class A2C_1(Agent):
         # Model load and save paths
         self.actor_load_path = None if not config["actor"]["load"] else config["actor"]["load"]
         self.critic_load_path = None if not config["critic"]["load"] else config["critic"]["load"]
-        self.save_path = None
 
         # create replay memory using deque
         self.max_memory = config["params"]["max_memory"]
@@ -74,7 +73,7 @@ class A2C_1(Agent):
 
         # Exploration strategy
         self.exploration_strategy = SoftmaxPolicy(action_size=self.action_size)
-        
+
     def __repr__(self):
         return "A2C #2"
 
@@ -173,13 +172,12 @@ class A2C_1(Agent):
 
     def save_model(self) -> None:
         """ Save a model's weights """
+        logger.info(f"Saving models to: {self.path}")
 
         # Save actor model
-        actor_path = os.path.join(self.save_path, "actor.h5")
-        logger.info(f"Saving actor model to: {actor_path}")
+        actor_path = os.path.join(self.path, "actor.h5")
         self.actor_model.save(actor_path, overwrite=True)
 
         # Save critic model
-        critic_path = os.path.join(self.save_path, "critic.h5")
-        logger.info(f"Saving critic model to: {critic_path}")
+        critic_path = os.path.join(self.path, "critic.h5")
         self.critic_model.save(critic_path, overwrite=True)
