@@ -1,4 +1,5 @@
 """ C51 DDQN """
+import imp
 import logging
 import math
 import os
@@ -8,8 +9,6 @@ import numpy as np
 
 from environment import AirHockey
 from lib.agents import Agent
-from lib.agents.c51 import model
-from lib.agents.c51.config import config
 from lib.buffer import MemoryBuffer
 from lib.exploration import EpsilonGreedy
 from lib.types import Observation, State
@@ -37,43 +36,60 @@ class c51(Agent):
         self.state_size = (1, 8)
         self.action_size = 4
 
+        # Load raw model
+        path, to_load = self.model_path()
+        model = imp.load_source("c51", os.path.join(path, "model.py"))
+
+        # Load configs
+        self.config = model.config()
+
         # These are the hyper parameters for the c51
-        self.gamma = config["params"]["gamma"]
-        self.learning_rate = config["params"]["learning_rate"]
-        self.batch_size = config["params"]["batch_size"]
-        self.frame_per_action = config["params"]["frame_per_action"]
-        self.update_target_freq = config["params"]["update_target_freq"]
-        self.timestep_per_train = config["params"]["timestep_per_train"]
-        self.timestep_per_train = config["params"]["timestep_per_train"]
+        self.gamma = self.config["params"]["gamma"]
+        self.learning_rate = self.config["params"]["learning_rate"]
+        self.batch_size = self.config["params"]["batch_size"]
+        self.frame_per_action = self.config["params"]["frame_per_action"]
+        self.update_target_freq = self.config["params"]["update_target_freq"]
+        self.timestep_per_train = self.config["params"]["timestep_per_train"]
+        self.timestep_per_train = self.config["params"]["timestep_per_train"]
 
         # Initialize Atoms
-        self.num_atoms = config["params"]["num_atoms"]  # Defaults to 51 for C51
-        self.v_max = config["params"]["v_max"]  # Max possible score for agents is 10
-        self.v_min = config["params"]["v_min"]
+        self.num_atoms = self.config["params"]["num_atoms"]  # Defaults to 51 for C51
+        self.v_max = self.config["params"]["v_max"]  # Max possible score for agents is 10
+        self.v_min = self.config["params"]["v_min"]
         self.delta_z = (self.v_max - self.v_min) / float(self.num_atoms - 1)
         self.z = [self.v_min + i * self.delta_z for i in range(self.num_atoms)]
 
+        # Build models
+        self.model = model.create(self.state_size, self.action_size, self.num_atoms, self.learning_rate)
+        self.target_model = model.create(self.state_size, self.action_size, self.num_atoms, self.learning_rate)
+
+        # Parameter Noise
+        self.param_noise = True
+
+        if to_load:
+            try:
+                logger.info(f"Loading model's weights from: {path}...")
+                self.model.load_weights(os.path.join(path, "model.h5"))
+            except OSError:
+                logger.info("Weights file corrupted, starting fresh...")
+                pass  # If file is corrupted, move on.
+
+        # Transfer weights
+        self.transfer_weights()
+        logger.info(self.model.summary())
+
         # create replay memory using deque
-        self.max_memory = config["params"]["max_memory"]
+        self.max_memory = self.config["params"]["max_memory"]
         self.memory = MemoryBuffer(self.max_memory)
 
         # We want to choose our prediction more than a random policy.
         self.train = train
 
         # Training epochs
-        self.epochs = config["params"]["epochs"]
+        self.epochs = self.config["params"]["epochs"]
 
         # Keep up with the iterations
         self.t = 0
-
-        # Model load and save paths
-        self.load_path = None if not config["load"] else config["load"]
-
-        # Parameter Noise
-        self.param_noise = True
-
-        # Model construction
-        self.build_model()
 
         # Exploration strategy
         self.exploration_strategy = EpsilonGreedy(action_size=self.action_size)
@@ -94,21 +110,6 @@ class c51(Agent):
 
         self.target_model.set_weights(self.model.get_weights())
         return None
-
-    def build_model(self) -> None:
-        """ Create our DNN model for Q-value approximation """
-
-        self.model = model.create(self.state_size, self.action_size, self.num_atoms, self.learning_rate)
-        self.target_model = model.create(self.state_size, self.action_size, self.num_atoms, self.learning_rate)
-
-        if self.load_path:
-            self.load_model()
-
-        # Transfer weights
-        self.transfer_weights()
-
-        print(self.model.summary())
-        return model
 
     def update_target_model(self) -> None:
         """ After some time interval update the target model to be same with model """
@@ -197,22 +198,13 @@ class c51(Agent):
 
         # Save model
         if self.train and self.t % self.timestep_per_train == 0:
-            self.save_model()
+            self.save()
 
         self.t += 1
-
         return None
 
-    def load_model(self) -> None:
-        """ Load a model"""
-
-        logger.info(f"Loading model's weights from: {self.load_path}")
-
-        self.model.load_weights(self.load_path)
-
-    def save_model(self) -> None:
+    def save(self) -> None:
         """ Save a model's weights """
-
         # Create path with epoch number
         logger.info(f"Saving model to: {self.path}")
         path = os.path.join(self.path, "model.h5")
