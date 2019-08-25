@@ -22,6 +22,12 @@ class Agent:
 
         if not self.path:
             raise ProjectNotFoundError
+        
+    def model_path(self) -> str:
+        """ Find model path """
+        if os.getenv("LOAD_RUN"):  # Use a past run
+            return os.path.join("/", "data", "air-hockey", "output", str(os.getenv("LOAD_RUN"))), True
+        return os.path.abspath(os.path.join(os.path.dirname(os.path.realpath(__file__)), ".")), False
 
     def move(self, action: "Action"):
         """ Move agent """

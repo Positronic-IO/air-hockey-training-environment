@@ -38,9 +38,11 @@ class Game:
         # Load Environment
         self.env = AirHockey()
 
-        runid, path = get_runid(os.path.join(os.getcwd(), "model"))
+        runid, path = get_runid(os.path.join("/", "data", "air-hockey", "output"))
         logger.info(f"Run id: {runid}")
         logger.info(f"Run path: {path}")
+
+        os.environ["LOAD_RUN"] = self.args.get("run")  # Past run to load and use
         os.environ["PROJECT"] = path
 
         # Set up our robot
@@ -198,7 +200,8 @@ if __name__ == "__main__":
     """ Start Training """
     parser = argparse.ArgumentParser(description="Process stuff for training.")
 
-    parser.add_argument("-m", "--model", type=str, help="Robot strategy")
+    parser.add_argument("--model", type=str, help="Robot strategy")
+    parser.add_argument("--run", type=str, default="", help="Specific past run for robot strategy to use")
     parser.add_argument("--time", default=3, type=float, help="Time per train. Units in hours. (Default to 3 hours)")
     parser.add_argument("--fps", default=-1, type=int, help="Frame per second")
     parser.add_argument("--human", action="store_true", help="Human players")
