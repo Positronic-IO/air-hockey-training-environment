@@ -121,6 +121,16 @@ class AirHockey:
         for mallet in self.mallets:
             mallet.update()
 
+        self.redis.post(
+            {
+                "components": {
+                    "puck": {"location": self.puck.location(), "velocity": self.puck.velocity()},
+                    self.robot.name: {"location": self.robot.location(), "velocity": self.robot.velocity()},
+                    self.opponent.name: {"location": self.opponent.location(), "velocity": self.opponent.velocity()},
+                }
+            }
+        )
+
         return None
 
     def get_state(self, agent_name: str = "robot"):
