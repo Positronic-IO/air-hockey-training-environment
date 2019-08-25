@@ -25,7 +25,7 @@ pymongo = "*"
 pygame = "==1.9.6"
 grpcio = "==1.20.1"
 keras = "*"
-tensorflow = "==1.12.0"
+tensorflow = "==1.12.2"
 
 [requires]
 python_version = "3.6"
