@@ -7,7 +7,7 @@ import random
 import sys
 import time
 from datetime import datetime
-from typing import Dict, Union, Tuple
+from typing import Dict, Tuple, Union
 
 import numpy as np
 import redis
@@ -18,7 +18,7 @@ from lib.agents import Agent
 from lib.strategy import Strategy
 from lib.types import Observation, State
 from lib.utils.connect import RedisConnection
-from lib.utils.io import record_data_csv, record_data, get_runid
+from lib.utils.io import get_runid, record_data, record_data_csv
 
 # Initiate Logger
 logging.basicConfig(level=logging.INFO)
@@ -38,7 +38,9 @@ class Game:
         # Load Environment
         self.env = AirHockey()
 
-        _, path = get_runid(os.path.join(os.getcwd(), "model"))
+        runid, path = get_runid(os.path.join(os.getcwd(), "model"))
+        logger.info(f"Run id: {runid}")
+        logger.info(f"Run path: {path}")
         os.environ["PROJECT"] = path
 
         # Set up our robot
@@ -62,6 +64,7 @@ class Game:
 
         # Initial time
         if self.args.get("play"):
+            logger.info(f"Game mode: Train")
             self.time = time.time()
             self.wait = (60 ** 2) * float(self.args.get("time"))  # Defaults to 3 hours
             logger.info(f"Training time: {self.args.get('time')} hours")
