@@ -26,7 +26,7 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
 
-class Train:
+class Game:
     def __init__(self, args: Dict[str, Union[str, int, bool]]):
 
         # Parse cli args
@@ -42,10 +42,10 @@ class Train:
         os.environ["PROJECT"] = path
 
         # Set up our robot
-        self.robot = Strategy.make(env=self.env, strategy=self.args.get("model"), train=True)
+        self.robot = Strategy.make(env=self.env, strategy=self.args.get("model"), train=self.args.get("play"))
         self.robot.name = "robot"
 
-        # # Set up our opponent. The opponent can also be a human player.
+        # Set up our opponent. The opponent can also be a human player.
         if self.args.get("human"):
             self.opponent = Agent(self.env)
             self.opponent.name = "human"
@@ -61,9 +61,10 @@ class Train:
         self.robot_cumulative_win, self.opponent_cumulative_win = 0, 0
 
         # Initial time
-        self.time = time.time()
-        self.wait = (60 ** 2) * float(self.args.get("time"))  # Defaults to 3 hours
-        logger.info(f"Training time: {self.args.get('time')} hours")
+        if self.args.get("play"):
+            self.time = time.time()
+            self.wait = (60 ** 2) * float(self.args.get("time"))  # Defaults to 3 hours
+            logger.info(f"Training time: {self.args.get('time')} hours")
 
     @property
     def human_location(self) -> Tuple[int, int]:
@@ -176,7 +177,7 @@ class Train:
         # Game loop
         while True:
             # Train for an alotted amount of time
-            if time.time() - self.time > self.wait:
+            if self.args.get("train") and time.time() - self.time > self.wait:
                 logger.info("Training time elasped")
                 sys.exit()
 
@@ -186,8 +187,8 @@ class Train:
             # Play a frame
             self.play()
 
-            if self.args["fps"] > 0:
-                time.sleep(1 / int(self.args["fps"]))
+            if self.args.get("fps") > 0:
+                time.sleep(1 / self.args.get("fps"))
 
 
 if __name__ == "__main__":
@@ -195,11 +196,10 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Process stuff for training.")
 
     parser.add_argument("-m", "--model", type=str, help="Robot strategy")
-    parser.add_argument(
-        "-t", "--time", default=3, type=float, help="Time per train. Units in hours. (Default to 3 hours)"
-    )
+    parser.add_argument("--time", default=3, type=float, help="Time per train. Units in hours. (Default to 3 hours)")
     parser.add_argument("--fps", default=-1, type=int, help="Frame per second")
-    parser.add_argument("--human", action="store_true", help="Opponent strategy")
+    parser.add_argument("--human", action="store_true", help="Human players")
+    parser.add_argument("--play", action="store_false", help="Play game instead of train")
     args = vars(parser.parse_args())
 
     # Validation
@@ -209,9 +209,9 @@ if __name__ == "__main__":
 
     # Run program
     try:
-        train = Train(args)
+        game = Game(args)
     except redis.ConnectionError:
         logger.error("Cannot connect to Redis. Please make sure Redis is up and active.")
         sys.exit()
 
-    train.run()
+    game.run()
