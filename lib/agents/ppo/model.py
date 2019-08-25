@@ -1,6 +1,6 @@
 """ DDQN Neural Network Models """
 
-from typing import Tuple, Union
+from typing import Tuple, Union, Dict
 
 from keras import backend as K
 from keras.layers import (
@@ -14,7 +14,7 @@ from keras.layers import (
     Lambda,
     TimeDistributed,
     add,
-    Activation
+    Activation,
 )
 from keras.models import Model, Sequential, load_model
 from keras.optimizers import Adam, RMSprop
@@ -25,6 +25,23 @@ from lib.utils.helpers import (
     proximal_policy_optimization_loss_continuous,
 )
 from lib.utils.noisy_dense import NoisyDense
+
+
+def config() -> Dict[str, Union[str, int]]:
+    return {
+        "continuous": False,
+        "params": {
+            "max_memory": 5000,
+            "actor_learning_rate": 0.00001,
+            "critic_learning_rate": 0.00001,
+            "gamma": 0.8,
+            "batch_size": 5000,
+            "epochs": 10,
+            "timestep_per_train": 500,
+            "iterations_on_save": 5000,
+            "noise": 1,
+        },
+    }
 
 
 def create(
@@ -82,9 +99,7 @@ def create(
 
         # x = Dense(state_size[1], kernel_initializer="normal", activation="tanh")(x)
 
-        out_actions = Dense(action_size, kernel_initializer="random_uniform", activation="linear", name="output")(
-            x
-        )
+        out_actions = Dense(action_size, kernel_initializer="random_uniform", activation="linear", name="output")(x)
 
         model = Model([state_input, advantage_input, old_prediction_input], [out_actions])
         model.compile(

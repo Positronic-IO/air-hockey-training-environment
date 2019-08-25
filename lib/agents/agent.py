@@ -22,12 +22,12 @@ class Agent:
 
         if not self.path:
             raise ProjectNotFoundError
-        
-    def model_path(self) -> str:
+
+    def model_path(self, strategy: str = "") -> str:
         """ Find model path """
         if os.getenv("LOAD_RUN"):  # Use a past run
             return os.path.join("/", "data", "air-hockey", "output", str(os.getenv("LOAD_RUN"))), True
-        return os.path.abspath(os.path.join(os.path.dirname(os.path.realpath(__file__)), ".")), False
+        return os.path.abspath(os.path.join(os.path.dirname(os.path.realpath(__file__)), strategy)), False
 
     def move(self, action: "Action"):
         """ Move agent """
@@ -37,7 +37,7 @@ class Agent:
 
     def _get_action(self, state: np.ndarray) -> Action:
         """ Get action of an agent based on its policy """
-        raise NotImplementedError
+        pass
 
     def get_action(self) -> "Action":
         """ Get the action of an agent """
@@ -47,20 +47,12 @@ class Agent:
         action = self._get_action(serialize_state(state))
         return action
 
-    def load(self):
-        """ Load the agent """
-        raise NotImplementedError
-
     def save(self):
         """ Save the agent """
-        raise NotImplementedError
-
-    def build_model(self):
-        """ Construct the model(s) """
-        raise NotImplementedError
+        pass
 
     def update(self, data: Observation):
-        raise NotImplementedError
+        pass
 
     def step(self, action: Action) -> Union[int, "Observation"]:
         """ Next step in the MDP """

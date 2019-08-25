@@ -37,7 +37,7 @@ class c51(Agent):
         self.action_size = 4
 
         # Load raw model
-        path, to_load = self.model_path()
+        path, to_load = self.model_path("c51")
         model = imp.load_source("c51", os.path.join(path, "model.py"))
 
         # Load configs
@@ -205,7 +205,6 @@ class c51(Agent):
 
     def save(self) -> None:
         """ Save a model's weights """
-        # Create path with epoch number
         logger.info(f"Saving model to: {self.path}")
         path = os.path.join(self.path, "model.h5")
         self.model.save_weights(path, overwrite=True)

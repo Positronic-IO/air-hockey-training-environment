@@ -1,6 +1,6 @@
 """ A2C Neural Network Models """
 
-from typing import Tuple, Union
+from typing import Tuple, Union, Dict
 
 from keras import backend as K
 from keras.layers import (
@@ -14,13 +14,34 @@ from keras.layers import (
     Lambda,
     TimeDistributed,
     add,
-    Activation
+    Activation,
 )
 from keras.models import Model, Sequential, load_model
 from keras.optimizers import Adam, RMSprop
 
 from lib.utils.helpers import huber_loss
 from lib.utils.noisy_dense import NoisyDense
+
+
+def config() -> Dict[str, Union[str, int]]:
+    return {
+        "params": {
+            "max_memory": 50000,
+            "actor_learning_rate": 0.00001,
+            "critic_learning_rate": 0.00001,
+            "gamma": 0.95,
+            "batch_size": 10000,
+            "frame_per_action": 4,
+            "timestep_per_train": 10000,
+            "iterations_on_save": 10000,
+            "epochs": 10,
+            "epsilon": 1,
+            "initial_epsilon": 1,
+            "final_epsilon": 0.001,
+            "observe": 5000,
+            "explore": 50000,
+        }
+    }
 
 
 def create(

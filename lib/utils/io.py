@@ -11,7 +11,7 @@ import sys
 from collections import namedtuple
 from typing import Any, Dict, List, Tuple, Union
 
-from lib.utils.exceptions import ProjectNotFoundError
+from lib.utils.exceptions import ProjectNotFoundError, StrategyNotFoundError
 
 # Initiate logger
 logging.basicConfig(level=logging.INFO)
@@ -58,11 +58,10 @@ def record_model(strategy: str, path: str) -> None:
 
     try:
         with open(os.path.join(path, "model.py"), "w+") as file:
-            file.write(inspect.getsource(strategies.get(strategy)))  # Record model info
-            shutil.copy(os.path.join("lib", "agents", strategy, "config.py"), path)
-
+            file.write(inspect.getsource(strategies[strategy]))  # Record model info
     except KeyError:
-        logger.error("Strategy not defined.")
+        logger.error(f"Strategy {strategy} not found.")
+        raise StrategyNotFoundError(f"Strategy {strategy} not found.")
 
 
 def record_data(strategy: str, path: str = "") -> None:
@@ -73,6 +72,7 @@ def record_data(strategy: str, path: str = "") -> None:
     record_model(strategy, path)
     record_reward(path)
     return None
+
 
 def record_data_csv(name: str, payload: Any) -> None:
     """ Save data in csv """

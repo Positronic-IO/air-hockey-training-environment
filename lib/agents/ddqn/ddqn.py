@@ -1,4 +1,5 @@
 """ DDQN """
+import imp
 import logging
 import os
 from typing import Any, Dict, Tuple, Union
@@ -7,8 +8,6 @@ import numpy as np
 
 from environment import AirHockey
 from lib.agents import Agent
-from lib.agents.ddqn import model
-from lib.agents.ddqn.config import config
 from lib.buffer import MemoryBuffer
 from lib.exploration import EpsilonGreedy
 from lib.types import Observation, State
@@ -33,23 +32,38 @@ class DDQN(Agent):
         self.state_size = (1, 8)
         self.action_size = 4
 
-        # create replay memory using deque
-        self.max_memory = config["params"]["max_memory"]
-        self.memory = MemoryBuffer(self.max_memory)
+        # Are we training?
+        self.train = train
+
+        # Load raw model
+        path, to_load = self.model_path('ddqn')
+        model = imp.load_source("ddqn", os.path.join(path, "model.py"))
+
+        # Load configs
+        config = model.config()
         self.gamma = config["params"]["gamma"]  # discount rate
         self.learning_rate = config["params"]["learning_rate"]
         self.batch_size = config["params"]["batch_size"]
         self.sync_target_interval = config["params"]["sync_target_interval"]
         self.timestep_per_train = config["params"]["timestep_per_train"]
 
-        # Are we training?
-        self.train = train
-
-        # Model load and save paths
-        self.load_path = config.get("load")
+        self.max_memory = config["params"]["max_memory"]
+        self.memory = MemoryBuffer(self.max_memory)
 
         # Model construction
-        self.build_model()
+        self.model = model.create(self.state_size, self.learning_rate)
+        self.target_model = model.create(self.state_size, self.learning_rate)
+
+        if to_load:
+            try:
+                logger.info(f"Loading model's weights from: {path}...")
+                self.model.load_weights(os.path.join(path, "model.h5"))
+            except OSError:
+                logger.info("Weights file corrupted, starting fresh...")
+                pass  # If file is corrupted, move on.
+
+        self.update_target_model()
+        logger.info(self.model.summary())
 
         # Counters
         self.t = 0
@@ -59,21 +73,6 @@ class DDQN(Agent):
 
     def __repr__(self) -> str:
         return "DDQN"
-
-    def build_model(self) -> None:
-        """ Create our DNN model for Q-value approximation """
-
-        self.model = model.create(self.state_size, self.learning_rate)
-        self.target_model = model.create(self.state_size, self.learning_rate)
-
-        if self.load_path:
-            self.load_model()
-
-        # Set up target model
-        self.target_model.set_weights(self.model.get_weights())
-
-        print(self.model.summary())
-        return None
 
     def update_target_model(self) -> None:
         """ Copy weights from model to target_model """
@@ -128,18 +127,10 @@ class DDQN(Agent):
 
         # Save model
         if self.train and self.t % self.timestep_per_train == 0:
-            self.save_model()
+            self.save()
 
         self.t += 1
-
         return None
-
-    def load_model(self) -> None:
-        """ Load a model"""
-
-        logger.info(f"Loading model from: {self.load_path}")
-
-        self.model.load_weights(self.load_path)
 
     def save_model(self) -> None:
         """ Save a model's weights """

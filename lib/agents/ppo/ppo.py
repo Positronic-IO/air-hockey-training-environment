@@ -1,4 +1,5 @@
 """ PPO """
+import imp
 import logging
 import math
 import os
@@ -8,16 +9,11 @@ import numpy as np
 
 from environment import AirHockey
 from lib.agents import Agent
-from lib.agents.ppo import model
-from lib.agents.ppo.config import config
 from lib.buffer import MemoryBuffer
 from lib.types import Observation, State
 from lib.exploration import SoftmaxPolicy, GaussianWhiteNoiseProcess, OrnsteinUhlenbeckProcess
 from lib.utils.helpers import serialize_state
 
-
-# Set random seeds
-np.random.seed(1)
 
 # Initiate Logger
 logger = logging.getLogger(__name__)
@@ -31,10 +27,16 @@ class PPO(Agent):
     def __init__(self, env: "AirHockey", train: bool):
         super().__init__(env)
 
-        # Are we doing continuous or discrete PPO?
-        self.continuous = config["continuous"]
         # Are we training?
         self.train = train
+
+        # Load raw model
+        path, to_load = self.model_path("ppo")
+        model = imp.load_source("ppo", os.path.join(path, "model.py"))
+        config = model.config()
+
+        # Are we doing continuous or discrete PPO?
+        self.continuous = config["continuous"]
 
         # Get size of state and action
         # State grows by the amount of frames we want to hold in our memory
@@ -46,11 +48,6 @@ class PPO(Agent):
         self.actor_learning_rate = config["params"]["actor_learning_rate"]
         self.critic_learning_rate = config["params"]["critic_learning_rate"]
         self.batch_size = config["params"]["batch_size"]
-
-        # Model load and save paths
-        self.actor_load_path = None if not config["actor"]["load"] else config["actor"]["load"]
-        self.critic_load_path = None if not config["critic"]["load"] else config["critic"]["load"]
-        self.save_path = None
 
         # Train and Save
         self.timestep_per_train = config["params"]["timestep_per_train"]
@@ -64,8 +61,27 @@ class PPO(Agent):
         # Training epochs
         self.epochs = config["params"]["epochs"]
 
-        # Model construction
-        self.build_model()
+        self.actor_model, self.critic_model = model.create(
+            state_size=self.state_size,
+            action_size=self.action_size,
+            actor_learning_rate=self.actor_learning_rate,
+            critic_learning_rate=self.critic_learning_rate,
+            continuous=self.continuous,
+        )
+
+        if to_load:
+            try:
+                logger.info(f"Loading model's weights from: {path}...")
+                self.actor_model.load_weights(os.path.join(path, "actor.h5"))
+                self.critic_model.load_weights(os.path.join(path, "critic.h5"))
+            except OSError:
+                logger.info("Weights file corrupted, starting fresh...")
+                pass  # If file is corrupted, move on.
+
+        logger.info("Actor Model")
+        logger.info(self.actor_model.summary())
+        logger.info("Critic Model")
+        logger.info(self.critic_model.summary())
 
         # Noise (Continuous)
         self.noise = config["params"]["noise"]
@@ -85,26 +101,6 @@ class PPO(Agent):
     def __repr__(self):
         return f"{self.__class__.__name__} Continuous" if self.continuous else self.__class__.__name__
 
-    def build_model(self) -> None:
-        """ Create our Actor/Critic Models """
-
-        self.actor_model, self.critic_model = model.create(
-            state_size=self.state_size,
-            action_size=self.action_size,
-            actor_learning_rate=self.actor_learning_rate,
-            critic_learning_rate=self.critic_learning_rate,
-            continuous=self.continuous,
-        )
-
-        if self.actor_load_path and self.critic_load_path:
-            self.load_model()
-
-        logger.info("Actor Model")
-        print(self.actor_model.summary())
-        logger.info("Critic Model")
-        print(self.critic_model.summary())
-        return None
-
     def _get_action(self, state: "State") -> Union[int, Tuple[int, int]]:
         """ Return a action """
 
@@ -117,7 +113,7 @@ class PPO(Agent):
         """ Return a random action (discrete space) """
         q_values = self.actor_model.predict(
             [serialize_state(state), np.zeros(shape=(1, 1)), np.zeros(shape=(1, self.action_size))]
-        )[0][0]
+        ).flatten()
 
         # Sanity check
         assert q_values.shape == (
@@ -134,7 +130,7 @@ class PPO(Agent):
         """ Return a random action (continuous space) """
         policy = self.actor_model.predict(
             [serialize_state(state), np.zeros(shape=(1, 1)), np.zeros(shape=(1, self.action_size))]
-        )[0][0]
+        ).flatten()
 
         if self.train:
             action = action_matrix = policy + self.noise_strategy.sample()
@@ -184,22 +180,13 @@ class PPO(Agent):
 
         # Save model
         if self.train and self.t % self.timestep_per_train == 0:
-            self.save_model()
+            self.save()
 
         self.t += 1
 
         return None
 
-    def load_model(self) -> None:
-        """ Load a model"""
-
-        logger.info(f"Loading model from: {self.actor_load_path}")
-        self.actor_model.load_weights(self.actor_load_path)
-
-        logger.info(f"Loading model from: {self.critic_load_path}")
-        self.critic_model.load_weights(self.critic_load_path)
-
-    def save_model(self) -> None:
+    def save(self) -> None:
         """ Save a models """
         logger.info(f"Saving model to: {self.path}")
 

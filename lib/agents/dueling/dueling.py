@@ -1,4 +1,5 @@
 """ Dueling DDQN """
+import imp
 import logging
 import os
 from typing import Any, Dict, Tuple, Union
@@ -7,8 +8,6 @@ import numpy as np
 
 from environment import AirHockey
 from lib.agents import Agent
-from lib.agents.dueling import model
-from lib.agents.dueling.config import config
 from lib.buffer import MemoryBuffer
 from lib.exploration import EpsilonGreedy
 from lib.types import Observation, State
@@ -36,7 +35,15 @@ class Dueling(Agent):
         self.state_size = (1, 8)
         self.action_size = 4
 
-        # These is hyper parameters for the Dueling DQN
+        # Are we training?
+        self.train = train
+
+        # Load raw model
+        path, to_load = self.model_path("dueling")
+        model = imp.load_source("dueling", os.path.join(path, "model.py"))
+
+        # Load configs
+        config = model.config()
         self.gamma = config["params"]["gamma"]
         self.learning_rate = config["params"]["learning_rate"]
         self.batch_size = config["params"]["batch_size"]
@@ -46,22 +53,28 @@ class Dueling(Agent):
         self.timestep_per_train = config["params"]["timestep_per_train"]
         self.iterations_on_save = config["params"]["iterations_on_save"]
 
-        # Are we training?
-        self.train = train
-
         # Initialize replay buffer
         self.max_memory = config["params"]["max_memory"]
         self.memory = MemoryBuffer(self.max_memory)
-
-        # Model load and save paths
-        self.load_path = None if not config["load"] else config["load"]
-        self.save_path = None
 
         # Parameter Noise
         self.param_noise = True
 
         # Model construction
-        self.build_model()
+        self.model = model.create(self.state_size, self.action_size, self.learning_rate)
+        self.target_model = model.create(self.state_size, self.action_size, self.learning_rate)
+
+        if to_load:
+            try:
+                logger.info(f"Loading model's weights from: {path}...")
+                self.model.load_weights(os.path.join(path, "model.h5"))
+            except OSError:
+                logger.info("Weights file corrupted, starting fresh...")
+                pass  # If file is corrupted, move on.
+
+        # Set up target model
+        self.transfer_weights()
+        logger.info(self.model.summary())
 
         # Keep up with the iterations
         self.t = 0
@@ -84,21 +97,6 @@ class Dueling(Agent):
             return None
 
         self.target_model.set_weights(self.model.get_weights())
-        return None
-
-    def build_model(self) -> None:
-        """ Create our DNN model for Q-value approximation """
-
-        self.model = model.create(self.state_size, self.action_size, self.learning_rate)
-        self.target_model = model.create(self.state_size, self.action_size, self.learning_rate)
-
-        if self.load_path:
-            self.load_model()
-
-        # Set up target model
-        self.transfer_weights()
-
-        print(self.model.summary())
         return None
 
     def update_target_model(self) -> None:
@@ -181,20 +179,13 @@ class Dueling(Agent):
 
         # Save model
         if self.train and self.t % self.timestep_per_train == 0:
-            self.save_model()
+            self.save()
 
         self.t += 1
 
         return None
 
-    def load_model(self) -> None:
-        """ Load a model"""
-
-        logger.info(f"Loading model's weights from: {self.load_path}")
-
-        self.model.load_weights(self.load_path)
-
-    def save_model(self) -> None:
+    def save(self) -> None:
         """ Save a model's weights """
         logger.info(f"Saving model to: {self.path}")
 
