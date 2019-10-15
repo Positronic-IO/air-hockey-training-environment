@@ -52,13 +52,23 @@ def create(
     # Actor Network
     actor = Sequential()
 
-    actor.add(Dense(state_size[1], kernel_initializer="normal", input_shape=state_size))
-    actor.add(Activation("relu"))
-    actor.add(BatchNormalization())
+    actor.add(TimeDistributed(NoisyDense(20, kernel_initializer="normal", input_shape=state_size)))
+    actor.add(TimeDistributed(Activation("relu")))
+    actor.add(TimeDistributed(BatchNormalization()))
 
-    actor.add(Flatten())
+    actor.add(TimeDistributed(NoisyDense(12, kernel_initializer="normal")))
+    actor.add(TimeDistributed(Activation("relu")))
+    actor.add(TimeDistributed(BatchNormalization()))
 
-    actor.add(Dense(action_size, kernel_initializer="normal"))
+    actor.add(LSTM(40, activation="tanh", return_sequences=True))
+    actor.add(GaussianNoise(0.7))
+    actor.add(Dropout(0.7))
+
+    actor.add(LSTM(40, activation="tanh", return_sequences=False))
+    actor.add(GaussianNoise(0.7))
+    actor.add(Dropout(0.7))
+
+    actor.add(NoisyDense(action_size, kernel_initializer="normal"))
     actor.add(Activation("softmax"))
 
     actor.compile(loss="categorical_crossentropy", optimizer=Adam(lr=actor_learning_rate, epsilon=1e-3))
@@ -66,11 +76,9 @@ def create(
     # Critic Network
     critic = Sequential()
 
-    critic.add(Dense(state_size[1], kernel_initializer="normal", input_shape=state_size))
+    critic.add(Dense(20, kernel_initializer="normal", input_shape=state_size))
     critic.add(Activation("relu"))
     critic.add(BatchNormalization())
-
-    critic.add(Flatten())
 
     critic.add(Dense(value_size, kernel_initializer="random_uniform"))
     critic.add(Activation("linear"))

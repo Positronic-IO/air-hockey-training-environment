@@ -32,7 +32,7 @@ def config() -> Dict[str, Union[str, int]]:
             "batch_size": 10000,
             "update_target_freq": 30000,
             "timestep_per_train": 10000,
-            "num_atoms": 51,
+            "num_atoms": 10,
             "v_max": 10,
             "v_min": -10,
             "iterations_on_save": 10000,

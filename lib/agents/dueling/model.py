@@ -37,7 +37,7 @@ def config() -> Dict[str, Union[str, int]]:
             "explore": 50000,
             "frame_per_action": 4,
             "update_target_freq": 30000,
-            "timestep_per_train": 100,
+            "timestep_per_train": 10000,
             "iterations_on_save": 10000,
         }
     }

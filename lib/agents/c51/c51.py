@@ -125,7 +125,7 @@ class c51(Agent):
         """ Apply an espilon-greedy policy to pick next action """
 
         # Compute rewards for any posible action
-        z = self.model.predict(serialize_state(state))
+        z = np.array(self.model.predict(serialize_state(state))).flatten()
         z_concat = np.vstack(z)
         q_values = np.sum(np.multiply(z_concat, np.array(self.z)), axis=1)
         assert q_values.shape == (self.action_size,), f"Q-values with shape {q_values.shape} have the wrong dimensions"
@@ -168,8 +168,8 @@ class c51(Agent):
             # Initiate q-value distribution
             m_prob = [np.zeros((num_samples, self.num_atoms)) for i in range(self.action_size)]
 
-            z = self.model.predict(next_states)
-            z_ = self.target_model.predict(next_states)
+            z = np.array(self.model.predict(next_states)).flatten()
+            z_ = np.array(self.target_model.predict(next_states)).flatten()
 
             # Get Optimal Actions for the next states (from distribution z)
             z_concat = np.vstack(z)

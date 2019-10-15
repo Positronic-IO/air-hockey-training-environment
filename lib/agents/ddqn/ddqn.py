@@ -23,7 +23,7 @@ class DDQN(Agent):
     """ Reference: https://keon.io/deep-q-learning/ """
 
     def __init__(self, env: "AirHockey", train: bool, **kwargs):
-        super().__init__(env)
+        super().__init__(env, train)
 
         logger.info(f"Strategy defined for {self.name}: {self.__repr__()}")
 
@@ -31,9 +31,6 @@ class DDQN(Agent):
         # State grows by the amount of frames we want to hold in our memory
         self.state_size = (1, 8)
         self.action_size = 4
-
-        # Are we training?
-        self.train = train
 
         # Load raw model
         path, to_load = self.model_path('ddqn')
@@ -62,11 +59,12 @@ class DDQN(Agent):
                 logger.info("Weights file corrupted, starting fresh...")
                 pass  # If file is corrupted, move on.
 
-        self.update_target_model()
-        logger.info(self.model.summary())
+        # self.update_target_model()
+        # logger.info(self.model.summary())
 
         # Counters
         self.t = 0
+        self.init = True
 
         # Exploration strategies
         self.exploration_strategy = EpsilonGreedy(action_size=self.action_size)
@@ -84,6 +82,8 @@ class DDQN(Agent):
         """ Apply an espilon-greedy policy to pick next action """
 
         # Compute rewards for any posible action
+        if self.init and self.train:
+            return np.random.randint(0, 4)
         q_values = self.model.predict(serialize_state(state)).flatten()
         assert q_values.shape == (self.action_size,), f"Q-values with shape {q_values.shape} have the wrong dimensions"
         return self.exploration_strategy.step(q_values) if self.train else np.argmax(q_values)
@@ -96,7 +96,7 @@ class DDQN(Agent):
 
         # Update model in intervals
         if self.t > 0 and self.t % self.timestep_per_train == 0:
-
+            self.init = False
             logger.info(f"Updating DDQN model")
 
             # Sample observations from memory for experience replay
@@ -120,7 +120,6 @@ class DDQN(Agent):
                     assert t.shape == (self.action_size,), f"Q-values with shape {t.shape} have the wrong dimensions"
                     # Update action we should take
                     target[observation.action] = observation.reward + self.gamma * np.argmax(t)
-
                 self.model.fit(
                     flattend_state, np.expand_dims(target, axis=0), batch_size=self.batch_size, epochs=1, verbose=0
                 )

@@ -24,6 +24,7 @@ from lib.utils.noisy_dense import NoisyDense
 
 
 def config() -> Dict[str, Union[str, int]]:
+    """ A2C Config """
     return {
         "params": {
             "max_memory": 50000,
@@ -35,11 +36,6 @@ def config() -> Dict[str, Union[str, int]]:
             "timestep_per_train": 10000,
             "iterations_on_save": 10000,
             "epochs": 10,
-            "epsilon": 1,
-            "initial_epsilon": 1,
-            "final_epsilon": 0.001,
-            "observe": 5000,
-            "explore": 50000,
         }
     }
 
@@ -56,35 +52,41 @@ def create(
     # Actor Network
     actor = Sequential()
 
-    actor.add(Dense(state_size[1], kernel_initializer="normal", input_shape=state_size))
-    actor.add(Activation("relu"))
-    actor.add(BatchNormalization())
+    actor.add(TimeDistributed(NoisyDense(20, kernel_initializer="normal", input_shape=state_size)))
+    actor.add(TimeDistributed(Activation("relu")))
+    actor.add(TimeDistributed(BatchNormalization()))
 
-    actor.add(Flatten())
+    actor.add(TimeDistributed(NoisyDense(12, kernel_initializer="normal")))
+    actor.add(TimeDistributed(Activation("relu")))
+    actor.add(TimeDistributed(BatchNormalization()))
+    
+    actor.add(TimeDistributed(NoisyDense(20, kernel_initializer="normal")))
+    actor.add(TimeDistributed(Activation("relu")))
+    actor.add(TimeDistributed(BatchNormalization()))
 
-    actor.add(Dense(action_size, kernel_initializer="normal"))
+    # actor.add(LSTM(40, activation="tanh", return_sequences=True))
+    # actor.add(GaussianNoise(0.7))
+    # actor.add(Dropout(0.7))
+
+    actor.add(LSTM(40, activation="tanh", return_sequences=False))
+    actor.add(GaussianNoise(0.7))
+    actor.add(Dropout(0.6))
+
+    actor.add(NoisyDense(action_size, kernel_initializer="normal"))
     actor.add(Activation("softmax"))
 
-    actor.compile(loss="categorical_crossentropy", optimizer=Adam(lr=actor_learning_rate))
+    actor.compile(loss="categorical_crossentropy", optimizer=Adam(lr=actor_learning_rate, epsilon=1e-3))
 
     # Critic Network
     critic = Sequential()
 
-    critic.add(Dense(state_size[1], kernel_initializer="normal", input_shape=state_size))
+    critic.add(Dense(20, kernel_initializer="normal", input_shape=state_size))
     critic.add(Activation("relu"))
-    # critic.add(BatchNormalization())
-
-    # critic.add(TimeDistributed(Dense(state_size[1], kernel_initializer="normal", input_shape=state_size)))
-    # critic.add(TimeDistributed(Activation("relu")))
-
-    critic.add(Flatten())
-    # critic.add(LSTM(state_size[1], activation="tanh", return_sequences=False))
-    # critic.add(GaussianNoise(0.6))
-    # critic.add(Dropout(0.4))
+    critic.add(BatchNormalization())
 
     critic.add(Dense(value_size, kernel_initializer="random_uniform"))
     critic.add(Activation("linear"))
 
-    critic.compile(loss="mse", optimizer=Adam(lr=critic_learning_rate))
+    critic.compile(loss=huber_loss, optimizer=Adam(lr=critic_learning_rate, epsilon=1e-3))
 
     return actor, critic

@@ -24,7 +24,7 @@ class A2C_1(Agent):
     """ Reference: https://github.com/flyyufelix/VizDoom-Keras-RL/blob/master/a2c.py """
 
     def __init__(self, env: "AirHockey", train: bool):
-        super().__init__(env)
+        super().__init__(env, train)
 
         logger.info(f"Strategy defined for {self.name}: {self.__repr__()}")
 
@@ -76,17 +76,9 @@ class A2C_1(Agent):
                 logger.info("Weights file corrupted, starting fresh...")
                 pass  # If file is corrupted, move on.
 
-        logger.info("Actor Model")
-        logger.info(self.actor_model.summary())
-        logger.info("Critic Model")
-        logger.info(self.critic_model.summary())
-
-        # Are we training?
-        self.train = train
-        self.init = True
-
         # Keep up with the iterations
         self.t = 0
+        self.init = True
 
         # Exploration Strategy
         self.exploration_strategy = SoftmaxPolicy(action_size=self.action_size)
@@ -97,7 +89,7 @@ class A2C_1(Agent):
     def _get_action(self, state: "State") -> int:
         """ Using the output of policy network, pick action stochastically (Boltzmann Policy) """
         # Don't let LSTM spazz about not being built on first pass
-        if self.init:
+        if self.train and self.init:
             return np.random.randint(0, self.action_size)
 
         policy = self.actor_model.predict(serialize_state(state))[0]
@@ -120,7 +112,7 @@ class A2C_1(Agent):
         self.memory.append(data)
 
         # Update model in intervals
-        if self.t > 0 and self.t % 100 == 0:
+        if self.train and self.t > 0 and self.t % self.timestep_per_train == 0:
             self.init = False
             logger.info("Update models")
 
@@ -140,8 +132,14 @@ class A2C_1(Agent):
 
             for i in range(episode_length):
                 advantages[i][actions[i]] = discounted_rewards[i] - values[i]
-            # Train models
-            self.actor_model.fit(states, advantages, epochs=self.epochs, verbose=0)
+
+                # Train models
+            self.actor_model.fit(
+                states,
+                advantages,
+                epochs=self.epochs,
+                verbose=0,
+            )
             self.critic_model.fit(states, discounted_rewards, epochs=self.epochs, verbose=0)
 
             # Empty buffer (treat as a cache for the minibatch)
@@ -161,8 +159,8 @@ class A2C_1(Agent):
 
         # Save actor model
         actor_path = os.path.join(self.path, "actor.h5")
-        self.actor_model.save(actor_path, overwrite=True)
+        self.actor_model.save_weights(actor_path, overwrite=True)
 
         # Save critic model
         critic_path = os.path.join(self.path, "critic.h5")
-        self.critic_model.save(critic_path, overwrite=True)
+        self.critic_model.save_weights(critic_path, overwrite=True)

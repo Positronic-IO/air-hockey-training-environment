@@ -30,24 +30,36 @@ def config() -> Dict[str, Union[str, int]]:
             "gamma": 0.95,
             "learning_rate": 0.001,
             "batch_size": 10000,
-            "sync_target_interval": 100000,
-            "timestep_per_train": 100000,
+            "sync_target_interval": 10000,
+            "timestep_per_train": 100,
         }
     }
 
 
-def create(state_size: Tuple[int, int], learning_rate: float) -> Model:
+def create(state_size: Tuple[int, int, int], learning_rate: float) -> Model:
     """ DDQN Neural Network """
 
     model = Sequential()
 
-    model.add(Dense(state_size[1], kernel_initializer="random_uniform", input_shape=state_size))
-    model.add(Activation("relu"))
-    model.add(BatchNormalization())
+    model.add(TimeDistributed(NoisyDense(20, kernel_initializer="normal", input_shape=state_size)))
+    model.add(TimeDistributed(Activation("relu")))
+    model.add(TimeDistributed(BatchNormalization()))
 
-    model.add(Flatten())
+    model.add(TimeDistributed(NoisyDense(12, kernel_initializer="normal")))
+    model.add(TimeDistributed(Activation("relu")))
+    model.add(TimeDistributed(BatchNormalization()))
 
-    model.add(Dense(4, kernel_initializer="random_uniform"))
+    model.add(LSTM(40, activation="tanh", return_sequences=True))
+    model.add(GaussianNoise(0.7))
+    model.add(Dropout(0.7))
+
+    model.add(LSTM(40, activation="tanh", return_sequences=False))
+    model.add(GaussianNoise(0.7))
+    model.add(Dropout(0.7))
+
+    # model.add(Flatten())
+
+    model.add(NoisyDense(4, kernel_initializer="random_uniform"))
     model.add(Activation("softmax"))
 
     model.compile(loss=huber_loss, optimizer=Adam(lr=learning_rate))

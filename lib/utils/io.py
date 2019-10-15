@@ -78,7 +78,7 @@ def record_data_csv(name: str, payload: Any) -> None:
     """ Save data in csv """
     path = os.getenv("PROJECT")
     if not path:
-        raise ProjectNotFoundError
+        return None
 
     with open(os.path.join(path, f"{name}.csv"), "a") as file:
         fieldnames = payload.keys()

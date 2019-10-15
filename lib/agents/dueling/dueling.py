@@ -26,7 +26,7 @@ class Dueling(Agent):
     """ Reference: https://github.com/flyyufelix/VizDoom-Keras-RL/blob/master/dueling_ddqn.py """
 
     def __init__(self, env: "AirHockey", train: bool):
-        super().__init__(env)
+        super().__init__(env, train)
 
         logger.info(f"Strategy defined for {self.name}: {self.__repr__()}")
 
@@ -34,9 +34,6 @@ class Dueling(Agent):
         # State grows by the amount of frames we want to hold in our memory
         self.state_size = (1, 8)
         self.action_size = 4
-
-        # Are we training?
-        self.train = train
 
         # Load raw model
         path, to_load = self.model_path("dueling")
@@ -155,25 +152,17 @@ class Dueling(Agent):
             target_val = self.model.predict(update_target)
             target_val_ = self.target_model.predict(update_target)
 
-            assert target.shape == ((num_samples,) + (1, self.action_size)), f"target shape is {target.shape}"
-            assert target_val.shape == (
-                (num_samples,) + (1, self.action_size)
-            ), f"target_val shape is {target_val.shape}"
-            assert target_val_.shape == (
-                (num_samples,) + (1, self.action_size)
-            ), f"target_val_ shape is {target_val_.shape}"
-
             for i in range(num_samples):
                 # like Q Learning, get maximum Q value at s'
                 # But from target model
                 if done[i]:
-                    target[i][0][action[i]] = reward[i]
+                    target[i][action[i]] = reward[i]
                 else:
                     # the key point of Double DQN
                     # selection of action is from model
                     # update is from target model
-                    a = np.argmax(target_val[i][0])
-                    target[i][0][action[i]] = reward[i] + self.gamma * (target_val_[i][0][a])
+                    a = np.argmax(target_val[i])
+                    target[i][action[i]] = reward[i] + self.gamma * (target_val_[i][a])
 
             self.model.fit(update_input, target, batch_size=self.batch_size, epochs=1, verbose=0)
 

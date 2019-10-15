@@ -12,15 +12,16 @@ from lib.utils.helpers import serialize_state
 
 
 class Agent:
-    def __init__(self, env: "AirHockey"):
+    def __init__(self, env: "AirHockey", train: bool):
         self.env = env
+        self.train = train
         self.reward = 0
         self.done = False
         self.name = "robot"
         self.reward_tracker = Rewards(self.name, self.env.left_goal, self.env.right_goal, self.env.table)
         self.path = os.getenv("PROJECT")
 
-        if not self.path:
+        if not self.path and self.train:
             raise ProjectNotFoundError
 
     def model_path(self, strategy: str = "") -> str:
@@ -72,7 +73,9 @@ class Agent:
 
         # New observation and have agent learn from it
         observation = Observation(state=state, action=action, reward=reward, done=done, new_state=new_state)
-        self.update(observation)
+
+        if self.train:
+            self.update(observation)
 
         # Return useful information
         return score, observation

@@ -15,6 +15,8 @@ from lib.types import Observation, State
 from lib.exploration import SoftmaxPolicy
 from lib.utils.helpers import serialize_state
 
+from snoop import snoop, pp
+
 # Set random seeds
 np.random.seed(1)
 
@@ -28,7 +30,7 @@ class A2C(Agent):
     """ Reference: https://github.com/flyyufelix/VizDoom-Keras-RL/blob/master/a2c.py """
 
     def __init__(self, env: "AirHockey", train: bool):
-        super().__init__(env)
+        super().__init__(env, train)
 
         logger.info(f"Strategy defined for {self.name}: {self.__repr__()}")
 
@@ -85,9 +87,6 @@ class A2C(Agent):
         logger.info("Critic Model")
         logger.info(self.critic_model.summary())
 
-        # Are we training?
-        self.train = train
-
         # Keep up with the iterations
         self.t = 0
 
@@ -100,7 +99,7 @@ class A2C(Agent):
     def _get_action(self, state: "State") -> int:
         """ Using the output of policy network, pick action stochastically (Boltzmann Policy) """
 
-        policy = self.actor_model.predict(serialize_state(state))[0]
+        policy = self.actor_model.predict(serialize_state(state)).flatten()
         assert policy.shape == (self.action_size,), f"Q-values with shape {policy.shape} have the wrong dimensions"
         return self.exploration_strategy.step(policy) if self.train else np.argmax(policy)
 
@@ -132,7 +131,7 @@ class A2C(Agent):
             discounted_rewards = self.discount_rewards(rewards)
 
             # Prediction of state values for each state appears in the episode
-            values = np.array(self.critic_model.predict(states))
+            values = np.array(self.critic_model.predict(states)).flatten()
 
             # Similar to one-hot target but the "1" is replaced by Advantage Function
             # (i.e. discounted_rewards R_t - value)
@@ -141,7 +140,12 @@ class A2C(Agent):
             for i in range(episode_length):
                 advantages[i][actions[i]] = discounted_rewards[i] - values[i]
             # Train models
-            self.actor_model.fit(states, advantages, epochs=self.epochs, verbose=0)
+            self.actor_model.fit(
+                states,
+                np.reshape(advantages, (advantages.shape[0], 1, advantages.shape[1])),
+                epochs=self.epochs,
+                verbose=0,
+            )
             self.critic_model.fit(states, discounted_rewards, epochs=self.epochs, verbose=0)
 
             # Empty buffer (treat as a cache for the minibatch)
