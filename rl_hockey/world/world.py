@@ -16,6 +16,7 @@ class World:
     -get_state() returns the state of each agent to be used by the controller
     -get_num_actions() returns the number of actions available to each agent
     """
+
     def __init__(self, world_size):
         self.world_size = world_size
         self.obj_list = []
@@ -95,26 +96,26 @@ class World:
         """
         # For each player in this World
         for player, s in zip(self.player_list, state):
-            if frame_skip is False:                    # If we are calling the controller this frame
-                inputs = player.control_func(s)        # Get inputs from controller
+            if frame_skip is False:  # If we are calling the controller this frame
+                inputs = player.control_func(s)  # Get inputs from controller
                 inputs = inputs.tolist()[0]
-                player.last_action = inputs            # Record input for subsequent frames were controller isn't used
-                inputs = player.control_map[inputs]    # Control map for this player
-            else:                                      # Otherwise, use last action
+                player.last_action = inputs  # Record input for subsequent frames were controller isn't used
+                inputs = player.control_map[inputs]  # Control map for this player
+            else:  # Otherwise, use last action
                 inputs = player.control_map[player.last_action]
-            player.obj.apply_action(inputs)        # Apply this action to the object
+            player.obj.apply_action(inputs)  # Apply this action to the object
 
         return
 
     # The following functions need to be defined by each World child class
     def reset(self):
-        raise Exception('World child class needs to define reset() function')
+        raise Exception("World child class needs to define reset() function")
         pass
 
     def update_score(self):
-        raise Exception('World child class needs to define update_score() function')
+        raise Exception("World child class needs to define update_score() function")
         pass
 
     def get_state(self):
-        raise Exception('World child class needs to define get_state() function')
+        raise Exception("World child class needs to define get_state() function")
         pass

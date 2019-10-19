@@ -1,8 +1,9 @@
-class Controller():
+class Controller:
     """
     Parent class for controllers. No functionality, was meant to provide a template for controllers to follow
 
     """
+
     def __init__(self):
         pass
 

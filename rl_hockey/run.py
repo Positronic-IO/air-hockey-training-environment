@@ -16,7 +16,7 @@ def run(memory, world, numSteps=1500, canvas=None, root=None, draw_step=1, draw_
 
     for i in range(numSteps):
         start = time.time()
-        if i % frame_skip == 0 and i > 0: # Update memory
+        if i % frame_skip == 0 and i > 0:  # Update memory
             prev_score = score
             score = world.get_scores()
             done = world.terminate_run()
@@ -32,23 +32,22 @@ def run(memory, world, numSteps=1500, canvas=None, root=None, draw_step=1, draw_
             if done:  # Check if we should terminate, then do so
                 break
 
-
         if i % frame_skip == 0:  # On first frame of block apply control
             world.apply_control(state=state, frame_skip=False)  # Update state of world
         else:
             world.apply_control(state=state, frame_skip=True)  # Update state of world
 
         rigid_body_physics(world, timestep)  # Move pieces
-        world.update_score()                       # Update world, including score
+        world.update_score()  # Update world, including score
 
         if canvas is not None and i % draw_step == 0:
 
-            #arr = world.get_state()
+            # arr = world.get_state()
             arr = world.draw_world(high_scale=draw_scale)
             # arr = state[0,1,:,:] # Diff state
             arr = arr.transpose([1, 0, 2])
-            img = ImageTk.PhotoImage(image=Image.fromarray(arr.astype(np.uint8), mode='RGB'))
-            canvas.create_image(0, 0, anchor='nw', image=img)
+            img = ImageTk.PhotoImage(image=Image.fromarray(arr.astype(np.uint8), mode="RGB"))
+            canvas.create_image(0, 0, anchor="nw", image=img)
             root.update()
             end = time.time()
             # Time taken by controller can vary, calcualte time to pause based on how much time has elapsed since last frame

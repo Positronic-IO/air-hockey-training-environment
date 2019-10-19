@@ -10,6 +10,7 @@ class NaivePrioritizedBuffer(object):
     This class is taken from the following repository by Dulat Yerzat: https://github.com/higgsfield/RL-Adventure
     which was based on Schaul et al. "Prioritized Replay Memory" (2015) https://arxiv.org/abs/1511.05952
     """
+
     def __init__(self, capacity, prob_alpha=0.6):
         self.prob_alpha = prob_alpha
         self.capacity = capacity
@@ -36,7 +37,7 @@ class NaivePrioritizedBuffer(object):
         if len(self.buffer) == self.capacity:
             prios = self.priorities
         else:
-            prios = self.priorities[:self.pos]
+            prios = self.priorities[: self.pos]
 
         probs = prios ** self.prob_alpha
         probs /= probs.sum()

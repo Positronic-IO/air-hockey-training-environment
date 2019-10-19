@@ -6,6 +6,7 @@ import torch.nn as nn
 import torch.optim as optim
 from .controller import Controller
 
+
 class DDDQN(Controller):
     """
     This controller is based on a double, dueling DQN model.
@@ -15,7 +16,8 @@ class DDDQN(Controller):
     The DQN tutorial by Adam Paszke (https://github.com/apaszke)
     Double DQN was proposed by van Hasselt et al. "Deep Reinforcement Learning with Double Q-learning" (2015) https://arxiv.org/abs/1509.06461
     """
-    def __init__(self, device='cuda'):
+
+    def __init__(self, device="cuda"):
         super(DDDQN, self).__init__()
         self.device = torch.device(device)
         self.train_steps = 0
@@ -44,8 +46,8 @@ class DDDQN(Controller):
         """
         self.num_actions = num_actions
 
-        self.train_steps = 0                    # Initialize number of training steps to 0
-        self.gamma = gamma                      # Assign invalue values
+        self.train_steps = 0  # Initialize number of training steps to 0
+        self.gamma = gamma  # Assign invalue values
         self.eps_end = eps_end
         self.eps_decay = eps_decay
 
@@ -72,16 +74,16 @@ class DDDQN(Controller):
 
         state = torch.tensor(state, dtype=torch.float32)
         sample = random.random()
-        eps = self.get_eps()            # Get current eps value
+        eps = self.get_eps()  # Get current eps value
 
-        if sample > eps:                # Determine action using policy net
+        if sample > eps:  # Determine action using policy net
             with torch.no_grad():
                 self.policy_net.eval()
                 # t.max(1) will return largest column value of each row.
                 # second column on max result is index of where max element was
                 # found, so we pick action with the larger expected reward.
                 return self.policy_net(state.to(self.device)).max(1)[1]
-        else:                           # Determine action randomly
+        else:  # Determine action randomly
             return torch.tensor([random.randrange(self.num_actions)], device=self.device, dtype=torch.long)
 
     def get_eps(self):
@@ -92,7 +94,7 @@ class DDDQN(Controller):
         eps_end = self.eps_end
         eps_decay = self.eps_decay
 
-        return eps_end + (eps_start - eps_end) * math.exp(-1. * self.train_steps / eps_decay)
+        return eps_end + (eps_start - eps_end) * math.exp(-1.0 * self.train_steps / eps_decay)
 
     def train(self, memory, beta):
         """
@@ -136,11 +138,11 @@ class DDDQN(Controller):
         self.policy_net.train()
         current_Q = self.policy_net(state_batch).gather(1, action_batch)
         diff = current_Q.squeeze() - target_Q
-        loss = (0.5 * (diff * diff))*weights.squeeze()
+        loss = (0.5 * (diff * diff)) * weights.squeeze()
 
         # Update memory priorities
         prios = loss + 1e-5
-        memory.update_priorities(indices, prios.data.cpu().numpy()) # Update
+        memory.update_priorities(indices, prios.data.cpu().numpy())  # Update
 
         # Optimize the model
         loss = loss.mean()
@@ -155,7 +157,7 @@ class DDDQN(Controller):
             self.target_net.load_state_dict(self.policy_net.state_dict())
 
         self.train_steps += 1
-        unweighted_loss = (0.5 * (diff * diff)).mean() # Unweighted loss used only for output
+        unweighted_loss = (0.5 * (diff * diff)).mean()  # Unweighted loss used only for output
         return unweighted_loss.detach().cpu().numpy()
 
     def save_model(self, PATH):
@@ -174,6 +176,7 @@ class DDDQN(Controller):
     def get_model(self):
         return self.policy_net
 
+
 class DuelingDQN(nn.Module):
     """
     The dueling architecture considers both the value in taking particular action, and the value of being
@@ -183,12 +186,13 @@ class DuelingDQN(nn.Module):
     and was based on Wang et al. "Dueling Network Architectures for Deep Reinforcement Learning" (2015)
     https://arxiv.org/abs/1511.05952
     """
+
     def __init__(self, num_inputs, num_outputs, hn):
         super(DuelingDQN, self).__init__()
 
         self.num_actions = num_outputs
         num_hidden = hn
-        nh2 = int(num_hidden/2)
+        nh2 = int(num_hidden / 2)
 
         self.features = nn.Sequential(
             nn.Linear(num_inputs, num_hidden),
@@ -199,17 +203,9 @@ class DuelingDQN(nn.Module):
             nn.ReLU(),
         )
 
-        self.advantage = nn.Sequential(
-            nn.Linear(num_hidden, nh2),
-            nn.ReLU(),
-            nn.Linear(nh2, num_outputs),
-        )
+        self.advantage = nn.Sequential(nn.Linear(num_hidden, nh2), nn.ReLU(), nn.Linear(nh2, num_outputs))
 
-        self.value = nn.Sequential(
-            nn.Linear(num_hidden, nh2),
-            nn.ReLU(),
-            nn.Linear(nh2, 1),
-        )
+        self.value = nn.Sequential(nn.Linear(num_hidden, nh2), nn.ReLU(), nn.Linear(nh2, 1))
 
     def forward(self, x):
         x = self.features(x)
