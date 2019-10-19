@@ -4,16 +4,16 @@ import logging
 from typing import Any, Dict, Tuple, Union
 
 import numpy as np
-from redis import Redis
 
 from environment import config
 from environment.goal import Goal
+from environment.heuristic import computer
 from environment.mallet import Mallet
+from environment.physics import collision
 from environment.puck import Puck
 from environment.table import Table
-from lib.utils.connect import RedisConnection
-from lib.utils.exceptions import InvalidAgentError
 from lib.types import Action, Observation, State
+from lib.utils.exceptions import InvalidAgentError
 
 # Initiate Logger
 logging.basicConfig(level=logging.INFO)
@@ -24,9 +24,6 @@ logger.setLevel(logging.INFO)
 class AirHockey:
     def __init__(self) -> None:
         """ Initiate an air hockey game """
-
-        # Set up Redis Connection
-        self.redis = RedisConnection()
 
         # Create Table
         self.table = Table()
@@ -52,9 +49,6 @@ class AirHockey:
         self.opponent_score, self.robot_score = 0, 0
 
         self.mallets = [self.robot, self.opponent]
-
-        # Push to redis
-        self.redis.post({"scores": {"robot_score": self.robot_score, "opponent_score": self.opponent_score}})
 
         # Drift
         self.ticks_to_friction = 60
@@ -104,14 +98,14 @@ class AirHockey:
             self.opponent.x, self.opponent.y = action[0], action[1]
             self.opponent.update()
         elif agent_name == "computer":  # Non-human opponent
-            self.computerAI()
+            computer(self.puck, self.opponent)
         else:
             logger.error("Invalid agent name")
             raise InvalidAgentError
 
         # Check for collisions, do physics magic, update objects
         for mallet in self.mallets:
-            self.collision(self.puck, mallet)
+            collision(self.puck, mallet)
 
         # Update puck position
         self.puck.limit_puck_speed()
@@ -120,16 +114,6 @@ class AirHockey:
         # Update agent and oppponent positions
         for mallet in self.mallets:
             mallet.update()
-
-        self.redis.post(
-            {
-                "components": {
-                    "puck": {"location": self.puck.location(), "velocity": self.puck.velocity()},
-                    self.robot.name: {"location": self.robot.location(), "velocity": self.robot.velocity()},
-                    self.opponent.name: {"location": self.opponent.location(), "velocity": self.opponent.velocity()},
-                }
-            }
-        )
 
         return None
 
@@ -151,158 +135,24 @@ class AirHockey:
         # When then agent scores on the computer
         if score > 0:
             self.robot_score += 1
-            self.redis.post({"scores": {"robot_score": self.robot_score, "opponent_score": self.opponent_score}})
-            self.redis.publish("score-update")
-            logger.info(f"Robot {self.robot_score}, Computer {self.opponent_score}")
-            self.reset()
-            return None
 
         # When the computer scores on the agent
         if score < 0:
             self.opponent_score += 1
-            # Push to redis
-            self.redis.post({"scores": {"robot_score": self.robot_score, "opponent_score": self.opponent_score}})
-            self.redis.publish("score-update")
-            logger.info(f"Robot {self.robot_score}, Computer {self.opponent_score}")
-            self.reset()
-            return None
-        return None
+
+        logger.info(f"Robot {self.robot_score}, Computer {self.opponent_score}")
+        self.reset()
 
     def reset(self, total: bool = False) -> None:
         """ Reset Game """
 
         if total:
+            logger.info("Total Game reset")
             self.opponent_score = 0
             self.robot_score = 0
-
-            # Push to redis
-            self.redis.post({"scores": {"robot_score": self.robot_score, "opponent_score": self.opponent_score}})
-            self.redis.publish("score-update")
-            logger.info("Total Game reset")
 
         self.puck.reset()
         self.robot.reset()
         self.opponent.reset()
 
-        return None
-
-    @staticmethod
-    def collision(puck: "Puck", mallet: "Mallet", correction: bool = True) -> bool:
-        """ Collision resolution
-
-        Reference:
-            https://www.gamedev.net/forums/topic/488102-circlecircle-collision-response/
-            https://gamedevelopment.tutsplus.com/tutorials/how-to-create-a-custom-2d-physics-engine-the-basics-and-impulse-resolution--gamedev-6331
-        """
-        # separation vector
-        d_x = mallet.x - puck.x
-        d_y = mallet.y - puck.y
-        d = np.array([d_x, d_y])
-
-        #  distance between circle centres, squared
-        distance_squared = np.dot(d, d)
-
-        # combined radius squared
-        radius = mallet.radius + puck.radius
-        radius_squared = radius ** 2
-
-        # No collision
-        if distance_squared > radius_squared:
-            return False
-
-        # distance between circle centres
-        distance = np.sqrt(distance_squared)
-
-        # normal of collision
-        ncoll = (d / distance) if distance > 0 else d
-
-        # penetration distance
-        dcoll = radius - d
-
-        # Sum of inverse masses
-        imass_sum = puck.imass + mallet.imass
-
-        # separation vector
-        if correction:
-            # For floating point corrections
-            percent = config.physics["percent"]  # usually 20% to 80%
-            slop = config.physics["slop"]  # usually 0.01 to 0.1
-            separation_vector = (np.max(dcoll - slop, 0) / imass_sum) * percent * ncoll
-        else:
-            separation_vector = (dcoll / imass_sum) * ncoll
-
-        # separate the circles
-        puck.x -= separation_vector[0] * puck.imass
-        puck.y -= separation_vector[1] * puck.imass
-        mallet.x += separation_vector[0] * mallet.imass
-        mallet.y += separation_vector[1] * mallet.imass
-
-        # combines velocity
-        vcoll_x = mallet.dx - puck.dx
-        vcoll_y = mallet.dy - puck.dy
-        vcoll = np.array([vcoll_x, vcoll_y])
-
-        # impact speed
-        vn = np.dot(vcoll, ncoll)
-
-        # obejcts are moving away. dont reflect velocity
-        if vn > 0:
-            return True  # we did collide
-
-        # coefficient of restitution in range [0, 1].
-        cor = config.physics["restitution"]  # air hockey -> high cor
-
-        # collision impulse
-        j = -(1.0 + cor) * (vn / imass_sum)
-
-        # collision impusle vector
-        impulse = j * ncoll
-
-        # change momentum of the circles
-        puck.dx -= impulse[0] * puck.imass
-        puck.dy -= impulse[1] * puck.imass
-
-        mallet.dx += impulse[0] * mallet.imass
-        mallet.dy += impulse[1] * mallet.imass
-
-        return True
-
-    def computerAI(self) -> None:
-        """ The 'AI' of the computer """
-
-        if self.puck.x < self.opponent.x:
-            if self.puck.x < self.opponent.left_lim:
-                self.opponent.dx = 1
-            else:
-                self.opponent.dx = -2
-
-        if self.puck.x > self.opponent.x:
-            if self.puck.x > self.opponent.right_lim:
-                self.opponent.dx = -1
-            else:
-                self.opponent.dx = 2
-
-        if self.puck.y < self.opponent.y:
-            if self.puck.y < self.opponent.u_lim:
-                self.opponent.dy = 1
-            else:
-                self.opponent.dy = -6
-
-        if self.puck.y > self.opponent.y:
-            if self.puck.y <= 360:  # was 250
-                self.opponent.dy = 6
-            # elif puck.y<=350:
-            #    left_mallet.dy = 2
-            else:
-                if self.opponent.y > 200:
-                    self.opponent.dy = -2
-                else:
-                    self.opponent.dy = 0
-            # Addresses situation when the puck and the computer are on top of each other.
-            # Breaks loop
-            if abs(self.puck.y - self.opponent.y) < 40 and abs(self.puck.x - self.opponent.x) < 40:
-                self.puck.dx += 2
-                self.puck.dy += 2
-
-        self.opponent.update()
         return None
