@@ -133,3 +133,8 @@ todo
 logs/
 # Models
 model/
+
+# caches
+.mypy_cache
+.pytest_cache
+.vscode
