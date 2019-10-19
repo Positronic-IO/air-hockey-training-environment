@@ -23,8 +23,8 @@ class World:
         self.player_list = []
         self.steps = 0
         self.control_map = {}
-        self.cpu_controller = [Controller(), Controller()]  # These will be set by set_cpu_controller.
-        self.opp_controller = [Controller(), Controller()]
+        self.cpu_controller = Controller()  # These will be set by set_cpu_controller.
+        self.opp_controller = Controller()
         self.num_cpu = 1
         return
 

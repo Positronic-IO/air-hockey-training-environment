@@ -64,11 +64,11 @@ if __name__ == "__main__":
     else:
         raise Exception("World not recognized")
 
-    memory = [NaivePrioritizedBuffer(args.mem_size)]  # Initialize empty memory
+    memory = NaivePrioritizedBuffer(args.mem_size)  # Initialize empty memory
     num_actions = world.get_num_actions()  # Number of actions available for agent
     num_inputs = len(world.get_state()[0][0])  # Number of inputs provided
-    cpu_controller = [DDDQN(device="cuda")]  # Create controller
-    cpu_controller[0].create_model(
+    cpu_controller = DDDQN(device="cuda")  # Create controller
+    cpu_controller.create_model(
         num_inputs=num_inputs,
         num_actions=num_actions[0],
         gamma=args.gamma,
@@ -80,13 +80,8 @@ if __name__ == "__main__":
 
     # Currently if a args.prev_model is provided then it is not intended to be trained, but rather viewed.
     if args.prev_model:
-        if cpu_controller.count(cpu_controller[0]) == len(cpu_controller):  # If all CPU controllers are same
-            cpu_controller[0].load_model(args.prev_model + ".pt")  # Load model into controller
-            cpu_controller[0].train_steps = args.eps_decay * 100  # Set train steps high so a low eps is used
-        else:
-            for i, c in enumerate(cpu_controller):  # If multiple CPU controllers are present
-                c.load_model(args.prev_model + "_" + str(i) + ".pt")  # Load each model
-                c.train_steps = args.eps_decay * 100
+        cpu_controller.load_model(args.prev_model + ".pt")  # Load model into controller
+        cpu_controller.train_steps = args.eps_decay * 100  # Set train steps high so a low eps is used
 
         args.beta_start = args.beta_max  # Will result in beta always being equal to args.beta_max
         args.view_run = True  # Modify in future, currently can't properly load then train. Need to save memory
@@ -101,10 +96,9 @@ if __name__ == "__main__":
     # If self play is being used for training then we set up a SelfPlayController.
     # Occasional snapshots of the trained controller will be stored here to be used as an opponent
     if SELF_PLAY:  # If we're doing self play create controller and load initial model
-        self_play_cpu = []  # Create a self play controller for each CPU controller
-        for c in cpu_controller:
-            self_play_cpu.append(SelfPlayController(num_actions=num_actions))
-            self_play_cpu[-1].insert_model(c.get_model(), c.get_eps())  # Load initial controller
+        # Create a self play controller for each CPU controller
+        self_play_cpu = SelfPlayController(num_actions=num_actions)
+        self_play_cpu.insert_model(cpu_controller.get_model(), cpu_controller.get_eps())  # Load initial controller
     else:  # No self play, world will rely on it's own heuristic controllers
         self_play_cpu = None
 
@@ -120,30 +114,24 @@ if __name__ == "__main__":
             memory = run(memory, world=world, canvas=canvas, root=root, draw_step=2, pause_time=1 / 45, numSteps=20_000)
         else:
             memory = run(memory, world=world, numSteps=1500)  # Run an iteration
-            for j in range(len(cpu_controller)):  # For each CPU controller
-                for k in range(args.train_steps):  # Run a number of training steps
-                    loss_mean += cpu_controller[j].train(memory[j], beta_by_frame(i)) / args.train_steps
+            for k in range(args.train_steps):  # Run a number of training steps
+                loss_mean += cpu_controller.train(memory, beta_by_frame(i)) / args.train_steps
 
         stop = time.time()
 
         if SELF_PLAY is True:  # If self play is used, increment the internal counters
-            for j in range(len(self_play_cpu)):  # of the self play controllers.
-                self_play_cpu[j].increment_model()
-                if i % 1000 == 0:  # Every 1000 iterations take a snapshot of controllers
-                    self_play_cpu[j].insert_model(cpu_controller[j].get_model(), cpu_controller[j].get_eps())
+            self_play_cpu.increment_model()
+            if i % 1000 == 0:  # Every 1000 iterations take a snapshot of controllers
+                self_play_cpu.insert_model(cpu_controller.get_model(), cpu_controller.get_eps())
 
         if i % 100 == 0 and args.view_run is False:  # Every 100 iterations save the current model(s)
-            if cpu_controller.count(cpu_controller[0]) == len(cpu_controller):
-                cpu_controller[0].save_model("./models/" + SAVE_NAME + ".pt")
-            else:
-                for j, c in enumerate(cpu_controller):
-                    c.save_model("./models/" + SAVE_NAME + "_" + str(j) + ".pt")
+            cpu_controller.save_model("./models/" + SAVE_NAME + ".pt")
 
         # Get current score and provide some output
         score_hist[i] = np.mean(world.get_scores()[: world.get_num_cpu()])
         score_mean = np.mean(score_hist[np.max([i - 100, 0]) : i + 1])
         print(
             "Iteration {}, memLen {}, loss {:.6f}, time {:.2f}, score {}, avg_score {:.2f}".format(
-                i, len(memory[0]), loss_mean, stop - start, world.get_scores()[: world.get_num_cpu()], score_mean
+                i, len(memory), loss_mean, stop - start, world.get_scores()[: world.get_num_cpu()], score_mean
             )
         )

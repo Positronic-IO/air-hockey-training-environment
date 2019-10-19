@@ -169,7 +169,7 @@ class Hockey1v1(World):
                 obj=self.obj_list[-1],
                 score=0,
                 last_action=0,
-                control_func=self.cpu_controller[0].select_action,
+                control_func=self.cpu_controller.select_action,
                 control_map=self.control_map[0],
             )
         )
@@ -192,7 +192,7 @@ class Hockey1v1(World):
                 obj=self.obj_list[-1],
                 score=0,
                 last_action=0,
-                control_func=self.opp_controller[0].select_action,
+                control_func=self.opp_controller.select_action,
                 control_map=self.control_map[1],
             )
         )

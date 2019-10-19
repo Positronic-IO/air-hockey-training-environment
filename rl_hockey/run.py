@@ -24,10 +24,9 @@ def run(memory, world, numSteps=1500, canvas=None, root=None, draw_step=1, draw_
             state = world.get_state()
             all_actions = world.get_last_action()
 
-            for j in range(num_cpu):
-                reward = torch.tensor([(score[j] - prev_score[j])], dtype=torch.float)
-                action = torch.tensor([all_actions[j]])
-                memory[j].push(prev_state[j], action, reward, state[j], done=done)
+            reward = torch.tensor([(score[0] - prev_score[0])], dtype=torch.float)
+            action = torch.tensor([all_actions[0]])
+            memory.push(prev_state[0], action, reward, state[0], done=done)
 
             if done:  # Check if we should terminate, then do so
                 break
