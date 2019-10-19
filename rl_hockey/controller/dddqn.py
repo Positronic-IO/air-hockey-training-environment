@@ -8,6 +8,11 @@ import torch.optim as optim
 
 from .controller import Controller
 
+# Initiate Logger
+import logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 class DDDQN(Controller):
     """
@@ -71,8 +76,7 @@ class DDDQN(Controller):
         # Optimizer to be used
         self.optimizer = optim.Adagrad(self.policy_net.parameters(), lr=lr)
 
-        print(self.policy_net.forward)
-        pass
+        logger.info(self.policy_net.forward)
 
     def select_action(self, state: np.ndarray):
         """

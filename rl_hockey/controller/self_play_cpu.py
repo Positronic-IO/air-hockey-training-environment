@@ -5,6 +5,12 @@ import copy
 
 from .controller import Controller
 
+# Initiate Logger
+import logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+
 
 class SelfPlayController(Controller):
     """
@@ -46,7 +52,7 @@ class SelfPlayController(Controller):
             self.next_remove = (self.next_remove + 1) % self.num_hist
 
         for n in self.networks:
-            print(n.features[0].weight.sum())
+            logger.info(n.features[0].weight.sum())
 
     def increment_model(self):
         """

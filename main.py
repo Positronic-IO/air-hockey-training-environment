@@ -1,4 +1,7 @@
 import json
+import logging
+import signal
+import sys
 import time
 import tkinter as tk
 from typing import Union
@@ -9,6 +12,18 @@ import torch
 from rl_hockey.controller import DDDQN, NaivePrioritizedBuffer, SelfPlayController
 from rl_hockey.run import run
 from rl_hockey.world import Hockey1v1, Hockey1v1Heuristic
+
+# Initiate Logger
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+
+
+def signal_handler(sig, frame):
+    """ Kill game gracefully """
+    logger.info("Ending game")
+    sys.exit(0)
+
 
 torch.manual_seed(0)
 
@@ -40,7 +55,10 @@ if __name__ == "__main__":
     parser.add_argument("--world", type=str, default="Hockey1v1Heuristic", help="World to use, available worlds")
 
     args = parser.parse_args()
-    print(json.dumps(vars(args), indent=2))  # Print config
+    logger.info(f"Environment config:\n {json.dumps(vars(args), indent=2)}")  # Print config
+
+    # Register ability to kill the game --- gracefully
+    signal.signal(signal.SIGINT, signal_handler)
 
     def beta_by_frame(frame_idx: int) -> float:
         """ Beta used by the priorized memory """
@@ -124,13 +142,13 @@ if __name__ == "__main__":
             if i % 1000 == 0:  # Every 1000 iterations take a snapshot of controllers
                 self_play_cpu.insert_model(cpu_controller.get_model(), cpu_controller.get_eps())
 
-        if i % 100 == 0 and args.view_run is False:  # Every 100 iterations save the current model(s)
+        if i % 100 == 0 and not args.view_run:  # Every 100 iterations save the current model(s)
             cpu_controller.save_model("./models/" + SAVE_NAME + ".pt")
 
         # Get current score and provide some output
         score_hist[i] = np.mean(world.get_scores()[: world.get_num_cpu()])
         score_mean = np.mean(score_hist[np.max([i - 100, 0]) : i + 1])
-        print(
+        logger.info(
             "Iteration {}, memLen {}, loss {:.6f}, time {:.2f}, score {}, avg_score {:.2f}".format(
                 i, len(memory), loss_mean, stop - start, world.get_scores()[: world.get_num_cpu()], score_mean
             )
