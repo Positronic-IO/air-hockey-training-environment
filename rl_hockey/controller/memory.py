@@ -11,7 +11,7 @@ class NaivePrioritizedBuffer(object):
     which was based on Schaul et al. "Prioritized Replay Memory" (2015) https://arxiv.org/abs/1511.05952
     """
 
-    def __init__(self, capacity, prob_alpha=0.6):
+    def __init__(self, capacity: int, prob_alpha=0.6):
         self.prob_alpha = prob_alpha
         self.capacity = capacity
         self.buffer = []

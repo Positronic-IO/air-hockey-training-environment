@@ -1,9 +1,11 @@
 import math
 import random
 
+import numpy as np
 import torch
 import torch.nn as nn
 import torch.optim as optim
+
 from .controller import Controller
 
 
@@ -17,7 +19,7 @@ class DDDQN(Controller):
     Double DQN was proposed by van Hasselt et al. "Deep Reinforcement Learning with Double Q-learning" (2015) https://arxiv.org/abs/1509.06461
     """
 
-    def __init__(self, device="cuda"):
+    def __init__(self, device: str = "cuda"):
         super(DDDQN, self).__init__()
         self.device = torch.device(device)
         self.train_steps = 0
@@ -31,7 +33,16 @@ class DDDQN(Controller):
         self.target_net = None
         self.optimizer = None
 
-    def create_model(self, num_inputs, num_actions, gamma=0.99, eps_end=0.1, eps_decay=50_000, lr=1e-2, hn=512):
+    def create_model(
+        self,
+        num_inputs: int,
+        num_actions: int,
+        gamma: float = 0.99,
+        eps_end: float = 0.1,
+        eps_decay: float = 50_000,
+        lr: float = 1e-2,
+        hn: int = 512,
+    ) -> None:
         """
         Initialize the model for the given parameters.
 
@@ -63,7 +74,7 @@ class DDDQN(Controller):
         print(self.policy_net.forward)
         pass
 
-    def select_action(self, state):
+    def select_action(self, state: np.ndarray):
         """
         The selected action will either be determined by the policy net, or randomly determined.
 
@@ -86,7 +97,7 @@ class DDDQN(Controller):
         else:  # Determine action randomly
             return torch.tensor([random.randrange(self.num_actions)], device=self.device, dtype=torch.long)
 
-    def get_eps(self):
+    def get_eps(self) -> float:
         """
         Calculate current eps based on number of elapsed training steps.
         """
@@ -160,13 +171,13 @@ class DDDQN(Controller):
         unweighted_loss = (0.5 * (diff * diff)).mean()  # Unweighted loss used only for output
         return unweighted_loss.detach().cpu().numpy()
 
-    def save_model(self, PATH):
+    def save_model(self, PATH: str) -> None:
         """
         Save the current policy net model to the given path
         """
         torch.save(self.policy_net.state_dict(), PATH)
 
-    def load_model(self, PATH):
+    def load_model(self, PATH: str) -> None:
         """
         Load the policy net model from the given path
         """
@@ -187,7 +198,7 @@ class DuelingDQN(nn.Module):
     https://arxiv.org/abs/1511.05952
     """
 
-    def __init__(self, num_inputs, num_outputs, hn):
+    def __init__(self, num_inputs: int, num_outputs: int, hn: int):
         super(DuelingDQN, self).__init__()
 
         self.num_actions = num_outputs
@@ -207,7 +218,7 @@ class DuelingDQN(nn.Module):
 
         self.value = nn.Sequential(nn.Linear(num_hidden, nh2), nn.ReLU(), nn.Linear(nh2, 1))
 
-    def forward(self, x):
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
         x = self.features(x)
         x = x.view(x.size(0), -1)
         advantage = self.advantage(x)
