@@ -11,7 +11,7 @@ import torch
 
 from rl_hockey.controller import DDDQN, NaivePrioritizedBuffer, SelfPlayController
 from rl_hockey.run import run
-from rl_hockey.world import Hockey1v1, Hockey1v1Heuristic
+from rl_hockey.world import AirHockey
 
 # Initiate Logger
 logging.basicConfig(level=logging.INFO)
@@ -52,7 +52,7 @@ if __name__ == "__main__":
     parser.add_argument("--beta_max", type=float, default=0.5, help="Final beta value")
     parser.add_argument("--beta_frames", type=int, default=1000, help="Transition period from start to max beta value")
     parser.add_argument("--view_run", action="store_true", help="Set to True to visualize the mode")
-    parser.add_argument("--world", type=str, default="Hockey1v1Heuristic", help="World to use, available worlds")
+    parser.add_argument("--self_play", action="store_true", help="World to use, available worlds")
 
     args = parser.parse_args()
     logger.info(f"Environment config:\n {json.dumps(vars(args), indent=2)}")  # Print config
@@ -64,24 +64,9 @@ if __name__ == "__main__":
         """ Beta used by the priorized memory """
         return min(args.beta_max, args.beta_start + frame_idx * (1.0 - args.beta_start) / args.beta_frames)
 
-    world: Union[object, Hockey1v1, Hockey1v1Heuristic] = object
-
     # Set up world and required controllers.
-    if args.world == "Hockey1v1":
-
-        SAVE_NAME = "Hockey1v1"
-        world = Hockey1v1()  # Create world
-        SELF_PLAY = True  # This world using self play
-
-    elif args.world == "Hockey1v1Heuristic":
-
-        SAVE_NAME = "Hockey1v1Heuristic"
-        world = Hockey1v1Heuristic()  # Create world
-        SELF_PLAY = False  # World using an heuristic opponent
-
-    else:
-        raise Exception("World not recognized")
-
+    SAVE_NAME = "Hockey1v1" if args.self_play else "Hockey1v1Heuristic"
+    world = AirHockey(self_play=args.self_play)  # Create world
     memory = NaivePrioritizedBuffer(args.mem_size)  # Initialize empty memory
     num_actions = world.get_num_actions()  # Number of actions available for agent
     num_inputs = len(world.get_state()[0][0])  # Number of inputs provided
@@ -113,7 +98,7 @@ if __name__ == "__main__":
 
     # If self play is being used for training then we set up a SelfPlayController.
     # Occasional snapshots of the trained controller will be stored here to be used as an opponent
-    if SELF_PLAY:  # If we're doing self play create controller and load initial model
+    if args.self_play:  # If we're doing self play create controller and load initial model
         # Create a self play controller for each CPU controller
         self_play_cpu = SelfPlayController(num_actions=num_actions)
         self_play_cpu.insert_model(cpu_controller.get_model(), cpu_controller.get_eps())  # Load initial controller
@@ -137,7 +122,7 @@ if __name__ == "__main__":
 
         stop = time.time()
 
-        if SELF_PLAY is True:  # If self play is used, increment the internal counters
+        if args.self_play:  # If self play is used, increment the internal counters
             self_play_cpu.increment_model()
             if i % 1000 == 0:  # Every 1000 iterations take a snapshot of controllers
                 self_play_cpu.insert_model(cpu_controller.get_model(), cpu_controller.get_eps())

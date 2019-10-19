@@ -6,7 +6,7 @@ from rl_hockey.object.shapes import LineShape, CircleShape
 import numpy as np
 
 
-class Hockey1v1Heuristic(World):
+class AirHockey(World):
     """
     World based on air hockey.
 
@@ -14,35 +14,11 @@ class Hockey1v1Heuristic(World):
     uses a simple heuristic controller that chases the puck and tries to stay behind it.
     """
 
-    def __init__(self):
+    def __init__(self, self_play: bool = False):
 
-        super(Hockey1v1Heuristic, self).__init__(world_size=[2000, 1000])
-
-        self.control_map = [
-            {
-                0: "",  # Map from controller outputs to inputs used by ControlledCircle object
-                1: "UP",  # First is for left player
-                2: "UP RIGHT",
-                3: "RIGHT",
-                4: "DOWN RIGHT",
-                5: "DOWN",
-                6: "DOWN LEFT",
-                7: "LEFT",
-                8: "UP LEFT",
-            },
-            {
-                0: "",  # Second map is for right player
-                1: "UP",
-                2: "UP LEFT",
-                3: "LEFT",
-                4: "DOWN LEFT",
-                5: "DOWN",
-                6: "DOWN RIGHT",
-                7: "RIGHT",
-                8: "UP RIGHT",
-            },
-        ]
-
+        super(AirHockey, self).__init__(world_size=[2000, 1000])
+        
+        self.heuristic = not self_play
         self.b = 20  # Buffer between walls and edge of world
         self.goal_width = 400
         self.goal_depth = 100
@@ -190,12 +166,13 @@ class Hockey1v1Heuristic(World):
                 color=[255, 0, 0],
             )
         )
+
         self.player_list.append(
             Player(
                 obj=self.obj_list[-1],
                 score=0,
                 last_action=0,
-                control_func=self.get_action_heuristic,
+                control_func=self.get_action_heuristic if self.heuristic else self.opp_controller.select_action,
                 control_map=self.control_map[1],
             )
         )

@@ -26,6 +26,31 @@ class World:
         self.cpu_controller = Controller()  # These will be set by set_cpu_controller.
         self.opp_controller = Controller()
         self.num_cpu = 1
+        
+        self.control_map = [
+            {
+                0: "",  # Map from controller outputs to inputs used by ControlledCircle object
+                1: "UP",  # First is for left player
+                2: "UP RIGHT",
+                3: "RIGHT",
+                4: "DOWN RIGHT",
+                5: "DOWN",
+                6: "DOWN LEFT",
+                7: "LEFT",
+                8: "UP LEFT",
+            },
+            {
+                0: "",  # Second map is for right player
+                1: "UP",
+                2: "UP LEFT",
+                3: "LEFT",
+                4: "DOWN LEFT",
+                5: "DOWN",
+                6: "DOWN RIGHT",
+                7: "RIGHT",
+                8: "UP RIGHT",
+            },
+        ]
         return
 
     def get_object_list(self):
