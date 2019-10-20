@@ -1,5 +1,5 @@
 from typing import List, Callable, Any, Dict
-from rl_hockey.object import ControlledCircle
+from air_hockey.object import ControlledCircle
 
 
 class Player:

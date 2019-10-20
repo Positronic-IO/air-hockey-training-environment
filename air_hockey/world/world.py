@@ -2,9 +2,9 @@ from typing import Any, Callable, Dict, List, Union
 
 import numpy as np
 
-from rl_hockey.controller import Controller
-from rl_hockey.object.objects import StaticObject, DynamicObject, ControlledCircle
-from rl_hockey.object.shapes import LineShape, CircleShape
+from air_hockey.controller import Controller
+from air_hockey.object.objects import StaticObject, DynamicObject, ControlledCircle
+from air_hockey.object.shapes import LineShape, CircleShape
 from .player import Player
 
 

@@ -1,5 +1,5 @@
-from rl_hockey.object.shapes import LineShape, CircleShape
-from rl_hockey.object.objects import StaticObject
+from air_hockey.object.shapes import LineShape, CircleShape
+from air_hockey.object.objects import StaticObject
 import numpy as np
 
 # Mapping dictionary to call appropriate function based on types of objects provided

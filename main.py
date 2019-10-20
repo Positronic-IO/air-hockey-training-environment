@@ -9,9 +9,9 @@ from typing import Union
 import numpy as np
 import torch
 
-from rl_hockey.controller import DDDQN, NaivePrioritizedBuffer, SelfPlayController
-from rl_hockey.run import run
-from rl_hockey.world import AirHockey
+from air_hockey.controller import DDDQN, NaivePrioritizedBuffer, SelfPlayController
+from air_hockey.run import run
+from air_hockey.world import AirHockey
 
 # Initiate Logger
 logging.basicConfig(level=logging.INFO)
@@ -34,7 +34,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--prev_model",
         type=str,
-        default="./models/06_20_Hockey_1v1",
+        default="",
         help="If no previous model is set then a new one is created",
     )
     parser.add_argument("--num_iterations", type=int, default=200000, help="Number of iterations that will be run")
@@ -55,8 +55,9 @@ if __name__ == "__main__":
     parser.add_argument("--self_play", action="store_true", help="World to use, available worlds")
 
     args = parser.parse_args()
-    logger.info(f"Environment config:\n {json.dumps(vars(args), indent=2)}")  # Print config
+    logger.info(f"Environment config:\n {json.dumps(vars(args), indent=4)}")  # Print config
 
+    # args.prev_model = "./models/06_20_Hockey_1v1"
     # Register ability to kill the game --- gracefully
     signal.signal(signal.SIGINT, signal_handler)
 

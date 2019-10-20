@@ -2,8 +2,8 @@ from typing import List
 
 import numpy as np
 
-from rl_hockey.object.objects import ControlledCircle, DynamicObject, StaticObject
-from rl_hockey.object.shapes import CircleShape, LineShape
+from air_hockey.object.objects import ControlledCircle, DynamicObject, StaticObject
+from air_hockey.object.shapes import CircleShape, LineShape
 
 from .player import Player
 from .world import World

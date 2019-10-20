@@ -1,5 +1,5 @@
 from PIL import Image, ImageTk
-from rl_hockey.physics import rigid_body_physics
+from air_hockey.physics import rigid_body_physics
 import torch
 import time
 import numpy as np
