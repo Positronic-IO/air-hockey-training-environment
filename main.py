@@ -108,7 +108,6 @@ if __name__ == "__main__":
 
     world.set_cpu_controller(cpu_controller, self_play_cpu)  # Insert controllers to world
 
-    start = time.time()
     score_hist = np.zeros(args.num_iterations)  # Used to track score history
 
     for i in range(1, args.num_iterations):

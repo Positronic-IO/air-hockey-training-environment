@@ -87,19 +87,17 @@ class DDDQN(Controller):
         to determine actions. The final rate of randomly chosen actions is determined by self.eps_end
         """
 
-        state = torch.tensor(state, dtype=torch.float32)
-        sample = random.random()
-        eps = self.get_eps()  # Get current eps value
-
-        if sample > eps:  # Determine action using policy net
-            with torch.no_grad():
-                self.policy_net.eval()
-                # t.max(1) will return largest column value of each row.
-                # second column on max result is index of where max element was
-                # found, so we pick action with the larger expected reward.
-                return self.policy_net(state.to(self.device)).max(1)[1]
-        else:  # Determine action randomly
+        # Determine action randomly
+        if random.random() <= self.get_eps():
             return torch.tensor([random.randrange(self.num_actions)], device=self.device, dtype=torch.long)
+
+        with torch.no_grad():
+            self.policy_net.eval()
+            state = torch.tensor(state, dtype=torch.float32)
+            # t.max(1) will return largest column value of each row.
+            # second column on max result is index of where max element was
+            # found, so we pick action with the larger expected reward.
+            return self.policy_net(state.to(self.device)).max(1)[1]
 
     def get_eps(self) -> float:
         """
@@ -109,7 +107,7 @@ class DDDQN(Controller):
         eps_end = self.eps_end
         eps_decay = self.eps_decay
 
-        return eps_end + (eps_start - eps_end) * math.exp(-1.0 * self.train_steps / eps_decay)
+        return eps_end + (eps_start - eps_end) * np.exp(-1.0 * self.train_steps / eps_decay)
 
     def train(self, memory, beta):
         """
@@ -119,10 +117,8 @@ class DDDQN(Controller):
         BATCH_SIZE = 128
         GAMMA = self.gamma
 
-        if len(memory) < BATCH_SIZE:
-            return 0
-
-        if len(memory) < 10000:  # Don't start training off of very initial memories
+        # Don't start training off of very initial memories
+        if len(memory) < max(BATCH_SIZE, 10000):
             return 0
 
         # Sample memory
