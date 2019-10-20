@@ -5,6 +5,7 @@ import numpy as np
 from rl_hockey.controller import Controller
 from rl_hockey.object.objects import StaticObject, DynamicObject, ControlledCircle
 from rl_hockey.object.shapes import LineShape, CircleShape
+from .player import Player
 
 
 class World:
@@ -36,7 +37,7 @@ class World:
     def __init__(self, world_size: List[int]):
         self.world_size = world_size
         self.obj_list: List[Union[StaticObject, DynamicObject, ControlledCircle, LineShape, CircleShape]] = list()
-        self.player_list: List[ControlledCircle] = list()
+        self.player_list: List[Player] = list()
         self.steps: int = 0
         self.cpu_controller: Controller = Controller()  # These will be set by set_cpu_controller.
         self.opp_controller: Controller = Controller()

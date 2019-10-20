@@ -1,9 +1,12 @@
-from .world import World
-from .player import Player
-from rl_hockey.object.objects import StaticObject, DynamicObject, ControlledCircle
-from rl_hockey.object.shapes import LineShape, CircleShape
+from typing import List
 
 import numpy as np
+
+from rl_hockey.object.objects import ControlledCircle, DynamicObject, StaticObject
+from rl_hockey.object.shapes import CircleShape, LineShape
+
+from .player import Player
+from .world import World
 
 
 class AirHockey(World):
@@ -22,13 +25,13 @@ class AirHockey(World):
         self.b = 20  # Buffer between walls and edge of world
         self.goal_width = 400
         self.goal_depth = 100
-        self.puck = None  # Will contain the puck
+        self.puck: DynamicObject = None  # Will contain the puck
         self.heuristic_flag = 0  # Used by heuristic controller for right agent
         self.score_scale = 10  # Scales the rewards
         self.num_cpu = 1  # Only one cpu is being trained here
         self.reset()
 
-    def reset(self):
+    def reset(self) -> None:
         """
         Reinitialize the world
         """
@@ -192,7 +195,7 @@ class AirHockey(World):
         )
         self.obj_list.append(self.puck)
 
-    def update_score(self):
+    def update_score(self) -> None:
         """
         Calculate a new score for this world. Scores for each agent are based on the distance of the puck to the
         opposing goal. A large score bonus or penalty is assigned when a goal is scored.
@@ -222,7 +225,7 @@ class AirHockey(World):
         self.player_list[0].score = self.player_list[0].score * self.score_scale
         self.player_list[1].score = self.player_list[1].score * self.score_scale
 
-    def terminate_run(self):
+    def terminate_run(self) -> bool:
         """
         Run is terminated if either team scores a goal. The ball also occasionally escapes from the walls of the
         world due to an imperfect physics engine. The run is also terminated when this occurs.
@@ -239,10 +242,9 @@ class AirHockey(World):
             or puck_x[1] > h
         ):
             return True
-        else:
-            return False
+        return False
 
-    def get_state(self):
+    def get_state(self) -> List[np.ndarray]:
 
         """
         Get state for each player. This includes each player's position and velocity, the pucks position and velocity,
@@ -278,7 +280,7 @@ class AirHockey(World):
 
         return [p1_state / 1000, p2_state / 1000]  # Scale values by size of world.
 
-    def get_action_heuristic(self, state=None):
+    def get_action_heuristic(self, state: List[np.ndarray] = None) -> np.ndarray:
         """
         This is a heuristic control for player 2 (bot going right-to-left).
 

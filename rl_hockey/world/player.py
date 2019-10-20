@@ -11,8 +11,8 @@ class Player:
 
     def __init__(
         self,
-        obj: ControlledCircle,
-        control_func: Callable,
+        obj,
+        control_func,
         control_map: Dict[int, str],
         score: int = 0,
         last_action: int = -1,
