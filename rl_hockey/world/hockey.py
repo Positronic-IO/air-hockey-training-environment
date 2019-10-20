@@ -17,7 +17,7 @@ class AirHockey(World):
     def __init__(self, self_play: bool = False):
 
         super(AirHockey, self).__init__(world_size=[2000, 1000])
-        
+
         self.heuristic = not self_play
         self.b = 20  # Buffer between walls and edge of world
         self.goal_width = 400

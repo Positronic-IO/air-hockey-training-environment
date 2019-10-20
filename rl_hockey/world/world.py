@@ -1,5 +1,10 @@
-from rl_hockey.controller import Controller
+from typing import Any, Callable, Dict, List, Union
+
 import numpy as np
+
+from rl_hockey.controller import Controller
+from rl_hockey.object.objects import StaticObject, DynamicObject, ControlledCircle
+from rl_hockey.object.shapes import LineShape, CircleShape
 
 
 class World:
@@ -17,17 +22,27 @@ class World:
     -get_num_actions() returns the number of actions available to each agent
     """
 
-    def __init__(self, world_size):
+    __slots__: List[str] = [
+        "world_size",
+        "obj_list",
+        "player_list",
+        "steps",
+        "control_map",
+        "cpu_controller",
+        "opp_controller",
+        "num_cpu",
+    ]
+
+    def __init__(self, world_size: List[int]):
         self.world_size = world_size
-        self.obj_list = []
-        self.player_list = []
-        self.steps = 0
-        self.control_map = {}
-        self.cpu_controller = Controller()  # These will be set by set_cpu_controller.
-        self.opp_controller = Controller()
-        self.num_cpu = 1
-        
-        self.control_map = [
+        self.obj_list: List[Union[StaticObject, DynamicObject, ControlledCircle, LineShape, CircleShape]] = list()
+        self.player_list: List[ControlledCircle] = list()
+        self.steps: int = 0
+        self.cpu_controller: Controller = Controller()  # These will be set by set_cpu_controller.
+        self.opp_controller: Controller = Controller()
+        self.num_cpu: int = 1
+
+        self.control_map: List[Dict[int, str]] = [
             {
                 0: "",  # Map from controller outputs to inputs used by ControlledCircle object
                 1: "UP",  # First is for left player
@@ -51,7 +66,6 @@ class World:
                 8: "UP RIGHT",
             },
         ]
-        return
 
     def get_object_list(self):
         return self.obj_list

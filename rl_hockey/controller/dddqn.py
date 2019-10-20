@@ -1,5 +1,8 @@
+# Initiate Logger
+import logging
 import math
 import random
+from typing import Optional
 
 import numpy as np
 import torch
@@ -8,11 +11,10 @@ import torch.optim as optim
 
 from .controller import Controller
 
-# Initiate Logger
-import logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
+
 
 class DDDQN(Controller):
     """
@@ -27,16 +29,13 @@ class DDDQN(Controller):
     def __init__(self, device: str = "cuda"):
         super(DDDQN, self).__init__()
         self.device = torch.device(device)
-        self.train_steps = 0
+        self.train_steps: int = 0
 
         # These will get set when creating model
-        self.num_actions = 0
-        self.gamma = 0.99
-        self.eps_end = 0.1
-        self.eps_decay = 50_000
-        self.policy_net = None
-        self.target_net = None
-        self.optimizer = None
+        self.num_actions: int = 0
+        self.gamma: float = 0.99
+        self.eps_end: float = 0.1
+        self.eps_decay: float = 50_000
 
     def create_model(
         self,
