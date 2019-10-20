@@ -1,4 +1,5 @@
 import copy
+
 # Initiate Logger
 import logging
 import random
@@ -69,13 +70,10 @@ class SelfPlayController(Controller):
         """
 
         state = torch.tensor(state, dtype=torch.float32)
-        sample = random.random()
-        if sample > self.eps[self.current_network]:  # Use controller with chance (1-eps)
+        if random.random() > self.eps[self.current_network]:  # Use controller with chance (1-eps)
             with torch.no_grad():
                 return self.networks[self.current_network](state.to(self.device)).max(1)[1]
-        else:
-            return torch.tensor(
-                [random.randrange(self.networks[self.current_network].num_actions)],
-                device=self.device,
-                dtype=torch.long,
-            )
+
+        return torch.tensor(
+            [random.randrange(self.networks[self.current_network].num_actions)], device=self.device, dtype=torch.long
+        )
