@@ -54,25 +54,27 @@ def run(memory, world, numSteps=1500, canvas=None, root=None, draw_step=1, draw_
         rigid_body_physics(world, timestep)  # Move pieces
         world.update_score()  # Update world, including score
 
-        puck_location = tuple(world.puck.x)
-        left_location = tuple(world.player_list[0].obj.x)
-        right_location = tuple(world.player_list[1].obj.x)
-        redis.post(
-            {
-                "components": {
-                    "puck": {"location": puck_location},
-                    "robot": {"location": left_location},
-                    "opponent": {"location": right_location},
-                }
-            }
-        )
-
-        # Alert the positions and scores are different
-        redis.publish("position-update")
-        redis.publish("score-update")
-
         # Draw screen
         if canvas is not None and i % draw_step == 0:
+            
+            puck_location = tuple(world.puck.x)
+            left_location = tuple(world.player_list[0].obj.x)
+            right_location = tuple(world.player_list[1].obj.x)
+            redis.post(
+                {
+                    "components": {
+                        "puck": {"location": puck_location},
+                        "robot": {"location": left_location},
+                        "opponent": {"location": right_location},
+                    }
+                }
+            )
+    
+            # Alert the positions and scores are different
+            redis.publish("position-update")
+            redis.publish("score-update")
+
+
 
             # arr = world.get_state()
             arr = world.draw_world(high_scale=draw_scale)
