@@ -159,10 +159,7 @@ def line_circle_collision(line_obj, circle_obj):
     d2 = (p[0] - cx[0]) ** 2 + (p[1] - cx[1]) ** 2
 
     if d2 < cr ** 2:  # If true there is a collision between the two objects
-        if d2 == 0:
-            n = [1, 0]
-        else:
-            n = (p - cx) / np.sqrt(d2)
+        n = [1, 0] if d2 == 0 else (p - cx) / np.sqrt(d2)
 
         resolve_impact(circle_obj, line_obj, n, p)
 

@@ -39,6 +39,7 @@ def run(memory, world, numSteps=1500, canvas=None, root=None, draw_step=1, draw_
         rigid_body_physics(world, timestep)  # Move pieces
         world.update_score()  # Update world, including score
 
+        # Draw screen
         if canvas is not None and i % draw_step == 0:
 
             # arr = world.get_state()
