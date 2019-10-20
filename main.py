@@ -26,6 +26,7 @@ def signal_handler(sig, frame):
 
 
 torch.manual_seed(0)
+np.random.seed(1)
 
 if __name__ == "__main__":
     from argparse import ArgumentParser
@@ -55,7 +56,7 @@ if __name__ == "__main__":
     parser.add_argument("--self_play", action="store_true", help="World to use, available worlds")
 
     args = parser.parse_args()
-    logger.info(f"Environment config:\n {json.dumps(vars(args), indent=4)}")  # Print config
+    # logger.info(f"Environment config:\n {json.dumps(vars(args), indent=4)}")  # Print config
 
     # args.prev_model = "./models/06_20_Hockey_1v1"
     # Register ability to kill the game --- gracefully
