@@ -33,10 +33,7 @@ if __name__ == "__main__":
 
     parser = ArgumentParser()
     parser.add_argument(
-        "--prev_model",
-        type=str,
-        default="",
-        help="If no previous model is set then a new one is created",
+        "--prev_model", type=str, default="", help="If no previous model is set then a new one is created"
     )
     parser.add_argument("--num_iterations", type=int, default=200000, help="Number of iterations that will be run")
     parser.add_argument(
