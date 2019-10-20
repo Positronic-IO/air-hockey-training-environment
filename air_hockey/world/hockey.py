@@ -7,7 +7,14 @@ from air_hockey.object.shapes import CircleShape, LineShape
 
 from .player import Player
 from .world import World
+from air_hockey.connect import RedisConnection
 
+import logging
+
+# Initiate Logger
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 class AirHockey(World):
     """
@@ -19,22 +26,27 @@ class AirHockey(World):
 
     def __init__(self, self_play: bool = False):
 
-        super(AirHockey, self).__init__(world_size=[2000, 1000])
+        super(AirHockey, self).__init__(world_size=[900, 480])
 
         self.heuristic = not self_play
-        self.b = 20  # Buffer between walls and edge of world
-        self.goal_width = 400
-        self.goal_depth = 100
+        self.b = 5  # Buffer between walls and edge of world
+        self.goal_width = 2 * 95
+        self.goal_depth = 20
         self.puck = None  # Will contain the puck
         self.heuristic_flag = 0  # Used by heuristic controller for right agent
         self.score_scale = 10  # Scales the rewards
         self.num_cpu = 1  # Only one cpu is being trained here
         self.reset()
+        # self.reset(total=True)
+        # self.redis = RedisConnection()
 
-    def reset(self) -> None:
+    def reset(self, total: bool = False) -> None:
         """
         Reinitialize the world
         """
+        if total:
+            self.left_score = self.right_score = 0
+
         self.obj_list = []
         self.heuristic_flag = 0  # Used by heuristic controller
 
@@ -185,7 +197,7 @@ class AirHockey(World):
         self.puck = DynamicObject(
             shape=CircleShape,
             x=[0.5 * w, (0.25 + 0.5 * np.random.rand()) * h],
-            r=40,
+            r=15,
             ang=0,
             mass=0.2,
             max_v=400,
@@ -217,10 +229,16 @@ class AirHockey(World):
         if puck_x[0] > w - self.b - self.goal_depth + self.puck.shape.r:  # Left player (p1) scored
             self.player_list[0].score = self.player_list[0].score + 1
             self.player_list[1].score = self.player_list[1].score - 1
+            # self.left_score += 1
+            # self.reset()
+            # logger.info(f"Left score {self.left_score} | Right score {self.right_score}")
 
         if puck_x[0] < self.b + self.goal_depth - self.puck.shape.r:  # Right player (p2) scored
             self.player_list[0].score = self.player_list[0].score - 1
             self.player_list[1].score = self.player_list[1].score + 1
+            # self.right_score += 1
+            # self.reset()
+            # logger.info(f"Left score {self.left_score} | Right score {self.right_score}")
 
         self.player_list[0].score = self.player_list[0].score * self.score_scale
         self.player_list[1].score = self.player_list[1].score * self.score_scale
