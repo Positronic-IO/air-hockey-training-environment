@@ -1,12 +1,13 @@
+import copy
+# Initiate Logger
+import logging
 import random
+from typing import List
 
 import torch
-import copy
 
 from .controller import Controller
 
-# Initiate Logger
-import logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -17,6 +18,8 @@ class SelfPlayController(Controller):
     When self play training is used periodic snapshots are taken of the model while it is training. The N most recent
     snapshots are stored in this class. The training model will then compete against one of these models each iteration.
     """
+
+    __slots__: List[str] = ["device", "num_actions", "eps", "num_hist", "next_remove", "current_network"]
 
     def __init__(self, num_actions):
         super(SelfPlayController, self).__init__()

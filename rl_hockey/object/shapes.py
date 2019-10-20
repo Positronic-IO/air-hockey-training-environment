@@ -1,10 +1,13 @@
 import numpy as np
+from typing import List
 
 
 class BaseShape:
     """
     Parent class for Shapes. Every shape will include an x-position, angle, and color used when rendering.
     """
+
+    __slots__: List[str] = ["x", "ang", "color"]
 
     def __init__(self, x, ang, color=None):
         self.x = np.squeeze(np.array(x))

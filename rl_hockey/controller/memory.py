@@ -1,3 +1,5 @@
+from typing import List
+
 import numpy as np
 
 
@@ -10,6 +12,8 @@ class NaivePrioritizedBuffer(object):
     This class is taken from the following repository by Dulat Yerzat: https://github.com/higgsfield/RL-Adventure
     which was based on Schaul et al. "Prioritized Replay Memory" (2015) https://arxiv.org/abs/1511.05952
     """
+
+    __slots__: List[str] = ["prob_alpha", "capacity", "buffer", "pos", "priorities"]
 
     def __init__(self, capacity: int, prob_alpha=0.6):
         self.prob_alpha = prob_alpha

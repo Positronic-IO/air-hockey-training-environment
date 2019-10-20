@@ -2,7 +2,7 @@
 import logging
 import math
 import random
-from typing import Optional
+from typing import List, Optional
 
 import numpy as np
 import torch
@@ -25,6 +25,8 @@ class DDDQN(Controller):
     The DQN tutorial by Adam Paszke (https://github.com/apaszke)
     Double DQN was proposed by van Hasselt et al. "Deep Reinforcement Learning with Double Q-learning" (2015) https://arxiv.org/abs/1509.06461
     """
+
+    __slots__: List[str] = ["device", "train_steps", "num_actions", "eps_end", "eps_decay"]
 
     def __init__(self, device: str = "cuda"):
         super(DDDQN, self).__init__()

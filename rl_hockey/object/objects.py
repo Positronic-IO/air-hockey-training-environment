@@ -1,4 +1,5 @@
 import numpy as np
+from typing import List
 
 
 class BaseObject:
@@ -9,6 +10,8 @@ class BaseObject:
     In addition to this, every object contains several additional properties describing its state and
     attributes necessary for the physics engine (velocity, force acting on object, mass, etc.)
     """
+
+    __slots__: List[str] = ["v", "f", "w", "torque", "mass", "cor", "max_v", "max_w", "ignore_physics", "tau"]
 
     def __init__(
         self, shape, v=None, max_v=400, w=0, max_w=3.1415, mass=1, cor=0.8, tau=1000, ignore_physics=False, **kwargs
