@@ -25,7 +25,7 @@ class AirHockey(World):
         self.b = 20  # Buffer between walls and edge of world
         self.goal_width = 400
         self.goal_depth = 100
-        self.puck: DynamicObject = None  # Will contain the puck
+        self.puck = None  # Will contain the puck
         self.heuristic_flag = 0  # Used by heuristic controller for right agent
         self.score_scale = 10  # Scales the rewards
         self.num_cpu = 1  # Only one cpu is being trained here
